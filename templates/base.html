@@ -1,0 +1,386 @@
+{% load static %}
+{% csrf_token %}
+
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caronas</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+    
+    .modal.fade .modal-dialog {
+        transform: translateY(20px) scale(0.97);
+        transition: all 0.3s ease-out;
+    }
+
+    .modal.fade.show .modal-dialog {
+        transform: translateY(0) scale(1);
+    }
+    /* --- Modal Styling --- */
+    #messageModalContent {
+        border: none;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+        background: #fff;
+    }
+
+    .msg-icon {
+        font-size: 70px;
+        margin-top: 10px;
+        margin-bottom: 8px;
+    }
+
+    .msg-text {
+        font-size: 1.15rem;
+        font-weight: 600;
+        padding: 0 20px;
+        margin-bottom: 10px;
+    }
+
+    /* Coloring by modal type */
+    .modal-success .msg-icon { color: #198754; }
+    .modal-warning .msg-icon { color: #ffc107; }
+    .modal-danger  .msg-icon { color: #dc3545; }
+    .modal-secondary .msg-icon { color: #0d6efd; }
+
+    /* Button size unified */
+    #btnModalOk, #btnMinhasCaronas {
+        font-size: 1.05rem;
+        padding: 10px 32px;
+        font-weight: 600;
+        border-radius: 10px;
+    }
+
+    /* Colors for OK button */
+    .modal-success #btnModalOk {
+        background-color: #198754; color: #fff; border: none;
+    }
+    .modal-success #btnModalOk:hover { background-color: #157347; }
+
+    .modal-warning #btnModalOk {
+        background-color: #ffc107; color: #000; border: none;
+    }
+    .modal-warning #btnModalOk:hover { background-color: #e0a800; }
+
+    .modal-danger #btnModalOk {
+        background-color: #dc3545; color: #fff; border: none;
+    }
+    .modal-danger #btnModalOk:hover { background-color: #bb2d3b; }
+
+    /* Button Minhas Caronas */
+    .modal-success #btnMinhasCaronas {
+        border-color: #198754;
+        color: #198754;
+    }
+    .modal-success #btnMinhasCaronas:hover {
+        background-color: #198754;
+        color: #fff;
+    }
+
+    /* Hide by default – JS shows only for success */
+    #btnMinhasCaronas { display: none; }
+
+        .pulse-badge {
+        animation: pulse 1.2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: translate(-50%, -50%) scale(1);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.6);
+        }
+        70% {
+            transform: translate(-50%, -50%) scale(1.12);
+            box-shadow: 0 0 8px 6px rgba(220, 53, 69, 0);
+        }
+        100% {
+            transform: translate(-50%, -50%) scale(1);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+        }
+    }
+    </style>
+
+</head>
+
+
+<body class="bg-light" {% block body_data %}{% endblock %}>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom mt-2 mb-4">
+    <div class="container">
+
+        <!-- LOGO -->
+        <a class="navbar-brand fw-bold" href="{% url 'lista_caronas' %}">
+            Caronas
+        </a>
+
+        <!-- BOTÃO MOBILE -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+
+            <!-- ESQUERDA -->
+            <ul class="navbar-nav me-auto">
+
+                <!-- ITEM: CARONAS VISÍVEL PARA TODOS -->
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'lista_caronas' %}">
+                        Buscar Caronas
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'historico_viagens' %}">
+                        Histórico
+                    </a>
+                </li>
+
+
+                {% if user.is_authenticated %}
+
+                <!-- PASSAGEIRO (DROPDOWN APENAS LOGADO) -->
+                <li class="nav-item dropdown position-relative">
+                    <a class="nav-link dropdown-toggle
+                        {% if qtd_notificacoes_passageiro > 0 %}text-warning fw-bold{% endif %}"
+                    href="#"
+                    id="passageiroMenu"
+                    role="button"
+                    data-bs-toggle="dropdown">
+
+                        Passageiro
+
+                        {% if qtd_notificacoes_passageiro > 0 %}
+                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
+                                {{ qtd_notificacoes_passageiro }}
+                            </span>
+                        {% endif %}
+                    </a>
+
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item
+                                {% if qtd_viagens_novas > 0 %}fw-bold text-warning{% endif %}"
+                            href="{% url 'minhas_viagens' %}">
+
+                                Minhas Viagens
+
+                                {% if qtd_viagens_novas > 0 %}
+                                    <span class="badge bg-danger ms-2">
+                                        {{ qtd_viagens_novas }}
+                                    </span>
+                                {% endif %}
+                            </a>
+                        </li>
+
+
+                        <li>
+                            <a class="dropdown-item
+                            {% if qtd_solicitacoes_novas > 0 %}fw-bold text-warning{% endif %}"
+                            href="{% url 'minhas_solicitacoes' %}">
+                                Minhas Solicitações
+
+                                {% if qtd_solicitacoes_novas > 0 %}
+                                    <span class="badge bg-danger ms-2">
+                                        {{ qtd_solicitacoes_novas }}
+                                    </span>
+                                {% endif %}
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+
+                <!-- MOTORISTA -->
+                <li class="nav-item dropdown position-relative">
+                    <a class="nav-link dropdown-toggle 
+                        {% if qtd_solicitacoes_pendentes > 0 %}text-warning fw-bold{% endif %}"
+                       href="#" id="motoristaMenu" role="button" data-bs-toggle="dropdown">
+                        Motorista
+                        {% if qtd_solicitacoes_pendentes > 0 %}
+                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
+                                {{ qtd_solicitacoes_pendentes }}
+                            </span>
+                        {% endif %}
+                    </a>
+
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'criar_carona' %}">Oferecer Carona</a></li>
+                        <li><a class="dropdown-item" href="{% url 'minhas_caronas' %}">Minhas Caronas</a></li>
+                        <li><a class="dropdown-item" href="{% url 'meus_veiculos' %}">Meus Veículos</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item 
+                                {% if qtd_solicitacoes_pendentes > 0 %}fw-bold text-warning{% endif %}"
+                               href="{% url 'gerenciar_solicitacoes' %}">
+                                Solicitações Recebidas
+                                {% if qtd_solicitacoes_pendentes > 0 %}
+                                    <span class="badge bg-danger ms-2">{{ qtd_solicitacoes_pendentes }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                {% else %}
+
+                <!-- VISITANTE – PASSAGEIRO COMO LINKS SOLTOS -->
+                <li class="nav-item">
+                    <a class="nav-link position-relative"
+                    id="nav-minhas-viagens"
+                    href="{% url 'minhas_viagens' %}">
+
+                        Minhas Viagens
+
+                        <span id="badge-viagens"
+                            class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill d-none">
+                            0
+                        </span>
+                    </a>
+                </li>
+
+
+                <li class="nav-item">
+                    <a class="nav-link position-relative" id="nav-minhas-solicitacoes"
+                    href="{% url 'minhas_solicitacoes' %}">
+                        Minhas Solicitações
+                        <span id="badge-solicitacoes"
+                            class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill d-none">
+                            0
+                        </span>
+                    </a>
+                </li>
+
+                {% endif %}
+            </ul>
+
+            <!-- DIREITA -->
+            <ul class="navbar-nav ms-auto align-items-center">
+
+                {% if user.is_authenticated %}
+
+                    <li class="nav-item me-3 d-none d-lg-block">
+                        {% if user.foto %}
+                            <img src="{{ user.foto.url }}" class="rounded-circle" width="38" height="38">
+                        {% else %}
+                            <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" width="38" height="38">
+                        {% endif %}
+                    </li>
+
+                    <li class="nav-item me-3 d-none d-lg-block">
+                        <a href="{% url 'perfil' %}" class="nav-link">Meu Perfil</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <form action="{% url 'logout' %}" method="post">
+                            {% csrf_token %}
+                            <button class="btn btn-danger">Sair</button>
+                        </form>
+                    </li>
+
+                {% else %}
+
+                    <li class="nav-item me-2">
+                        <a class="btn btn-outline-primary" href="{% url 'login' %}">Entrar</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="btn btn-primary" href="{% url 'signup' %}">Cadastrar</a>
+                    </li>
+
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+<div class="container mb-5">
+    {% block content %}{% endblock %}
+</div>
+
+{% if messages %}
+<div class="modal fade" id="messageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div id="messageModalContent" class="modal-content">
+
+            {% for message in messages %}
+            <div class="modal-body text-center modal-{{ message.tags }}">
+
+
+            {% if message.tags == "success" %}
+                <div class="msg-icon text-success"><i class="bi bi-check-circle-fill"></i></div>
+            {% elif message.tags == "error" %}
+                <div class="msg-icon text-danger"><i class="bi bi-x-circle-fill"></i></div>
+            {% elif message.tags == "warning" %}
+                <div class="msg-icon text-warning"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            {% else %}
+                <div class="msg-icon text-primary"><i class="bi bi-info-circle-fill"></i></div>
+            {% endif %}
+
+                <p id="messageModalText" class="msg-text">{{ message }}</p>
+
+            </div>
+            {% endfor %}
+
+            <div class="modal-footer justify-content-center gap-3">
+                <a id="btnMinhasCaronas" href="{% url 'minhas_caronas' %}" class="btn btn-outline-success">
+                    Minhas Caronas
+                </a>
+
+                <button id="btnModalOk" class="btn btn-primary"
+                        data-bs-dismiss="modal">OK</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const modalElement = document.getElementById("messageModal");
+    if (!modalElement) return;
+
+    const modal = new bootstrap.Modal(modalElement);
+
+    const modalMessageText = modalElement.querySelector(".msg-text");
+    if (!modalMessageText) return;
+
+    let level = "";
+    const levelClasses = ["success", "error", "warning", "info"];
+    levelClasses.forEach(lvl => {
+        if (modalElement.querySelector(".modal-" + lvl)) level = lvl;
+    });
+
+    if (level === "") level = "secondary";
+    if (level === "error") level = "danger";
+
+    document.getElementById("messageModalContent")
+        .classList.add("modal-" + level);
+
+    if (level === "success") {
+        const btnCar = document.getElementById("btnMinhasCaronas");
+        if (btnCar) btnCar.style.display = "inline-block";
+    }
+
+    modal.show();
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/storage.js' %}"></script>
+<script src="{% static 'js/notificacoes.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

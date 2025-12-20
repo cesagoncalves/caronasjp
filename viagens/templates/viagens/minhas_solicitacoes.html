@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_data %}
+data-page="solicitacoes-local"
+{% endblock %}
+
+
+{% block content %}
+
+
+<div class="container mt-4">
+
+    <h2 class="mb-4 fw-bold">Minhas Solicitações</h2>
+
+    {% if modo == 'bd' %}
+        {% if solicitacoes %}
+            <div class="row g-3">
+
+                {% for s in solicitacoes %}
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between flex-wrap mb-2">
+                                <h5 class="card-title mb-0">
+                                    Carona para <strong>{{ s.carona.destino }}</strong>
+                                </h5>
+                                <span class="badge 
+                                    {% if s.status == 'pendente' %} bg-warning text-dark
+                                    {% elif s.status == 'aceita' %} bg-success
+                                    {% else %} bg-danger
+                                    {% endif %}">
+                                    {{ s.get_status_display }}
+                                </span>
+                            </div>
+
+                            <p class="mb-1 text-muted">
+                                Solicitado em: {{ s.data_solicitacao|date:"d/m/Y H:i" }}
+                            </p>
+
+                            <p class="mb-1"><strong>Quantidade:</strong> {{ s.quantidade }}</p>
+                            <p class="mb-2"><strong>Motorista:</strong> {{ s.carona.motorista.nome_completo }}</p>
+
+                            <hr>
+
+                            <div class="d-flex justify-content-between align-items-center">
+
+                                <a href="" class="btn btn-outline-primary btn-sm">
+                                    Ver Carona
+                                </a>
+
+                                {% if s.status == 'pendente' %}
+                                <form action="{% url 'cancelar_solicitacao' s.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        Cancelar Solicitação
+                                    </button>
+                                </form>
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+            <div class="alert alert-info text-center">
+                Você ainda não fez nenhuma solicitação.
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if modo == 'local' %}
+        <div id="lista-solicitacoes"></div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/solicitacoes.js' %}"></script>
+{% endblock %}
+

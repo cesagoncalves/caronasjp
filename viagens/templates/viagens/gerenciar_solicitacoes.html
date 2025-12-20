@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="mb-4">Solicitações Pendentes</h2>
+
+    {% if solicitacoes %}
+        {% for s in solicitacoes %}
+        <div class="card mb-3 p-3 shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+
+                <!-- Foto do usuário ou imagem padrão -->
+                {% if s.solicitante and s.solicitante.foto %}
+                    <img src="{{ s.solicitante.foto.url }}" class="rounded-circle" width="60">
+                {% else %}
+                    <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" width="60">
+                {% endif %}
+
+                <div>
+                    <strong>
+                        {{ s.solicitante.nome_curto|default:s.nome_solicitante }}
+                    </strong><br>
+
+                    📱 {{ s.solicitante.telefone|default:s.telefone_solicitante }}<br>
+                    🚗 Pedindo {{ s.quantidade }} vaga(s)<br>
+                    ⏱ {{ s.data_solicitacao|date:"d/m/Y H:i" }}<br>
+                    🛣 Carona: {{ s.carona.origem }} → {{ s.carona.destino }} às {{ s.carona.hora }}
+                </div>
+            </div>
+
+            <div class="mt-3">
+                {% if s.status == "pendente" %}
+                    <a href="{% url 'aceitar_solicitacao' s.id %}" class="btn btn-success btn-sm">Aceitar</a>
+                    <a href="{% url 'recusar_solicitacao' s.id %}" class="btn btn-danger btn-sm">Recusar</a>
+                {% else %}
+                    <span class="badge 
+                        {% if s.status == 'aceita' %}bg-success
+                        {% elif s.status == 'recusada' %}bg-danger
+                        {% else %}bg-secondary{% endif %}">
+                        {{ s.get_status_display }}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-center mt-4 text-muted">Nenhuma solicitação pendente no momento 💤</p>
+    {% endif %}
+
+</div>
+{% endblock %}

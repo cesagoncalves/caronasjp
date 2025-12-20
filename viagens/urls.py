@@ -1,0 +1,24 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.lista_caronas, name='lista_caronas'),
+    path('nova/', views.criar_carona, name='criar_carona'),
+    path('caronas/<int:carona_id>/editar/', views.editar_carona, name='editar_carona'),
+    path('caronas/<int:carona_id>/excluir/', views.excluir_carona, name='excluir_carona'),
+    path("caronas/<int:carona_id>/solicitar/", views.solicitar_vaga, name="solicitar_vaga"),
+    path("solicitacoes/", views.gerenciar_solicitacoes, name="gerenciar_solicitacoes"),
+    path("solicitacao/<int:solicitacao_id>/aceitar/", views.aceitar_solicitacao, name="aceitar_solicitacao"),
+    path("solicitacao/<int:solicitacao_id>/recusar/", views.recusar_solicitacao, name="recusar_solicitacao"),
+    path('cancelar/<int:id>/', views.cancelar_solicitacao, name='cancelar_solicitacao'),
+    path('minhas-solicitacoes/', views.minhas_solicitacoes, name='minhas_solicitacoes'),
+    path('minhas-viagens/', views.minhas_viagens, name='minhas_viagens'),
+    path("api/status-solicitacoes/", views.api_status_solicitacoes, name="api_status_solicitacoes"),
+    path("cancelar-solicitacao-publica/<int:id>/",views.cancelar_solicitacao_publica, name="cancelar_solicitacao_publica"),
+    path("meus-veiculos/", views.meus_veiculos, name="meus_veiculos"),
+    path("veiculos/criar/", views.criar_veiculo, name="criar_veiculo"),
+    path("veiculos/<int:veiculo_id>/editar/", views.editar_veiculo, name="editar_veiculo"),
+    path("veiculos/<int:veiculo_id>/excluir/", views.excluir_veiculo, name="excluir_veiculo"),
+    path('historico/', views.historico_viagens, name='historico_viagens'), 
+    path('carona/<int:carona_id>/concluir/', views.concluir_carona, name='concluir_carona'),
+]

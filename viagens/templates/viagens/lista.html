@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<a href="{% url 'criar_carona' %}" class="btn btn-success mb-3 w-100">
+    Oferecer Carona
+</a>
+
+<h2 class="mb-3 text-center">Filtrar Caronas</h2>
+
+<form method="GET" class="card p-3 mb-4 shadow-sm">
+    <div class="row gx-2 gy-2 align-items-end">
+        <div class="col-12 col-md-3">
+            <input type="text" name="origem" placeholder="Origem"
+                   class="form-control" value="{{ origem }}">
+        </div>
+        <div class="col-12 col-md-3">
+            <input type="text" name="destino" placeholder="Destino"
+                   class="form-control" value="{{ destino }}">
+        </div>
+        <div class="col-12 col-md-3">
+            <input type="date" name="data"
+                   class="form-control" value="{{ data }}">
+        </div>
+        <div class="col-12 col-md-3 text-md-end">
+            <a href="/" class="btn btn-outline-danger w-100">
+                <i class="bi bi-trash"></i> Limpar Filtros
+            </a>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-12">
+            <button class="btn btn-primary w-100">Filtrar</button>
+        </div>
+    </div>
+</form>
+
+<h2 class="mb-3 text-center">Caronas Disponíveis</h2>
+
+{% for carona in caronas %}
+<div class="card mb-3 shadow-sm position-relative card-clickable"
+     data-bs-toggle="modal"
+     data-bs-target="#modalCarona{{ carona.id }}"
+     style="cursor: pointer;">
+
+    <div class="card-body">
+
+        <!-- Foto + Nome do motorista -->
+        <div class="position-absolute top-0 end-0 text-end p-2">
+            {% if carona.motorista.foto %}
+                <img src="{{ carona.motorista.foto.url }}"
+                     class="rounded-circle shadow-sm mb-1"
+                     width="48" height="48" style="object-fit: cover;">
+            {% else %}
+                <img src="{% static 'img/avatar_padrao.jpg' %}"
+                     class="rounded-circle shadow-sm mb-1"
+                     width="48" height="48" style="object-fit: cover;">
+            {% endif %}
+
+            <p class="small fw-semibold mb-0">
+                {{ carona.motorista.nome_curto }}
+            </p>
+
+            {% if carona.motorista == request.user %}
+            <div class="d-flex justify-content-end gap-2 mt-1">
+
+                <a href="{% url 'editar_carona' carona.id %}"
+                   class="btn btn-warning btn-sm rounded-circle p-1"
+                   style="width: 34px; height: 34px;">
+                    <i class="bi bi-pencil-fill"></i>
+                </a>
+
+                <a href="{% url 'excluir_carona' carona.id %}"
+                   class="btn btn-danger btn-sm rounded-circle p-1"
+                   style="width: 34px; height: 34px;">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- RESUMO DA CARONA (PARTIAL) -->
+        {% include "viagens/partials/card_carona_info.html" %}
+
+        <!-- Ação -->
+        <div class="d-grid gap-2 mt-3">
+            <button
+                class="btn btn-outline-primary mt-2"
+                onclick="event.stopPropagation()"
+                data-bs-toggle="modal"
+                data-bs-target="#modalCarona{{ carona.id }}">
+                <i class="bi bi-eye"></i> Ver detalhes
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL DA CARONA -->
+{% include "viagens/modals/modal_detalhe_carona.html" %}
+
+{% empty %}
+<p class="text-center">Nenhuma carona disponível no momento.</p>
+{% endfor %}
+
+{% endblock %}

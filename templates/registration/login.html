@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="card shadow-lg p-4" style="width: 100%; max-width: 420px;">
+        <h3 class="text-center mb-3">Entrar</h3>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    Usuário ou senha incorretos. Tente novamente.
+                </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                {{ form.username }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Senha</label>
+                {{ form.password }}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mb-2">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Entrar
+            </button>
+
+            <a href="{% url 'signup' %}" class="btn btn-outline-secondary w-100">
+                Criar uma conta
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

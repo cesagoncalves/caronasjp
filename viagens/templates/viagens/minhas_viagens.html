@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_data %}
+data-page="viagens-local"
+{% endblock %}
+
+
+
+{% block content %}
+
+
+<div class="container mt-4">
+
+    <h2 class="mb-4 fw-bold">Minhas Viagens</h2>
+
+
+    {% if modo == 'bd' %}
+        {% if viagens %}
+            <div class="row g-3">
+
+                {% for v in viagens %}
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card-body">
+
+                            <h5 class="card-title">
+                                Viagem para <strong>{{ v.carona.destino }}</strong>
+                            </h5>
+
+                            <p class="mb-1">
+                                <strong>Saída:</strong>
+                                {{ v.carona.data|date:"d/m/Y" }} às {{ v.carona.hora|time:"H:i" }}
+                            </p>
+
+                            <p class="mb-1">
+                                <strong>Local:</strong> {{ v.carona.origem }}
+                            </p>
+
+                            <p class="mb-1">
+                                <strong>Motorista:</strong> {{ v.carona.motorista.nome_curto }}
+                            </p>
+
+                            <p class="mb-2">
+                                <strong>Quantidade que você pediu:</strong> {{ v.quantidade }}
+                            </p>
+
+                            <hr>
+
+                            <a href="" class="btn btn-primary btn-sm">
+                                Ver detalhes da carona
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+            <div class="alert alert-info text-center">
+                Você ainda não tem viagens aceitas.
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if modo == 'local' %}
+        <div id="lista-viagens"></div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/viagens.js' %}"></script>
+{% endblock %}

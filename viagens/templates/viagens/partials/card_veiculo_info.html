@@ -1,0 +1,23 @@
+<h5 class="mb-2">
+    {% if veiculo.tipo == "carro" %}
+        <i class="bi bi-car-front-fill me-2 text-primary"></i>
+    {% elif veiculo.tipo == "moto" %}
+        <i class="bi bi-bicycle me-2 text-primary"></i>
+    {% elif veiculo.tipo == "van" %}
+        <i class="bi bi-truck-front-fill me-2 text-primary"></i>
+    {% else %}
+        <i class="bi bi-bus-front-fill me-2 text-primary"></i>
+    {% endif %}
+
+    {{ veiculo.marca }} {{ veiculo.modelo }}
+</h5>
+
+<p class="mb-1 text-muted">
+    <i class="bi bi-calendar me-2"></i>
+    {{ veiculo.ano }} · {{ veiculo.cor }}
+</p>
+
+<p class="mb-0 text-muted">
+    <i class="bi bi-tag-fill me-2"></i>
+    {{ veiculo.get_tipo_display }}
+</p>

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+
+        <div class="card shadow-sm rounded-4">
+            <div class="card-header bg-primary text-white rounded-top-4">
+                <h4 class="mb-0">
+                    <i class="bi bi-pencil-square me-2"></i>
+                    Editar Carona
+                </h4>
+            </div>
+
+            <div class="card-body p-4">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Origem -->
+                    <div class="mb-3">
+                        <label class="form-label">Origem</label>
+                        {{ form.origem }}
+                    </div>
+
+                    <!-- Destino -->
+                    <div class="mb-3">
+                        <label class="form-label">Destino</label>
+                        {{ form.destino }}
+                    </div>
+
+                    <!-- Data e Hora -->
+                    <div class="mb-3">
+                        <label class="form-label">Data e Hora</label>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                {{ form.data }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.hora }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vagas -->
+                    <div class="mb-3">
+                        <label class="form-label">Quantidade de vagas</label>
+                        {{ form.vagas }}
+                    </div>
+
+                    <!-- Tipo de valor -->
+                    <div class="mb-3">
+                        <label class="form-label">Valor da passagem</label>
+                        {{ form.tipo_valor }}
+                    </div>
+
+                    <!-- Valor -->
+                    <div class="mb-4" id="campo-valor">
+                        {{ form.valor }}
+                        <small class="text-muted">
+                            Preencha apenas se o valor for em dinheiro
+                        </small>
+                    </div>
+
+                    <!-- Veículo -->
+                    <div class="mb-3">
+                        <label class="form-label">Veículo</label>
+
+                        <div class="d-flex gap-2">
+                            {{ form.veiculo }}
+
+                            <button type="button"
+                                    class="btn btn-outline-primary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalCriarVeiculo">
+                                <i class="bi bi-plus-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Botões -->
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success flex-fill btn-lg">
+                            <i class="bi bi-check-circle"></i> Salvar Alterações
+                        </button>
+
+                        <a href="{% url 'minhas_caronas' %}"
+                           class="btn btn-outline-secondary flex-fill btn-lg">
+                            Cancelar
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- 🔥 MODAL DE CRIAR VEÍCULO (IGUAL AO CRIAR CARONA) -->
+{% include "viagens/modals/modal_criar_veiculo.html" %}
+
+{% endblock %}

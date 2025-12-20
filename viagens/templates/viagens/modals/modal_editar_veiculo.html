@@ -1,0 +1,101 @@
+<div class="modal fade" id="modalEditarVeiculo{{ veiculo.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow">
+
+            <div class="modal-header bg-primary text-white rounded-top-4">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square me-2"></i>
+                    Editar Veículo
+                </h5>
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="POST" action="{% url 'editar_veiculo' veiculo.id %}">
+                {% csrf_token %}
+
+                <div class="modal-body">
+
+                    <!-- TIPO -->
+                    <label class="form-label fw-semibold mb-2">
+                        Tipo de veículo
+                    </label>
+
+                    <div class="d-flex justify-content-between gap-2 mb-4">
+
+                        {% for value, label in veiculo.TIPO_CHOICES %}
+                        <input type="radio"
+                               class="btn-check"
+                               name="tipo"
+                               id="tipo_{{ value }}_{{ veiculo.id }}"
+                               value="{{ value }}"
+                               {% if veiculo.tipo == value %}checked{% endif %}>
+
+                        <label class="btn btn-outline-primary flex-fill text-center"
+                               for="tipo_{{ value }}_{{ veiculo.id }}">
+                            {% if value == "carro" %}
+                                <i class="bi bi-car-front-fill fs-3 d-block"></i>
+                            {% elif value == "moto" %}
+                                <i class="bi bi-bicycle fs-3 d-block"></i>
+                            {% elif value == "van" %}
+                                <i class="bi bi-truck-front-fill fs-3 d-block"></i>
+                            {% else %}
+                                <i class="bi bi-bus-front-fill fs-3 d-block"></i>
+                            {% endif %}
+                            <small>{{ label }}</small>
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                    <!-- CAMPOS -->
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Marca</label>
+                            <input type="text" name="marca"
+                                   class="form-control form-control-lg"
+                                   value="{{ veiculo.marca }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Modelo</label>
+                            <input type="text" name="modelo"
+                                   class="form-control form-control-lg"
+                                   value="{{ veiculo.modelo }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Cor</label>
+                            <input type="text" name="cor"
+                                   class="form-control form-control-lg"
+                                   value="{{ veiculo.cor }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Ano</label>
+                            <input type="number" name="ano"
+                                   class="form-control form-control-lg"
+                                   value="{{ veiculo.ano }}">
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check-circle"></i> Salvar Alterações
+                    </button>
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>

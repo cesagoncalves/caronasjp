@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="container mt-4">
+    <h2>Meu Perfil</h2>
+    <div class="row mt-4">
+
+        <div class="col-md-4 text-center">
+            {% if user.foto %}
+                <img src="{{ user.foto.url }}" class="img-fluid rounded-circle shadow" style="width:180px; height:180px; object-fit: cover;">
+            {% else %}
+                <img src="{% static 'img/avatar_padrao.jpg' %}" class="img-fluid rounded-circle shadow" style="width:180px; height:180px; object-fit: cover;">
+            {% endif %}
+        </div>
+
+        <div class="col-md-8">
+            <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button class="btn btn-primary mt-2">Salvar alterações</button>
+            </form>
+
+            <a href="{% url 'alterar_senha' %}" class="btn btn-outline-secondary mt-3">Alterar senha</a>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

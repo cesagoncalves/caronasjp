@@ -1,0 +1,219 @@
+{% load static %}
+
+<div class="modal fade" id="modalCarona{{ carona.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content rounded-4 shadow">
+
+            <!-- HEADER -->
+            <div class="modal-header bg-primary text-white rounded-top-4">
+                <h5 class="modal-title">
+                    <i class="bi bi-car-front-fill me-2"></i>
+                    Detalhes da Carona
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body p-4">
+
+                <!-- Origem / Destino -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <h6 class="text-muted">Origem</h6>
+                        <p class="fs-5 fw-semibold mb-0">{{ carona.origem }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Destino</h6>
+                        <p class="fs-5 fw-semibold mb-0">{{ carona.destino }}</p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Data / Hora / Vagas -->
+                <div class="row text-center mb-4">
+                    {% if carona.aguardando_confirmacao > 0 %}
+                    <div class="mb-4">
+
+                        {% if user == carona.motorista %}
+                            <a href="{% url 'gerenciar_solicitacoes' %}"
+                            class="text-decoration-none">
+
+                                <div class="border border-warning rounded-3 p-3 text-center text-warning
+                                            hover-shadow"
+                                    style="cursor: pointer;">
+
+                                    <i class="bi bi-exclamation-circle fs-5 d-block mb-1"></i>
+
+                                    <strong>
+                                        {{ carona.aguardando_confirmacao }}
+                                    </strong>
+                                    solicitação(ões) aguardando sua confirmação
+
+                                    <div class="small mt-1 text-warning-emphasis">
+                                        Toque para gerenciar
+                                    </div>
+                                </div>
+
+                            </a>
+                        {% else %}
+                            <div class="border rounded-3 p-3 text-center text-muted">
+                                <i class="bi bi-hourglass-split fs-5 d-block mb-1"></i>
+                                {{ carona.aguardando_confirmacao }}
+                                pessoa(s) aguardando resposta do motorista
+                            </div>
+                        {% endif %}
+
+                    </div>
+                    {% endif %}
+
+
+                    <div class="col-4">
+                        <div class="border rounded-3 p-3 h-100">
+                            <i class="bi bi-calendar-event fs-3 text-primary"></i>
+                            <p class="fw-bold mb-0 mt-2">
+                                {{ carona.data|date:"d/m/Y" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="col-4">
+                        <div class="border rounded-3 p-3 h-100">
+                            <i class="bi bi-clock fs-3 text-primary"></i>
+                            <p class="fw-bold mb-0 mt-2">
+                                {{ carona.hora|time:"H:i" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="col-4">
+                        <div class="border rounded-3 p-3 h-100">
+                            <i class="bi bi-people fs-3 text-primary"></i>
+                            <p class="fw-bold mb-0 mt-2">
+                                {{ carona.vagas_restantes }} / {{ carona.vagas }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VEÍCULO -->
+                {% if carona.veiculo %}
+                <div class="border rounded-3 p-3 mb-4">
+                    <div class="d-flex align-items-center gap-3">
+
+                        <!-- Ícone por tipo -->
+                        <div class="fs-1 text-primary">
+                            {% if carona.veiculo.tipo == "carro" %}
+                                <i class="bi bi-car-front-fill"></i>
+                            {% elif carona.veiculo.tipo == "moto" %}
+                                <i class="bi bi-bicycle"></i>
+                            {% elif carona.veiculo.tipo == "van" %}
+                                <i class="bi bi-truck-front-fill"></i>
+                            {% elif carona.veiculo.tipo == "onibus" %}
+                                <i class="bi bi-bus-front-fill"></i>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <p class="fw-semibold mb-1">
+                                {{ carona.veiculo.marca }} {{ carona.veiculo.modelo }}
+                            </p>
+                            <p class="text-muted mb-0 small">
+                                {{ carona.veiculo.ano }} · {{ carona.veiculo.cor }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Valor -->
+                <div class="text-center mb-4">
+                    {% if carona.tipo_valor == "gratuita" %}
+                        <span class="badge bg-success fs-6 px-4 py-2">
+                            <i class="bi bi-gift me-2"></i> Gratuita
+                        </span>
+                    {% else %}
+                        <i class="bi bi-cash-coin fs-4 text-success me-2"></i>
+                        <span class="fs-5 fw-semibold">
+                            {{ carona.valor_exibicao }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <hr>
+
+                <!-- MOTORISTA -->
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    {% if carona.motorista.foto %}
+                        <img src="{{ carona.motorista.foto.url }}"
+                             class="rounded-circle"
+                             width="56" height="56">
+                    {% else %}
+                        <img src="{% static 'img/avatar_padrao.jpg' %}"
+                             class="rounded-circle"
+                             width="56" height="56">
+                    {% endif %}
+
+                    <div class="flex-grow-1">
+                        <p class="mb-1 text-muted small">Motorista</p>
+                        <p class="fw-semibold mb-1">
+                            {{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}
+                        </p>
+
+                        {% if carona.motorista.telefone %}
+                        <a href="tel:{{ carona.motorista.telefone }}"
+                           class="text-decoration-none text-primary fw-semibold">
+                            <i class="bi bi-telephone-fill me-1"></i>
+                            {{ carona.motorista.telefone }}
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="modal-footer justify-content-between flex-wrap gap-2">
+
+                {% if user == carona.motorista %}
+                    <div class="d-flex gap-2">
+                        {% if user == carona.motorista and carona.esta_concluida and carona.status == 'ativa' %}
+                        <a href="{% url 'concluir_carona' carona.id %}"
+                        class="btn btn-outline-success">
+                            <i class="bi bi-check-circle"></i>
+                            Marcar como concluída
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'editar_carona' carona.id %}"
+                           class="btn btn-outline-primary">
+                            <i class="bi bi-pencil-square"></i> Editar
+                        </a>
+                        <a href="{% url 'excluir_carona' carona.id %}"
+                           class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Excluir
+                        </a>
+                    </div>
+                {% else %}
+                    {% if carona.vagas_restantes > 0 %}
+                        <a href="{% url 'solicitar_vaga' carona.id %}"
+                           class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Solicitar vaga
+                        </a>
+                    {% else %}
+                        <span class="badge bg-danger fs-6 px-3 py-2">
+                            Sem vagas disponíveis
+                        </span>
+                    {% endif %}
+                {% endif %}
+
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+                    Fechar
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>

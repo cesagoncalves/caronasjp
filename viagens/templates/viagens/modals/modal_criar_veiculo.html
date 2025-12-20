@@ -1,0 +1,178 @@
+<div class="modal fade" id="modalCriarVeiculo" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow">
+
+            <!-- HEADER -->
+            <div class="modal-header bg-primary text-white rounded-top-4">
+                <h5 class="modal-title">
+                    <i class="bi bi-car-front-fill me-2"></i>
+                    Cadastrar Veículo
+                </h5>
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="POST"
+            action="{% url 'criar_veiculo' %}"
+            id="formCriarVeiculo">
+                {% csrf_token %}
+
+                <div class="modal-body">
+
+                    <!-- TIPO DE VEÍCULO -->
+                    <label class="form-label fw-semibold mb-2">
+                        Tipo de veículo
+                    </label>
+
+                    <div class="d-flex justify-content-between gap-2 mb-4">
+
+                        <input type="radio" class="btn-check"
+                               name="tipo" id="tipo_carro"
+                               value="carro" checked>
+                        <label class="btn btn-outline-primary flex-fill text-center"
+                               for="tipo_carro">
+                            <i class="bi bi-car-front-fill fs-3 d-block"></i>
+                            <small>Carro</small>
+                        </label>
+
+                        <input type="radio" class="btn-check"
+                               name="tipo" id="tipo_moto"
+                               value="moto">
+                        <label class="btn btn-outline-primary flex-fill text-center"
+                               for="tipo_moto">
+                            <i class="bi bi-bicycle fs-3 d-block"></i>
+                            <small>Moto</small>
+                        </label>
+
+                        <input type="radio" class="btn-check"
+                               name="tipo" id="tipo_van"
+                               value="van">
+                        <label class="btn btn-outline-primary flex-fill text-center"
+                               for="tipo_van">
+                            <i class="bi bi-truck-front-fill fs-3 d-block"></i>
+                            <small>Van</small>
+                        </label>
+
+                        <input type="radio" class="btn-check"
+                               name="tipo" id="tipo_onibus"
+                               value="onibus">
+                        <label class="btn btn-outline-primary flex-fill text-center"
+                               for="tipo_onibus">
+                            <i class="bi bi-bus-front-fill fs-3 d-block"></i>
+                            <small>Ônibus</small>
+                        </label>
+
+                    </div>
+
+                    <!-- CAMPOS -->
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Marca</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-tag-fill text-primary"></i>
+                                </span>
+                                {{ veiculo_form.marca }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Modelo</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-car-front-fill text-primary"></i>
+                                </span>
+                                {{ veiculo_form.modelo }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Cor</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-palette-fill text-primary"></i>
+                                </span>
+                                {{ veiculo_form.cor }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Ano</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-calendar-fill text-primary"></i>
+                                </span>
+                                {{ veiculo_form.ano }}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="alert alert-light border mt-4 mb-0 small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Para <strong>carro</strong> e <strong>moto</strong>, todos os campos são obrigatórios.
+                        Para <strong>van</strong> e <strong>ônibus</strong>, são opcionais.
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check-circle"></i> Salvar
+                    </button>
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const form = document.getElementById('formCriarVeiculo');
+    if (!form) return;
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.id) {
+                const select = document.getElementById('id_veiculo');
+
+                const option = document.createElement('option');
+                option.value = data.id;
+                option.textContent = data.label;
+                option.selected = true;
+
+                select.appendChild(option);
+
+                const modalEl = document.getElementById('modalCriarVeiculo');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                modal.hide();
+
+                form.reset();
+            }
+        });
+    });
+
+});
+</script>

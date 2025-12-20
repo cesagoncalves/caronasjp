@@ -1,0 +1,81 @@
+<!-- Informações resumidas da carona -->
+<h5 class="mb-3">
+    <i class="bi bi-geo-alt-fill me-2 text-primary"></i>
+    {{ carona.origem }} → {{ carona.destino }}
+</h5>
+
+<p class="mb-1">
+    <i class="bi bi-calendar-event me-2 text-primary"></i>
+    {{ carona.data|date:"d/m/Y" }}
+</p>
+
+<p class="mb-1">
+    <i class="bi bi-clock me-2 text-success"></i>
+    {{ carona.hora|time:"H:i" }}
+</p>
+
+<p class="mb-1">
+    <i class="bi bi-people-fill me-2 text-warning"></i>
+    {{ carona.vagas_restantes }} vagas restantes
+</p>
+
+<p class="mb-1">
+    <i class="bi bi-cash-coin me-2 text-info"></i>
+    {{ carona.valor_exibicao }}
+</p>
+
+{% if carona.veiculo %}
+<p class="mb-1">
+
+    {% if carona.veiculo.tipo == "carro" %}
+        <i class="bi bi-car-front-fill me-2 text-primary"></i>
+    {% elif carona.veiculo.tipo == "moto" %}
+        <i class="bi bi-bicycle me-2 text-primary"></i>
+    {% elif carona.veiculo.tipo == "van" %}
+        <i class="bi bi-truck-front-fill me-2 text-primary"></i>
+    {% elif carona.veiculo.tipo == "onibus" %}
+        <i class="bi bi-bus-front-fill me-2 text-primary"></i>
+    {% endif %}
+
+    <span>
+        {% if carona.veiculo.marca or carona.veiculo.modelo %}
+            {{ carona.veiculo.marca }} {{ carona.veiculo.modelo }}
+        {% else %}
+            <span class="text-muted">Veículo não especificado</span>
+        {% endif %}
+
+        {% if carona.veiculo.ano or carona.veiculo.cor %}
+            <span class="text-muted">
+                {{ carona.veiculo.ano }}
+                {% if carona.veiculo.ano and carona.veiculo.cor %}·{% endif %}
+                {{ carona.veiculo.cor }}
+            </span>
+        {% endif %}
+    </span>
+
+</p>
+{% endif %}
+
+{# ---------- STATUS DAS SOLICITAÇÕES ---------- #}
+{% if carona.aguardando_confirmacao > 0 %}
+<div class="mt-2">
+
+    {% if carona.motorista == request.user %}
+        <!-- Mensagem para o motorista dono -->
+        <div class="alert alert-warning py-2 px-3 mb-0 text-center">
+            <i class="bi bi-exclamation-circle me-1"></i>
+            Você tem
+            <strong>{{ carona.aguardando_confirmacao }}</strong>
+            solicitação(ões) aguardando sua confirmação
+        </div>
+    {% else %}
+        <!-- Mensagem para outros usuários -->
+        <div class="alert alert-info py-2 px-3 mb-0 text-center">
+            <i class="bi bi-hourglass-split me-1"></i>
+            {{ carona.aguardando_confirmacao }}
+            pessoa(s) aguardando resposta do motorista
+        </div>
+    {% endif %}
+
+</div>
+{% endif %}

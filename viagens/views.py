@@ -1,0 +1,473 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponseForbidden, JsonResponse, HttpResponseBadRequest ,HttpResponse
+from django.db.models import Sum, Count, Q
+from .models import Carona, Solicitacao, Veiculo
+from .forms import CaronaForm, SolicitacaoForm, VeiculoForm
+from datetime import datetime
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_protect
+import json
+
+
+def lista_caronas(request):
+    caronas = (
+        Carona.objects
+        .filter(status='ativa')  # 👈 AQUI entra o tratamento de concluídas
+        .annotate(
+            aguardando_confirmacao=Count(
+                'solicitacoes',
+                filter=Q(solicitacoes__status='pendente')
+            )
+        )
+        .order_by('-criado_em')
+    )
+
+    origem = request.GET.get('origem')
+    destino = request.GET.get('destino')
+    data = request.GET.get('data')
+
+    if origem:
+        caronas = caronas.filter(origem__icontains=origem)
+    if destino:
+        caronas = caronas.filter(destino__icontains=destino)
+    if data:
+        caronas = caronas.filter(data=data)
+
+    return render(request, 'viagens/lista.html', {
+        'caronas': caronas,
+        'origem': origem or "",
+        'destino': destino or "",
+        'data': data or "",
+    })
+
+
+@login_required
+def criar_carona(request):
+    if request.method == "POST":
+        carona_form = CaronaForm(request.POST, user=request.user)
+        veiculo_form = VeiculoForm()
+
+        if carona_form.is_valid():
+            carona = carona_form.save(commit=False)
+            carona.motorista = request.user
+            carona.save()
+            return redirect("lista_caronas")
+
+    else:
+        carona_form = CaronaForm(user=request.user)
+        veiculo_form = VeiculoForm()
+
+    return render(
+        request,
+        "viagens/criar.html",
+        {
+            "form": carona_form,
+            "veiculo_form": veiculo_form,
+        }
+    )
+
+
+@login_required
+def editar_carona(request, carona_id):
+    carona = get_object_or_404(Carona, id=carona_id)
+
+    if carona.motorista != request.user:
+        return HttpResponseForbidden("Você não pode editar esta carona.")
+
+    if request.method == "POST":
+        form = CaronaForm(
+            request.POST,
+            request.FILES,
+            instance=carona
+        )
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Carona atualizada com sucesso.")
+            return redirect("minhas_caronas")
+    else:
+        form = CaronaForm(instance=carona)
+
+    # 🔥 ESSENCIAL PARA O MODAL FUNCIONAR
+    veiculo_form = VeiculoForm()
+
+    return render(
+        request,
+        "viagens/editar_carona.html",
+        {
+            "form": form,
+            "carona": carona,
+            "veiculo_form": veiculo_form,  
+        }
+    )
+
+
+@login_required
+def excluir_carona(request, carona_id):
+    carona = get_object_or_404(Carona, id=carona_id)
+
+    if carona.motorista != request.user:
+        return HttpResponseForbidden("Você não pode excluir esta carona.")
+
+    if request.method == "POST":
+        carona.delete()
+        return redirect("minhas_caronas")
+
+    return render(request, "viagens/excluir_carona.html", {"carona": carona})
+
+
+def solicitar_vaga(request, carona_id):
+    carona = get_object_or_404(Carona, id=carona_id)
+
+    vagas_ocupadas = carona.solicitacoes.filter(status="aceita").aggregate(
+        total=Sum("quantidade")
+    )["total"] or 0
+    vagas_restantes = carona.vagas - vagas_ocupadas
+
+    if request.method == "POST":
+        form = SolicitacaoForm(request.POST)
+
+        if form.is_valid():
+            quantidade_pedida = form.cleaned_data["quantidade"]
+
+            if quantidade_pedida > vagas_restantes:
+                messages.error(
+                    request,
+                    f"Só restam {vagas_restantes} vaga(s) disponíveis!"
+                )
+                return render(request, "viagens/solicitar_vaga.html", {
+                    "form": form,
+                    "carona": carona,
+                    "vagas_restantes": vagas_restantes
+                })
+
+            if request.user.is_authenticated:
+                form.instance.solicitante = request.user
+
+            form.instance.carona = carona
+            form.instance.status = "pendente"
+            solicitacao = form.save()
+
+            # 🚨 VISITANTE (SEM LOGIN)
+            if not request.user.is_authenticated:
+                return render(request, "viagens/solicitacao_salva_local.html", {
+                    "carona": carona,
+                    "solicitacao": solicitacao,
+                    "solicitacao_id": solicitacao.id, 
+                    "quantidade": solicitacao.quantidade,
+                    "status": solicitacao.status,
+                })
+
+            # 👤 USUÁRIO LOGADO
+            messages.success(
+                request,
+                "Solicitação enviada com sucesso! Aguarde o motorista aceitar 🚗✨"
+            )
+            return redirect("lista_caronas")
+
+    else:
+        if request.user.is_authenticated:
+            form = SolicitacaoForm(initial={
+                "nome_solicitante": request.user.nome_completo or request.user.email,
+                "telefone_solicitante": request.user.telefone,
+            })
+        else:
+            form = SolicitacaoForm()
+
+    return render(request, "viagens/solicitar_vaga.html", {
+        "form": form,
+        "carona": carona,
+        "vagas_restantes": vagas_restantes
+    })
+
+
+
+@login_required
+def aceitar_solicitacao(request, solicitacao_id):
+    solicitacao = get_object_or_404(Solicitacao, id=solicitacao_id)
+
+    if solicitacao.carona.motorista != request.user:
+        return redirect("lista_caronas")
+
+    if solicitacao.status == "aceita":
+        messages.info(request, "Essa solicitação já foi aceita.")
+        return redirect("gerenciar_solicitacoes")
+
+    vagas_ocupadas = solicitacao.carona.solicitacoes.filter(
+        status="aceita"
+    ).aggregate(total=Sum("quantidade"))["total"] or 0
+
+    vagas_restantes = solicitacao.carona.vagas - vagas_ocupadas
+
+    if solicitacao.quantidade > vagas_restantes:
+        messages.error(request, f"Só restam {vagas_restantes} vaga(s)!")
+        return redirect("gerenciar_solicitacoes")
+
+    solicitacao.status = "aceita"
+    solicitacao.visto_passageiro = False  
+    solicitacao.save()
+
+    messages.success(request, "Solicitação aceita com sucesso! 🎉")
+    return redirect("gerenciar_solicitacoes")
+
+
+@login_required
+def gerenciar_solicitacoes(request):
+    solicitacoes = Solicitacao.objects.filter(
+        carona__motorista=request.user,
+        status='pendente'
+    ).order_by('-data_solicitacao')
+    
+    return render(request, "viagens/gerenciar_solicitacoes.html", {
+        "solicitacoes": solicitacoes,
+    })
+
+@login_required
+def recusar_solicitacao(request, solicitacao_id):
+    solicitacao = get_object_or_404(Solicitacao, id=solicitacao_id)
+
+    if solicitacao.carona.motorista != request.user:
+        return redirect("lista_caronas")
+
+    solicitacao.status = "recusada"
+    solicitacao.visto_passageiro = False 
+    solicitacao.save()
+
+    messages.success(request, "Solicitação recusada! 🚫")
+    return redirect("gerenciar_solicitacoes")
+
+
+def minhas_solicitacoes(request):
+
+    if request.user.is_authenticated:
+        minhas = Solicitacao.objects.filter(
+            solicitante=request.user
+        ).order_by('-data_solicitacao')
+
+        minhas.filter(visto_passageiro=False).update(visto_passageiro=True)
+
+        return render(request, 'viagens/minhas_solicitacoes.html', {
+            'solicitacoes': minhas,
+            'modo': 'bd'
+        })
+
+    return render(request, 'viagens/minhas_solicitacoes.html', {
+        'solicitacoes': [],
+        'modo': 'local'
+    })
+
+
+
+def minhas_viagens(request):
+
+    if request.user.is_authenticated:
+        viagens = Solicitacao.objects.filter(
+            solicitante=request.user,
+            status='aceita'
+        ).order_by('-data_solicitacao')
+
+        viagens.filter(visto_viagem=False).update(visto_viagem=True)
+
+        return render(request, 'viagens/minhas_viagens.html', {
+            'viagens': viagens,
+            'modo': 'bd'
+        })
+
+    return render(request, 'viagens/minhas_viagens.html', {
+        'viagens': [],
+        'modo': 'local'
+    })
+
+
+def cancelar_solicitacao(request, id):
+    s = get_object_or_404(Solicitacao, id=id, solicitante=request.user)
+    s.delete()
+    return redirect('minhas_solicitacoes')
+
+@require_POST
+def cancelar_solicitacao_publica(request, id):
+    token = request.POST.get("token")
+
+    if not token:
+        return HttpResponseBadRequest("Token não informado")
+
+    solicitacao = get_object_or_404(
+        Solicitacao,
+        id=id,
+        token_cancelamento=token,
+        status="pendente"
+    )
+
+    solicitacao.delete()
+    return HttpResponse(status=204)
+
+
+
+def api_status_solicitacoes(request):
+    """
+    Retorna o status atualizado das solicitações.
+    Para usuários deslogados, usa carona_id + quantidade.
+    Espera receber:
+      ids: string de ids reais do banco separados por vírgula (opcional)
+      caronas: string no formato "carona_id:quantidade,carona_id:quantidade" (opcional)
+    """
+
+    ids_param = request.GET.get("ids", "")
+    caronas_param = request.GET.get("caronas", "")
+
+    result = []
+
+    # Processa ids reais do banco
+    if ids_param:
+        lista_ids = [i for i in ids_param.split(",") if i.isdigit()]
+        solicitacoes = Solicitacao.objects.filter(id__in=lista_ids)
+        for s in solicitacoes:
+            result.append({
+                "id": s.id,
+                "carona_id": s.carona.id,
+                "quantidade": s.quantidade,
+                "status": s.status
+            })
+
+    # Processa carona_id + quantidade (para usuários deslogados)
+    elif caronas_param:
+        pares = [p for p in caronas_param.split(",") if ":" in p]
+        for par in pares:
+            try:
+                carona_id_str, quantidade_str = par.split(":")
+                carona_id = int(carona_id_str)
+                quantidade = int(quantidade_str)
+            except ValueError:
+                continue
+
+            solicitacao = Solicitacao.objects.filter(
+                carona_id=carona_id, quantidade=quantidade
+            ).first()
+            if solicitacao:
+                result.append({
+                    "id": solicitacao.id,
+                    "carona_id": solicitacao.carona.id,
+                    "quantidade": solicitacao.quantidade,
+                    "status": solicitacao.status
+                })
+
+    return JsonResponse({"result": result})
+
+@login_required
+def criar_veiculo(request):
+    if request.method == "POST":
+        form = VeiculoForm(request.POST)
+        if form.is_valid():
+            veiculo = form.save(commit=False)
+            veiculo.motorista = request.user
+            veiculo.save()
+
+            return JsonResponse({
+                "id": veiculo.id,
+                "label": str(veiculo),
+            })
+
+        return JsonResponse({"errors": form.errors}, status=400)
+    
+@login_required
+def meus_veiculos(request):
+    veiculos = Veiculo.objects.filter(motorista=request.user)
+    return render(
+        request,
+        "viagens/meus_veiculos.html",
+        {"veiculos": veiculos}
+    )
+
+@login_required
+def editar_veiculo(request, veiculo_id):
+    veiculo = get_object_or_404(
+        Veiculo,
+        id=veiculo_id,
+        motorista=request.user
+    )
+
+    if request.method == "POST":
+        form = VeiculoForm(request.POST, instance=veiculo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Veículo atualizado com sucesso.")
+        else:
+            messages.error(request, "Erro ao atualizar veículo.")
+
+    return redirect("meus_veiculos")
+
+@login_required
+def excluir_veiculo(request, veiculo_id):
+    veiculo = get_object_or_404(
+        Veiculo,
+        id=veiculo_id,
+        motorista=request.user
+    )
+
+    veiculo.delete()
+    messages.success(request, "Veículo excluído com sucesso.")
+    return redirect("meus_veiculos")
+
+@login_required
+def concluir_carona(request, carona_id):
+    carona = get_object_or_404(Carona, id=carona_id, motorista=request.user)
+
+    carona.status = 'concluida'
+    carona.save()
+
+    return redirect('lista_caronas')
+
+
+def historico_viagens(request):
+    tipo = request.GET.get('tipo', 'todas')
+    caronas = Carona.objects.none()
+    solicitacoes = None
+
+    # ===== USUÁRIO LOGADO =====
+    if request.user.is_authenticated:
+        base_filter = Q(status='concluida')
+
+        if tipo == 'motorista':
+            filtro = base_filter & Q(motorista=request.user)
+
+        elif tipo == 'passageiro':
+            filtro = base_filter & Q(
+                solicitacoes__solicitante=request.user,
+                solicitacoes__status='aceita'
+            )
+
+        else:
+            filtro = base_filter & (
+                Q(motorista=request.user) |
+                Q(solicitacoes__solicitante=request.user, solicitacoes__status='aceita')
+            )
+
+        caronas = (
+            Carona.objects
+            .filter(filtro)
+            .distinct()
+            .order_by('-data', '-hora')
+        )
+
+    # ===== USUÁRIO DESLOGADO =====
+    else:
+        uuid_local = request.GET.get("uuid")
+
+        if uuid_local:
+            solicitacoes = (
+                Solicitacao.objects
+                .select_related("carona")
+                .filter(uuid_local=uuid_local)
+                .order_by('-data_solicitacao')
+            )
+
+    return render(request, "viagens/historico.html", {
+        "caronas": caronas,
+        "solicitacoes": solicitacoes,
+        "tipo": tipo,
+    })
+
+
+

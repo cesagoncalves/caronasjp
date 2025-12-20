@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="card border-danger shadow-sm">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">Excluir Carona</h4>
+        </div>
+
+        <div class="card-body text-center">
+            <p class="fs-5 mb-4">
+                Tem certeza que deseja excluir esta carona?
+            </p>
+
+            <div class="alert alert-danger">
+                <strong>Destino:</strong> {{ carona.destino }} <br>
+                <strong>Data/Horário:</strong> {{ carona.data }}
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'minhas_caronas' %}" class="btn btn-secondary">
+                        Cancelar
+                    </a>
+                    <button class="btn btn-danger" type="submit">
+                        Confirmar Exclusão
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

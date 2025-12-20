@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Salvando solicitação...</title>
+</head>
+<body>
+
+<p>Salvando sua solicitação...</p>
+
+<script>
+    console.log("🚀 solicitacao_salva_local.html carregado");
+
+    const solicitacao = {
+        id: {{ solicitacao.id }},
+        token_cancelamento: "{{ solicitacao.token_cancelamento }}",
+        carona_id: {{ carona.id }},
+        carona_destino: "{{ carona.destino|escapejs }}",
+        carona_origem: "{{ carona.origem|escapejs }}",
+        carona_data: "{{ carona.data|date:'Y-m-d' }}",
+        carona_hora: "{{ carona.hora|time:'H:i' }}",
+        motorista_nome: "{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo|escapejs }}",
+        quantidade: {{ quantidade }},
+        status: "{{ status }}",
+        data_solicitacao: "{{ solicitacao.data_solicitacao|date:'Y-m-d H:i' }}",
+        visto_solicitacao: true,
+        visto_viagem: true
+    };
+
+    console.log("📦 Solicitação recebida:", solicitacao);
+
+    const STORAGE_KEY = "solicitacoes_passageiro";
+    const lista = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    const jaExiste = lista.some(s => Number(s.id) === Number(solicitacao.id));
+
+    if (!jaExiste) {
+        lista.push(solicitacao);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
+        console.log("✅ Solicitação salva no localStorage");
+    } else {
+        console.log("ℹ️ Solicitação já existia no localStorage");
+    }
+
+    console.log("➡️ Redirecionando para Minhas Solicitações...");
+    window.location.href = "{% url 'minhas_solicitacoes' %}";
+</script>
+
+</body>
+</html>
