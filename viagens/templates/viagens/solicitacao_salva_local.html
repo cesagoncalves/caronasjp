@@ -26,8 +26,8 @@ const solicitacao = {
 
     quantidade: {{ quantidade }},
 
-    status: "{{ status }}", // pendente / aceita / recusada
-    carona_status: "{{ carona.status }}", // ← 🔥 ESSENCIAL
+    status: "{{ status }}", 
+    carona_status: "{{ carona.status }}", 
 
     data_solicitacao: "{{ solicitacao.data_solicitacao|date:'Y-m-d H:i' }}",
 

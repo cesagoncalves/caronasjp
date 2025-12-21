@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
+from django.db import transaction
 import json
 
 
@@ -90,7 +91,6 @@ def editar_carona(request, carona_id):
     else:
         form = CaronaForm(instance=carona)
 
-    # 🔥 ESSENCIAL PARA O MODAL FUNCIONAR
     veiculo_form = VeiculoForm()
 
     return render(
@@ -265,8 +265,9 @@ def minhas_viagens(request):
     if request.user.is_authenticated:
         viagens = Solicitacao.objects.filter(
             solicitante=request.user,
-            status='aceita'
-        ).order_by('-data_solicitacao')
+            status='aceita',
+            carona__status='ativa'  
+        ).select_related('carona').order_by('-data_solicitacao')
 
         viagens.filter(visto_viagem=False).update(visto_viagem=True)
 
@@ -282,9 +283,24 @@ def minhas_viagens(request):
 
 
 def cancelar_solicitacao(request, id):
-    s = get_object_or_404(Solicitacao, id=id, solicitante=request.user)
-    s.delete()
-    return redirect('minhas_solicitacoes')
+    s = get_object_or_404(
+        Solicitacao,
+        id=id,
+        solicitante=request.user
+    )
+
+    with transaction.atomic():
+
+        if s.status == "pendente":
+            s.delete()
+            return redirect("minhas_solicitacoes")
+
+        if s.status == "aceita":
+            s.status = "cancelada"
+            s.save()
+            return redirect("minhas_viagens")
+
+    return redirect("minhas_solicitacoes")
 
 @require_POST
 def cancelar_solicitacao_publica(request, id):
@@ -296,12 +312,23 @@ def cancelar_solicitacao_publica(request, id):
     solicitacao = get_object_or_404(
         Solicitacao,
         id=id,
-        token_cancelamento=token,
-        status="pendente"
+        token_cancelamento=token
     )
 
-    solicitacao.delete()
-    return HttpResponse(status=204)
+    with transaction.atomic():
+
+        # pendente → apaga
+        if solicitacao.status == "pendente":
+            solicitacao.delete()
+            return HttpResponse(status=204)
+
+        # aceita → cancela
+        if solicitacao.status == "aceita":
+            solicitacao.status = "cancelada"
+            solicitacao.save()
+            return HttpResponse(status=204)
+
+    return HttpResponseBadRequest("Solicitação não pode ser cancelada")
 
 
 

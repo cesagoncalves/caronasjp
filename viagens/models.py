@@ -85,6 +85,7 @@ class Solicitacao(models.Model):
         ('pendente', 'Pendente'),
         ('aceita', 'Aceita'),
         ('recusada', 'Recusada'),
+        ('cancelada', 'Cancelada'),
     )
 
     carona = models.ForeignKey(Carona, on_delete=models.CASCADE, related_name="solicitacoes")
