@@ -83,6 +83,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (document.body.dataset.page !== "solicitacoes-local") return;
 
     await sincronizarSolicitacoes();
+    await hidratarCaronas();
     renderSolicitacoesLocal();
 
 const lista = getSolicitacoes().map(s => {

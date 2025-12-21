@@ -41,7 +41,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (document.body.dataset.page !== "viagens-local") return;
 
-    await sincronizarSolicitacoes(); 
+    await sincronizarSolicitacoes();
+    await hidratarCaronas();
     renderViagensLocal();
 
 const lista = getSolicitacoes().map(s => {

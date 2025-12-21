@@ -21,4 +21,5 @@ urlpatterns = [
     path("veiculos/<int:veiculo_id>/excluir/", views.excluir_veiculo, name="excluir_veiculo"),
     path('historico/', views.historico_viagens, name='historico_viagens'), 
     path('carona/<int:carona_id>/concluir/', views.concluir_carona, name='concluir_carona'),
+    path("api/estado-caronas/", views.api_estado_caronas, name="api_estado_caronas"),
 ]

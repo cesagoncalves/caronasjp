@@ -1,10 +1,17 @@
 console.log("📜 historico.js carregado");
 
 function renderHistoricoLocal() {
-    const lista = getSolicitacoes().sort(
-    (a, b) => new Date(b.data_solicitacao) - new Date(a.data_solicitacao)
-    );
+    const lista = getSolicitacoes()
+        .filter(s =>
+            s.status === "aceita" &&
+            s.carona_status === "concluida"
+        )
+        .sort(
+            (a, b) => new Date(b.data_solicitacao) - new Date(a.data_solicitacao)
+        );
+
     const container = document.getElementById("lista-historico");
+
 
     if (!container) return;
 
@@ -57,6 +64,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (document.body.dataset.page !== "historico-local") return;
 
     await sincronizarSolicitacoes();
+    await hidratarCaronas();
     renderHistoricoLocal();
     atualizarNavbar();
 });

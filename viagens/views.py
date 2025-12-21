@@ -309,9 +309,6 @@ def api_status_solicitacoes(request):
     """
     Retorna o status atualizado das solicitações.
     Para usuários deslogados, usa carona_id + quantidade.
-    Espera receber:
-      ids: string de ids reais do banco separados por vírgula (opcional)
-      caronas: string no formato "carona_id:quantidade,carona_id:quantidade" (opcional)
     """
 
     ids_param = request.GET.get("ids", "")
@@ -319,21 +316,28 @@ def api_status_solicitacoes(request):
 
     result = []
 
-    # Processa ids reais do banco
+    # 🔹 IDs reais (logado ou local salvo)
     if ids_param:
         lista_ids = [i for i in ids_param.split(",") if i.isdigit()]
-        solicitacoes = Solicitacao.objects.filter(id__in=lista_ids)
+        solicitacoes = (
+            Solicitacao.objects
+            .select_related("carona")
+            .filter(id__in=lista_ids)
+        )
+
         for s in solicitacoes:
             result.append({
                 "id": s.id,
                 "carona_id": s.carona.id,
                 "quantidade": s.quantidade,
-                "status": s.status
+                "status": s.status,
+                "carona_status": s.carona.status,  
             })
 
-    # Processa carona_id + quantidade (para usuários deslogados)
+    # 🔹 carona_id + quantidade (usuário deslogado)
     elif caronas_param:
         pares = [p for p in caronas_param.split(",") if ":" in p]
+
         for par in pares:
             try:
                 carona_id_str, quantidade_str = par.split(":")
@@ -342,15 +346,21 @@ def api_status_solicitacoes(request):
             except ValueError:
                 continue
 
-            solicitacao = Solicitacao.objects.filter(
-                carona_id=carona_id, quantidade=quantidade
-            ).first()
+            solicitacao = (
+                Solicitacao.objects
+                .select_related("carona")
+                .filter(carona_id=carona_id, quantidade=quantidade)
+                .order_by("-data_solicitacao")
+                .first()
+            )
+
             if solicitacao:
                 result.append({
                     "id": solicitacao.id,
                     "carona_id": solicitacao.carona.id,
                     "quantidade": solicitacao.quantidade,
-                    "status": solicitacao.status
+                    "status": solicitacao.status,
+                    "carona_status": solicitacao.carona.status, 
                 })
 
     return JsonResponse({"result": result})
@@ -468,6 +478,28 @@ def historico_viagens(request):
         "solicitacoes": solicitacoes,
         "tipo": tipo,
     })
+
+def api_estado_caronas(request):
+    ids = request.GET.get("ids", "")
+    result = []
+
+    if ids:
+        carona_ids = [i for i in ids.split(",") if i.isdigit()]
+        caronas = Carona.objects.filter(id__in=carona_ids)
+
+        for c in caronas:
+            result.append({
+                "id": c.id,
+                "origem": c.origem,
+                "destino": c.destino,
+                "data": c.data.strftime("%Y-%m-%d"),
+                "hora": c.hora.strftime("%H:%M"),
+                "motorista_nome": c.motorista.nome_curto or c.motorista.nome_completo,
+                "status": c.status
+            })
+
+    return JsonResponse({ "result": result })
+
 
 
 
