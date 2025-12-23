@@ -55,6 +55,14 @@
 
 </p>
 {% endif %}
+<p class="mb-1">
+    {% if carona.observacoes %}
+    <span class="text-muted">
+        <i class="bi bi-chat-left-text text-muted opacity-75" title="Observações do motorista"></i>
+    </span>
+    {% endif %}
+
+</p>
 
 {# ---------- STATUS DAS SOLICITAÇÕES ---------- #}
 {% if carona.aguardando_confirmacao > 0 %}

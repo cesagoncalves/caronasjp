@@ -15,7 +15,7 @@ import json
 def lista_caronas(request):
     caronas = (
         Carona.objects
-        .filter(status='ativa')  # 👈 AQUI entra o tratamento de concluídas
+        .filter(status='ativa')
         .annotate(
             aguardando_confirmacao=Count(
                 'solicitacoes',
@@ -35,6 +35,9 @@ def lista_caronas(request):
         caronas = caronas.filter(destino__icontains=destino)
     if data:
         caronas = caronas.filter(data=data)
+
+    for carona in caronas:
+        carona.passageiros_aceitos = carona.solicitacoes.filter(status='aceita')
 
     return render(request, 'viagens/lista.html', {
         'caronas': caronas,
@@ -106,16 +109,31 @@ def editar_carona(request, carona_id):
 
 @login_required
 def excluir_carona(request, carona_id):
-    carona = get_object_or_404(Carona, id=carona_id)
+    carona = get_object_or_404(
+        Carona,
+        id=carona_id,
+        motorista=request.user
+    )
 
-    if carona.motorista != request.user:
-        return HttpResponseForbidden("Você não pode excluir esta carona.")
+    passageiros_aceitos = carona.solicitacoes.filter(status='aceita').exists()
 
     if request.method == "POST":
-        carona.delete()
+        if passageiros_aceitos:
+            carona.status = 'cancelada'
+            carona.save()
+
+            carona.solicitacoes.filter(
+                status__in=['aceita', 'pendente']
+            ).update(status='cancelada')
+        else:
+            carona.delete()
+
         return redirect("minhas_caronas")
 
-    return render(request, "viagens/excluir_carona.html", {"carona": carona})
+    return render(request, "viagens/excluir_carona.html", {
+        "carona": carona,
+        "tem_passageiros": passageiros_aceitos
+    })
 
 
 def solicitar_vaga(request, carona_id):
@@ -527,6 +545,32 @@ def api_estado_caronas(request):
 
     return JsonResponse({ "result": result })
 
+@login_required
+def minhas_caronas_view(request):
+    caronas = (
+        Carona.objects
+        .filter(
+            motorista=request.user,
+            status='ativa' 
+        )
+        .order_by('-criado_em')
+    )
 
+    for carona in caronas:
+        carona.passageiros_aceitos = carona.solicitacoes.filter(status='aceita')
 
+    return render(request, "viagens/minhas_caronas.html", {
+        "caronas": caronas
+    })
 
+@login_required
+def remover_passageiro(request, pk):
+    solicitacao = get_object_or_404(Solicitacao, pk=pk)
+
+    if solicitacao.carona.motorista != request.user:
+        return redirect("home")
+
+    solicitacao.status = "cancelada"
+    solicitacao.save()
+
+    return redirect(request.META.get("HTTP_REFERER", "home"))

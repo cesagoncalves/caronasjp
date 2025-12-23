@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('', views.lista_caronas, name='lista_caronas'),
     path('nova/', views.criar_carona, name='criar_carona'),
+    path("minhas-caronas/", views.minhas_caronas_view, name="minhas_caronas"),
     path('caronas/<int:carona_id>/editar/', views.editar_carona, name='editar_carona'),
     path('caronas/<int:carona_id>/excluir/', views.excluir_carona, name='excluir_carona'),
     path("caronas/<int:carona_id>/solicitar/", views.solicitar_vaga, name="solicitar_vaga"),
@@ -22,4 +23,5 @@ urlpatterns = [
     path('historico/', views.historico_viagens, name='historico_viagens'), 
     path('carona/<int:carona_id>/concluir/', views.concluir_carona, name='concluir_carona'),
     path("api/estado-caronas/", views.api_estado_caronas, name="api_estado_caronas"),
+    path("solicitacao/<int:pk>/remover/", views.remover_passageiro, name="remover_passageiro")
 ]

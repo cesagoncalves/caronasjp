@@ -14,10 +14,11 @@ class CaronaForm(forms.ModelForm):
             'tipo_valor',
             'valor',
             'veiculo',
+            "observacoes",
         ]
         widgets = {
             'data': forms.DateInput(
-                format='%Y-%m-%d',  # 🔥 CORREÇÃO
+                format='%Y-%m-%d',  
                 attrs={
                     'type': 'date',
                     'class': 'form-control',
@@ -35,6 +36,11 @@ class CaronaForm(forms.ModelForm):
                 'step': '0.01',
                 'placeholder': 'Ex: 15,00',
                 'class': 'form-control',
+            }),
+            "observacoes": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Ex: Não levo animais, saída pontual, posso parar no caminho..."
             }),
         }
 
@@ -78,11 +84,19 @@ class SolicitacaoForm(forms.ModelForm):
 
     class Meta:
         model = Solicitacao
-        fields = ["nome_solicitante", "telefone_solicitante", "quantidade"]
+        fields = ["nome_solicitante", "telefone_solicitante", "quantidade", 'malas', 'observacoes',]
         widgets = {
             "nome_solicitante": forms.TextInput(attrs={"class": "form-control"}),
             "telefone_solicitante": forms.TextInput(attrs={"class": "form-control"}),
             "quantidade": forms.NumberInput(attrs={"class": "form-control"}),
+            'malas': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'observacoes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Ex: uma mala é grande, mochila, etc.'
+            }),
         }
 
 class VeiculoForm(forms.ModelForm):

@@ -54,6 +54,12 @@ class Carona(models.Model):
     blank=True
     )
 
+    observacoes = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Observações"
+    )
+
 
     def __str__(self):
         return f"{self.origem} → {self.destino} às {self.hora}"
@@ -81,6 +87,24 @@ class Carona(models.Model):
 
     
 class Solicitacao(models.Model):
+
+    OPCOES_MALAS = [
+        (0, 'Nenhuma'),
+        (1, '1 mala'),
+        (2, '2 malas'),
+        (3, '3 ou mais malas'),
+    ]
+
+    malas = models.IntegerField(
+        choices=OPCOES_MALAS,
+        default=0
+    )
+
+    observacoes = models.TextField(
+        blank=True,
+        null=True
+    )
+
     STATUS_CHOICES = (
         ('pendente', 'Pendente'),
         ('aceita', 'Aceita'),

@@ -27,6 +27,12 @@
                                 <i class="bi bi-eye"></i> Ver detalhes
                             </button>
 
+                            {% if carona.esta_concluida and carona.status == 'ativa' %}
+                            <a href="{% url 'concluir_carona' carona.id %}" class="btn btn-outline-success w-100 mb-2 py-2 fs-6">
+                                <i class="bi bi-check-circle"></i> Marcar como concluída
+                            </a>
+                            {% endif %}
+
                             <a href="{% url 'editar_carona' carona.id %}" class="btn btn-primary w-100 mb-2 py-2 fs-6">
                                 <i class="bi bi-pencil-square"></i> Editar
                             </a>

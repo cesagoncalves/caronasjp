@@ -34,27 +34,15 @@
                 <div class="row text-center mb-4">
                     {% if carona.aguardando_confirmacao > 0 %}
                     <div class="mb-4">
-
                         {% if user == carona.motorista %}
-                            <a href="{% url 'gerenciar_solicitacoes' %}"
-                            class="text-decoration-none">
-
-                                <div class="border border-warning rounded-3 p-3 text-center text-warning
-                                            hover-shadow"
+                            <a href="{% url 'gerenciar_solicitacoes' %}" class="text-decoration-none">
+                                <div class="border border-warning rounded-3 p-3 text-center text-warning hover-shadow"
                                     style="cursor: pointer;">
-
                                     <i class="bi bi-exclamation-circle fs-5 d-block mb-1"></i>
-
-                                    <strong>
-                                        {{ carona.aguardando_confirmacao }}
-                                    </strong>
+                                    <strong>{{ carona.aguardando_confirmacao }}</strong>
                                     solicitação(ões) aguardando sua confirmação
-
-                                    <div class="small mt-1 text-warning-emphasis">
-                                        Toque para gerenciar
-                                    </div>
+                                    <div class="small mt-1 text-warning-emphasis">Toque para gerenciar</div>
                                 </div>
-
                             </a>
                         {% else %}
                             <div class="border rounded-3 p-3 text-center text-muted">
@@ -63,35 +51,27 @@
                                 pessoa(s) aguardando resposta do motorista
                             </div>
                         {% endif %}
-
                     </div>
                     {% endif %}
-
 
                     <div class="col-4">
                         <div class="border rounded-3 p-3 h-100">
                             <i class="bi bi-calendar-event fs-3 text-primary"></i>
-                            <p class="fw-bold mb-0 mt-2">
-                                {{ carona.data|date:"d/m/Y" }}
-                            </p>
+                            <p class="fw-bold mb-0 mt-2">{{ carona.data|date:"d/m/Y" }}</p>
                         </div>
                     </div>
 
                     <div class="col-4">
                         <div class="border rounded-3 p-3 h-100">
                             <i class="bi bi-clock fs-3 text-primary"></i>
-                            <p class="fw-bold mb-0 mt-2">
-                                {{ carona.hora|time:"H:i" }}
-                            </p>
+                            <p class="fw-bold mb-0 mt-2">{{ carona.hora|time:"H:i" }}</p>
                         </div>
                     </div>
 
                     <div class="col-4">
                         <div class="border rounded-3 p-3 h-100">
                             <i class="bi bi-people fs-3 text-primary"></i>
-                            <p class="fw-bold mb-0 mt-2">
-                                {{ carona.vagas_restantes }} / {{ carona.vagas }}
-                            </p>
+                            <p class="fw-bold mb-0 mt-2">{{ carona.vagas_restantes }} / {{ carona.vagas }}</p>
                         </div>
                     </div>
                 </div>
@@ -100,8 +80,6 @@
                 {% if carona.veiculo %}
                 <div class="border rounded-3 p-3 mb-4">
                     <div class="d-flex align-items-center gap-3">
-
-                        <!-- Ícone por tipo -->
                         <div class="fs-1 text-primary">
                             {% if carona.veiculo.tipo == "carro" %}
                                 <i class="bi bi-car-front-fill"></i>
@@ -113,14 +91,9 @@
                                 <i class="bi bi-bus-front-fill"></i>
                             {% endif %}
                         </div>
-
                         <div>
-                            <p class="fw-semibold mb-1">
-                                {{ carona.veiculo.marca }} {{ carona.veiculo.modelo }}
-                            </p>
-                            <p class="text-muted mb-0 small">
-                                {{ carona.veiculo.ano }} · {{ carona.veiculo.cor }}
-                            </p>
+                            <p class="fw-semibold mb-1">{{ carona.veiculo.marca }} {{ carona.veiculo.modelo }}</p>
+                            <p class="text-muted mb-0 small">{{ carona.veiculo.ano }} · {{ carona.veiculo.cor }}</p>
                         </div>
                     </div>
                 </div>
@@ -134,84 +107,188 @@
                         </span>
                     {% else %}
                         <i class="bi bi-cash-coin fs-4 text-success me-2"></i>
-                        <span class="fs-5 fw-semibold">
-                            {{ carona.valor_exibicao }}
-                        </span>
+                        <span class="fs-5 fw-semibold">{{ carona.valor_exibicao }}</span>
                     {% endif %}
                 </div>
+
+                {% if carona.observacoes %}
+                <hr class="my-3">
+
+                <div class="px-2">
+                    <h6 class="fw-semibold mb-2">
+                        <i class="bi bi-chat-left-text text-muted opacity-75 me-2"></i>
+                        Observações do motorista
+                    </h6>
+
+                    <div class="border rounded-3 p-3 bg-light small">
+                        {{ carona.observacoes|linebreaksbr }}
+                    </div>
+                </div>
+                {% endif %}
 
                 <hr>
 
                 <!-- MOTORISTA -->
-                <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
                     {% if carona.motorista.foto %}
-                        <img src="{{ carona.motorista.foto.url }}"
-                             class="rounded-circle"
-                             width="56" height="56">
+                        <img src="{{ carona.motorista.foto.url }}" class="rounded-circle" width="56" height="56">
                     {% else %}
-                        <img src="{% static 'img/avatar_padrao.jpg' %}"
-                             class="rounded-circle"
-                             width="56" height="56">
+                        <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" width="56" height="56">
                     {% endif %}
 
                     <div class="flex-grow-1">
                         <p class="mb-1 text-muted small">Motorista</p>
-                        <p class="fw-semibold mb-1">
-                            {{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}
-                        </p>
-
+                        <p class="fw-semibold mb-1">{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}</p>
                         {% if carona.motorista.telefone %}
-                        <a href="tel:{{ carona.motorista.telefone }}"
-                           class="text-decoration-none text-primary fw-semibold">
-                            <i class="bi bi-telephone-fill me-1"></i>
-                            {{ carona.motorista.telefone }}
-                        </a>
+                            <a href="tel:{{ carona.motorista.telefone }}" class="text-decoration-none text-primary fw-semibold">
+                                <i class="bi bi-telephone-fill me-1"></i>{{ carona.motorista.telefone }}
+                            </a>
                         {% endif %}
                     </div>
                 </div>
+
+                <!-- PASSAGEIROS CONFIRMADOS -->
+                {% if user == carona.motorista %}
+                <hr class="my-4">
+                <div class="px-2 mb-3">
+                    <h6 class="fw-semibold mb-3">
+                        <i class="bi bi-people-fill me-2"></i> Passageiros confirmados
+                    </h6>
+
+                    {% with passageiros=carona.passageiros_aceitos %}
+                    {% if passageiros.count == 0 %}
+                        <div class="text-muted small ps-1">
+                            Nenhum passageiro confirmado ainda.
+                        </div>
+                    {% else %}
+                        <div class="list-group list-group-flush">
+                            {% for solicitacao in passageiros %}
+                                <div class="list-group-item border-0 px-2 py-3">
+                                    <div class="d-flex align-items-start gap-3">
+
+                                        <!-- FOTO -->
+                                        <div class="flex-shrink-0">
+                                            {% if solicitacao.solicitante and solicitacao.solicitante.foto %}
+                                                <img src="{{ solicitacao.solicitante.foto.url }}"
+                                                    class="rounded-circle"
+                                                    width="48" height="48">
+                                            {% else %}
+                                                <img src="{% static 'img/avatar_padrao.jpg' %}"
+                                                    class="rounded-circle"
+                                                    width="48" height="48">
+                                            {% endif %}
+                                        </div>
+
+                                        <!-- CONTEÚDO -->
+                                        <div class="flex-grow-1">
+
+                                            <!-- NOME -->
+                                            <p class="fw-semibold mb-1">
+                                                {% if solicitacao.solicitante %}
+                                                    {{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}
+                                                {% else %}
+                                                    {{ solicitacao.nome_solicitante }}
+                                                {% endif %}
+                                            </p>
+
+                                            <!-- TELEFONE -->
+                                            <a href="tel:{{ solicitacao.telefone_solicitante }}"
+                                            class="text-decoration-none text-primary small d-inline-block mb-1">
+                                                <i class="bi bi-telephone-fill me-1"></i>
+                                                {{ solicitacao.telefone_solicitante }}
+                                            </a>
+
+                                            <!-- BADGES: VAGAS / MALAS -->
+                                            <div class="d-flex flex-wrap gap-2 mt-1">
+
+                                                <!-- Vagas -->
+                                                <span class="badge bg-primary bg-opacity-75">
+                                                    <i class="bi bi-person-fill me-1"></i>
+                                                    {{ solicitacao.quantidade }}
+                                                    vaga{{ solicitacao.quantidade|pluralize }}
+                                                </span>
+
+                                                <!-- Malas -->
+                                                {% if solicitacao.malas > 0 %}
+                                                    <span class="badge bg-warning text-dark bg-opacity-75">
+                                                        <i class="bi bi-suitcase me-1"></i>
+                                                        {{ solicitacao.get_malas_display }}
+                                                    </span>
+                                                {% endif %}
+
+                                            </div>
+
+
+                                            <!-- OBSERVAÇÕES -->
+                                            {% if solicitacao.observacoes %}
+                                                <div class="mt-2">
+
+                                                    <a class="small text-decoration-none text-primary"
+                                                    data-bs-toggle="collapse"
+                                                    href="#obs-{{ solicitacao.id }}"
+                                                    role="button"
+                                                    aria-expanded="false"
+                                                    aria-controls="obs-{{ solicitacao.id }}">
+                                                        <i class="bi bi-chat-left-text me-1 opacity-75"></i>
+                                                        Ver observações
+                                                    </a>
+
+                                                    <div class="collapse mt-2" id="obs-{{ solicitacao.id }}">
+                                                        <div class="small text-muted border-start ps-2">
+                                                            {{ solicitacao.observacoes }}
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <!-- AÇÃO -->
+                                        <div class="flex-shrink-0">
+                                            <a href="{% url 'remover_passageiro' solicitacao.id %}"
+                                            class="btn btn-outline-danger btn-sm"
+                                            title="Remover passageiro">
+                                                <i class="bi bi-x-circle"></i>
+                                            </a>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                </div>
+                {% endif %}
 
             </div>
 
             <!-- FOOTER -->
             <div class="modal-footer justify-content-between flex-wrap gap-2">
-
                 {% if user == carona.motorista %}
                     <div class="d-flex gap-2">
-                        {% if user == carona.motorista and carona.esta_concluida and carona.status == 'ativa' %}
-                        <a href="{% url 'concluir_carona' carona.id %}"
-                        class="btn btn-outline-success">
-                            <i class="bi bi-check-circle"></i>
-                            Marcar como concluída
+                        {% if carona.esta_concluida and carona.status == 'ativa' %}
+                        <a href="{% url 'concluir_carona' carona.id %}" class="btn btn-outline-success">
+                            <i class="bi bi-check-circle"></i> Marcar como concluída
                         </a>
                         {% endif %}
-                        <a href="{% url 'editar_carona' carona.id %}"
-                           class="btn btn-outline-primary">
+                        <a href="{% url 'editar_carona' carona.id %}" class="btn btn-outline-primary">
                             <i class="bi bi-pencil-square"></i> Editar
                         </a>
-                        <a href="{% url 'excluir_carona' carona.id %}"
-                           class="btn btn-outline-danger">
+                        <a href="{% url 'excluir_carona' carona.id %}" class="btn btn-outline-danger">
                             <i class="bi bi-trash"></i> Excluir
                         </a>
                     </div>
                 {% else %}
                     {% if carona.vagas_restantes > 0 %}
-                        <a href="{% url 'solicitar_vaga' carona.id %}"
-                           class="btn btn-success btn-lg">
+                        <a href="{% url 'solicitar_vaga' carona.id %}" class="btn btn-success btn-lg">
                             <i class="bi bi-check-circle"></i> Solicitar vaga
                         </a>
                     {% else %}
-                        <span class="badge bg-danger fs-6 px-3 py-2">
-                            Sem vagas disponíveis
-                        </span>
+                        <span class="badge bg-danger fs-6 px-3 py-2">Sem vagas disponíveis</span>
                     {% endif %}
                 {% endif %}
-
-                <button type="button"
-                        class="btn btn-outline-secondary"
-                        data-bs-dismiss="modal">
-                    Fechar
-                </button>
-
             </div>
 
         </div>

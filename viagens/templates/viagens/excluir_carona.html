@@ -4,30 +4,58 @@
 <div class="container mt-5">
     <div class="card border-danger shadow-sm">
         <div class="card-header bg-danger text-white">
-            <h4 class="mb-0">Excluir Carona</h4>
+            <h4 class="mb-0">
+                {% if tem_passageiros %}
+                    Cancelar Carona
+                {% else %}
+                    Excluir Carona
+                {% endif %}
+            </h4>
         </div>
 
         <div class="card-body text-center">
-            <p class="fs-5 mb-4">
-                Tem certeza que deseja excluir esta carona?
-            </p>
 
-            <div class="alert alert-danger">
+            {% if tem_passageiros %}
+                <p class="fs-5 mb-4">
+                    Esta carona possui <strong>passageiros confirmados</strong>.
+                </p>
+
+                <div class="alert alert-warning">
+                    Ao continuar, a carona será <strong>cancelada</strong>.<br>
+                    Os passageiros não poderão mais utilizá-la.
+                </div>
+            {% else %}
+                <p class="fs-5 mb-4">
+                    Tem certeza que deseja excluir esta carona?
+                </p>
+
+                <div class="alert alert-danger">
+                    Esta ação é <strong>permanente</strong> e não pode ser desfeita.
+                </div>
+            {% endif %}
+
+            <div class="alert alert-light border">
                 <strong>Destino:</strong> {{ carona.destino }} <br>
-                <strong>Data/Horário:</strong> {{ carona.data }}
+                <strong>Data/Horário:</strong> {{ carona.data }} às {{ carona.hora }}
             </div>
 
             <form method="post">
                 {% csrf_token %}
                 <div class="d-flex justify-content-center gap-3">
                     <a href="{% url 'minhas_caronas' %}" class="btn btn-secondary">
-                        Cancelar
+                        Voltar
                     </a>
+
                     <button class="btn btn-danger" type="submit">
-                        Confirmar Exclusão
+                        {% if tem_passageiros %}
+                            Confirmar Cancelamento
+                        {% else %}
+                            Confirmar Exclusão
+                        {% endif %}
                     </button>
                 </div>
             </form>
+
         </div>
     </div>
 </div>

@@ -26,11 +26,6 @@ def perfil_view(request):
     return render(request, "usuarios/perfil.html", {"form": form})
 
 
-@login_required
-def minhas_caronas_view(request):
-    caronas = Carona.objects.filter(motorista=request.user)
-    return render(request, "usuarios/minhas_caronas.html", {"caronas": caronas})
-
 
 def signup(request):
     if request.method == "POST":
