@@ -124,8 +124,6 @@ class Solicitacao(models.Model):
 
     nome_solicitante = models.CharField(max_length=100)
     telefone_solicitante = models.CharField(max_length=20)
-    visto_passageiro = models.BooleanField(default=True)
-    visto_viagem = models.BooleanField(default=False)
     quantidade = models.PositiveIntegerField(default=1)
     data_solicitacao = models.DateTimeField(auto_now_add=True)
 
@@ -150,6 +148,28 @@ class Solicitacao(models.Model):
 
     def __str__(self):
         return f"{self.nome_solicitante} pediu {self.quantidade} vaga(s)"
+    
+    def mudar_status(self, novo_status):
+        if self.status != novo_status:
+            self.status = novo_status
+            self.save()
+
+            # 🔔 Passageiro
+            Notificacao.objects.create(
+                usuario=self.solicitante,
+                tipo="solicitacao",
+                solicitacao=self,
+                mensagem=f"Sua solicitação foi {self.get_status_display().lower()}."
+            )
+
+            # 🔔 Motorista
+            if novo_status == "cancelada":
+                Notificacao.objects.create(
+                    usuario=self.carona.motorista,
+                    tipo="solicitacao",
+                    solicitacao=self,
+                    mensagem="Um passageiro cancelou a solicitação."
+                )
 
 class Veiculo(models.Model):
 
@@ -179,4 +199,52 @@ class Veiculo(models.Model):
         if self.tipo in ["carro", "moto"]:
             return f"{self.get_tipo_display()} - {self.marca} {self.modelo} ({self.cor})"
         return self.get_tipo_display()
+
+from django.db import models
+from django.conf import settings
+
+class Notificacao(models.Model):
+
+    TIPOS = (
+        ("solicitacao_recebida", "Solicitação recebida"),
+        ("solicitacao_recusada", "Solicitação recusada"),
+
+        ("viagem_aceita", "Viagem confirmada"),
+        ("viagem_cancelada", "Viagem cancelada"),
+        ("viagem_concluida", "Viagem concluída"),
+    )
+
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="notificacoes"
+    )
+
+    tipo = models.CharField(max_length=40, choices=TIPOS)
+
+    titulo = models.CharField(max_length=120)
+    mensagem = models.TextField()
+
+    carona = models.ForeignKey(
+        "Carona",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
+    solicitacao = models.ForeignKey(
+        "Solicitacao",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
+    lida = models.BooleanField(default=False)
+    criada_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-criada_em"]
+
+    def __str__(self):
+        return f"{self.usuario} - {self.titulo}"
 

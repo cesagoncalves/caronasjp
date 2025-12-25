@@ -1,6 +1,7 @@
-from viagens.models import Solicitacao
+from viagens.models import Notificacao, Solicitacao
 
-def notificacoes_solicitacoes(request):
+def notificacoes(request):
+
     if not request.user.is_authenticated:
         return {
             "qtd_solicitacoes_pendentes": 0,
@@ -9,26 +10,31 @@ def notificacoes_solicitacoes(request):
             "qtd_notificacoes_passageiro": 0,
         }
 
-    # 🚗 MOTORISTA
+    # 🚗 MOTORISTA — pendências reais (ação necessária)
     qtd_solicitacoes_pendentes = Solicitacao.objects.filter(
         carona__motorista=request.user,
         status="pendente"
     ).count()
 
-    # 👤 PASSAGEIRO — respostas novas
-    qtd_solicitacoes_novas = Solicitacao.objects.filter(
-        solicitante=request.user,
-        visto_passageiro=False
-    ).exclude(status="pendente").count()
-
-    # ✈️ PASSAGEIRO — viagens novas
-    qtd_viagens_novas = Solicitacao.objects.filter(
-        solicitante=request.user,
-        status="aceita",
-        visto_viagem=False
+    # 👤 PASSAGEIRO — respostas de solicitações
+    qtd_solicitacoes_novas = Notificacao.objects.filter(
+        usuario=request.user,
+        tipo__in=["solicitacao_aceita", "solicitacao_recusada"],
+        lida=False
     ).count()
 
-    # 🔔 TOTAL DO PASSAGEIRO
+    # ✈️ PASSAGEIRO — eventos de viagem
+    qtd_viagens_novas = Notificacao.objects.filter(
+        usuario=request.user,
+        tipo__in=[
+            "viagem_aceita",
+            "viagem_cancelada",
+            "viagem_concluida"
+        ],
+        lida=False
+    ).count()
+
+
     qtd_notificacoes_passageiro = (
         qtd_solicitacoes_novas + qtd_viagens_novas
     )

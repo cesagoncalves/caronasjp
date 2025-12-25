@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponseBadRequest ,HttpResponse
 from django.db.models import Sum, Count, Q
-from .models import Carona, Solicitacao, Veiculo
+from .models import Carona, Solicitacao, Veiculo, Notificacao
 from .forms import CaronaForm, SolicitacaoForm, VeiculoForm
 from datetime import datetime
 from django.contrib import messages
@@ -122,6 +122,17 @@ def excluir_carona(request, carona_id):
             carona.status = 'cancelada'
             carona.save()
 
+            for s in carona.solicitacoes.filter(status__in=['aceita', 'pendente']):
+                if s.solicitante:
+                    Notificacao.objects.create(
+                        usuario=s.solicitante,
+                        tipo="viagem_cancelada",
+                        titulo="Carona cancelada",
+                        mensagem="A carona foi cancelada pelo motorista.",
+                        carona=carona,
+                        solicitacao=s,
+                    )
+
             carona.solicitacoes.filter(
                 status__in=['aceita', 'pendente']
             ).update(status='cancelada')
@@ -177,6 +188,18 @@ def solicitar_vaga(request, carona_id):
                     "quantidade": solicitacao.quantidade,
                     "status": solicitacao.status,
                 })
+            
+            # 🔔 NOTIFICA MOTORISTA (usuário logado)
+            if request.user.is_authenticated:
+                if solicitacao.solicitante:
+                    Notificacao.objects.create(
+                        usuario=carona.motorista,
+                        tipo="solicitacao_recebida",
+                        titulo="Nova solicitação de carona",
+                        mensagem=f"{solicitacao.nome_solicitante} solicitou {solicitacao.quantidade} vaga(s).",
+                        carona=carona,
+                        solicitacao=solicitacao,
+                    )
 
             # 👤 USUÁRIO LOGADO
             messages.success(
@@ -224,10 +247,23 @@ def aceitar_solicitacao(request, solicitacao_id):
         return redirect("gerenciar_solicitacoes")
 
     solicitacao.status = "aceita"
-    solicitacao.visto_passageiro = False  
     solicitacao.save()
+    if solicitacao.solicitante:
+
+        Notificacao.objects.create(
+            usuario=solicitacao.solicitante,
+            tipo="viagem_aceita",
+            titulo="Viagem confirmada 🚗",
+            mensagem=(
+                f"Sua viagem {solicitacao.carona.origem} → "
+                f"{solicitacao.carona.destino} foi confirmada."
+            ),
+            carona=solicitacao.carona,
+            solicitacao=solicitacao,
+    )
 
     messages.success(request, "Solicitação aceita com sucesso! 🎉")
+
     return redirect("gerenciar_solicitacoes")
 
 
@@ -250,8 +286,16 @@ def recusar_solicitacao(request, solicitacao_id):
         return redirect("lista_caronas")
 
     solicitacao.status = "recusada"
-    solicitacao.visto_passageiro = False 
     solicitacao.save()
+    if solicitacao.solicitante:
+        Notificacao.objects.create(
+            usuario=solicitacao.solicitante,
+            tipo="solicitacao_recusada",
+            titulo="Solicitação recusada",
+            mensagem="O motorista recusou sua solicitação de carona.",
+            carona=solicitacao.carona,
+            solicitacao=solicitacao,
+        )
 
     messages.success(request, "Solicitação recusada! 🚫")
     return redirect("gerenciar_solicitacoes")
@@ -260,11 +304,16 @@ def recusar_solicitacao(request, solicitacao_id):
 def minhas_solicitacoes(request):
 
     if request.user.is_authenticated:
+
+        Notificacao.objects.filter(
+            usuario=request.user,
+            tipo__in=["solicitacao_recusada"],
+            lida=False
+        ).update(lida=True)
+        
         minhas = Solicitacao.objects.filter(
             solicitante=request.user
         ).order_by('-data_solicitacao')
-
-        minhas.filter(visto_passageiro=False).update(visto_passageiro=True)
 
         return render(request, 'viagens/minhas_solicitacoes.html', {
             'solicitacoes': minhas,
@@ -281,13 +330,19 @@ def minhas_solicitacoes(request):
 def minhas_viagens(request):
 
     if request.user.is_authenticated:
+
+        Notificacao.objects.filter(
+            usuario=request.user,
+            tipo__in=["viagem_aceita", "viagem_cancelada", "viagem_concluida"],
+            lida=False
+        ).update(lida=True)
+
         viagens = Solicitacao.objects.filter(
             solicitante=request.user,
             status='aceita',
             carona__status='ativa'  
         ).select_related('carona').order_by('-data_solicitacao')
 
-        viagens.filter(visto_viagem=False).update(visto_viagem=True)
 
         return render(request, 'viagens/minhas_viagens.html', {
             'viagens': viagens,
@@ -572,5 +627,15 @@ def remover_passageiro(request, pk):
 
     solicitacao.status = "cancelada"
     solicitacao.save()
+    
+    if solicitacao.solicitante:
+        Notificacao.objects.create(
+            usuario=solicitacao.solicitante,
+            tipo="viagem_cancelada",
+            titulo="Você foi removido da carona",
+            mensagem="O motorista removeu você da carona.",
+            carona=solicitacao.carona,
+            solicitacao=solicitacao,
+        )
 
     return redirect(request.META.get("HTTP_REFERER", "home"))

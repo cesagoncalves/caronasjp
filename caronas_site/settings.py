@@ -73,7 +73,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 "caronas_site.context_processors.modal_messages",
-                'viagens.context_processors.notificacoes_solicitacoes',
+                'viagens.context_processors.notificacoes',
             ],
         },
     },
