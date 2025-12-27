@@ -77,6 +77,25 @@ async function cancelarSolicitacaoPublica(id, token) {
     }
 }
 
+function marcarSolicitacoesComoVistas() {
+    const lista = getSolicitacoes();
+    let alterou = false;
+
+    lista.forEach(s => {
+        if (s.status !== "pendente" && !s.visto_solicitacao) {
+            s.visto_solicitacao = true;
+            alterou = true;
+        }
+    });
+
+    if (alterou) {
+        saveSolicitacoes(lista);
+        atualizarNavbar();
+    }
+}
+
+document.addEventListener("DOMContentLoaded", marcarSolicitacoesComoVistas);
+
 
 
 document.addEventListener("DOMContentLoaded", async () => {

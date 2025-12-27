@@ -28,6 +28,8 @@ class Carona(models.Model):
     hora = models.TimeField()
     vagas = models.PositiveIntegerField()
     criado_em = models.DateTimeField(auto_now_add=True)
+    viagem_atualizada = models.BooleanField(default=False)
+    data_edicao = models.DateTimeField(null=True, blank=True)
 
     motorista = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -126,6 +128,8 @@ class Solicitacao(models.Model):
     telefone_solicitante = models.CharField(max_length=20)
     quantidade = models.PositiveIntegerField(default=1)
     data_solicitacao = models.DateTimeField(auto_now_add=True)
+    viagem_atualizada = models.BooleanField(default=False)
+    data_edicao = models.DateTimeField(null=True, blank=True)
 
     status = models.CharField(
         max_length=10,
@@ -145,6 +149,8 @@ class Solicitacao(models.Model):
         unique=True,
         editable=False
     )
+
+
 
     def __str__(self):
         return f"{self.nome_solicitante} pediu {self.quantidade} vaga(s)"
@@ -210,6 +216,7 @@ class Notificacao(models.Model):
         ("solicitacao_recusada", "Solicitação recusada"),
 
         ("viagem_aceita", "Viagem confirmada"),
+        ("viagem_atualizada", "Viagem atualizada"),
         ("viagem_cancelada", "Viagem cancelada"),
         ("viagem_concluida", "Viagem concluída"),
     )

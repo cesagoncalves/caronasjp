@@ -10,6 +10,8 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 from django.db import transaction
 import json
+from django.utils import timezone
+
 
 
 def lista_caronas(request):
@@ -80,6 +82,17 @@ def editar_carona(request, carona_id):
     if carona.motorista != request.user:
         return HttpResponseForbidden("Você não pode editar esta carona.")
 
+    # 📸 Snapshot do estado antigo (somente o que importa)
+    estado_antigo = {
+        "origem": carona.origem,
+        "destino": carona.destino,
+        "data": carona.data,
+        "hora": carona.hora,
+        "vagas": carona.vagas,
+        "valor": carona.valor_exibicao,  
+        "veiculo_id": carona.veiculo_id,
+    }
+
     if request.method == "POST":
         form = CaronaForm(
             request.POST,
@@ -89,8 +102,63 @@ def editar_carona(request, carona_id):
 
         if form.is_valid():
             form.save()
+
+            alteracoes = []
+
+            if estado_antigo["origem"] != carona.origem:
+                alteracoes.append("Origem")
+
+            if estado_antigo["destino"] != carona.destino:
+                alteracoes.append("Destino")
+
+            if estado_antigo["data"] != carona.data:
+                alteracoes.append("Data")
+
+            if estado_antigo["hora"] != carona.hora:
+                alteracoes.append("Horário")
+
+            if estado_antigo["vagas"] != carona.vagas:
+                alteracoes.append("Vagas")
+
+            if estado_antigo["valor"] != carona.valor_exibicao:
+                alteracoes.append("Valor")
+
+            if estado_antigo["veiculo_id"] != carona.veiculo_id:
+                alteracoes.append("Veículo")
+
+            if alteracoes:
+
+                carona.viagem_atualizada = True
+                carona.data_edicao = timezone.now()
+                carona.save(update_fields=["viagem_atualizada", "data_edicao"])
+                
+                solicitacoes_aceitas = carona.solicitacoes.filter(status="aceita")
+
+                for s in solicitacoes_aceitas:
+                    # Marca como atualizada (isso é o gatilho do badge)
+                    s.viagem_atualizada = True
+                    s.data_edicao = timezone.now()
+                    s.save(update_fields=["viagem_atualizada", "data_edicao"])
+
+                for s in solicitacoes_aceitas:
+                    print("DEBUG:", s.id, s.uuid_local, s.solicitante)
+                    if s.solicitante:
+                        Notificacao.objects.create(
+                            usuario=s.solicitante,
+                            tipo="viagem_atualizada",
+                            titulo="Carona atualizada 🚗",
+                            mensagem="O motorista alterou informações da viagem.",
+                            carona=carona,
+                            solicitacao=s,
+                        )
+
+                    if s.uuid_local:
+                        s.viagem_atualizada = True
+                        s.save(update_fields=["viagem_atualizada"])
+
             messages.success(request, "Carona atualizada com sucesso.")
             return redirect("minhas_caronas")
+
     else:
         form = CaronaForm(instance=carona)
 
@@ -102,9 +170,11 @@ def editar_carona(request, carona_id):
         {
             "form": form,
             "carona": carona,
-            "veiculo_form": veiculo_form,  
+            "veiculo_form": veiculo_form,
         }
     )
+
+
 
 
 @login_required
@@ -175,9 +245,20 @@ def solicitar_vaga(request, carona_id):
             if request.user.is_authenticated:
                 form.instance.solicitante = request.user
 
+            uuid_local = request.POST.get("uuid_local")
+
             form.instance.carona = carona
             form.instance.status = "pendente"
+
+            if not request.user.is_authenticated:
+                form.instance.uuid_local = uuid_local
             solicitacao = form.save()
+            print(
+                "DEBUG SOLICITAÇÃO:",
+                solicitacao.id,
+                solicitacao.uuid_local,
+                solicitacao.solicitante
+            )
 
             # 🚨 VISITANTE (SEM LOGIN)
             if not request.user.is_authenticated:
@@ -333,7 +414,7 @@ def minhas_viagens(request):
 
         Notificacao.objects.filter(
             usuario=request.user,
-            tipo__in=["viagem_aceita", "viagem_cancelada", "viagem_concluida"],
+            tipo__in=["viagem_atualizada", "viagem_aceita", "viagem_cancelada", "viagem_concluida"],
             lida=False
         ).update(lida=True)
 
@@ -431,7 +512,13 @@ def api_status_solicitacoes(request):
                 "carona_id": s.carona.id,
                 "quantidade": s.quantidade,
                 "status": s.status,
-                "carona_status": s.carona.status,  
+                "carona_status": s.carona.status,
+                "viagem_atualizada": s.viagem_atualizada,
+                 "data_edicao": (
+                    s.data_edicao.isoformat()
+                    if s.data_edicao
+                    else None
+                ),
             })
 
     # 🔹 carona_id + quantidade (usuário deslogado)
@@ -461,6 +548,12 @@ def api_status_solicitacoes(request):
                     "quantidade": solicitacao.quantidade,
                     "status": solicitacao.status,
                     "carona_status": solicitacao.carona.status, 
+                    "viagem_atualizada": solicitacao.viagem_atualizada,
+                        "data_edicao": (
+                            solicitacao.data_edicao.isoformat()
+                            if solicitacao.data_edicao
+                            else None
+                        ),
                 })
 
     return JsonResponse({"result": result})

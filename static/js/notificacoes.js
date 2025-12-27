@@ -4,10 +4,26 @@ async function sincronizarSolicitacoes() {
     const lista = getSolicitacoes();
     if (!lista.length) return;
 
-    const ids = lista.map(s => s.id).join(",");
+    // 🔐 Detecta se é visitante (uuid_local existe)
+    const uuidLocal = localStorage.getItem("uuid_local");
+
+    let url = "";
+
+    if (uuidLocal) {
+        // 👤 DESLOGADO → usa carona_id + quantidade
+        const pares = lista
+            .map(s => `${s.carona_id}:${s.quantidade}`)
+            .join(",");
+
+        url = `/api/status-solicitacoes/?caronas=${pares}`;
+    } else {
+        // 👤 LOGADO → usa ids
+        const ids = lista.map(s => s.id).join(",");
+        url = `/api/status-solicitacoes/?ids=${ids}`;
+    }
 
     try {
-        const resp = await fetch(`/api/status-solicitacoes/?ids=${ids}`);
+        const resp = await fetch(url);
         if (!resp.ok) return;
 
         const data = await resp.json();
@@ -16,22 +32,72 @@ async function sincronizarSolicitacoes() {
         let alterou = false;
 
         lista.forEach(local => {
-            const remoto = backend.find(b => String(b.id) === String(local.id));
+            const remoto = backend.find(b =>
+                String(b.id) === String(local.id)
+            );
             if (!remoto) return;
 
+            // 🔄 STATUS mudou
             if (local.status !== remoto.status) {
+                const statusAnterior = local.status;
                 local.status = remoto.status;
 
-                // 🔔 notificação de solicitação
-                local.visto_solicitacao = false;
+                // 🔴 SOLICITAÇÃO recusada / cancelada
+                if (
+                    statusAnterior === "pendente" &&
+                    (remoto.status === "recusada" || remoto.status === "cancelada")
+                ) {
+                    local.visto_solicitacao = false;
+                }
 
-                // 🚗 notificação de viagem
-                if (remoto.status === "aceita") {
+                // 🟢 VIAGEM aceita
+                if (
+                    statusAnterior === "pendente" &&
+                    remoto.status === "aceita"
+                ) {
+                    local.visto_viagem = false;
+                }
+
+                // 🔴 VIAGEM cancelada / excluída
+                if (
+                    statusAnterior === "aceita" &&
+                    (remoto.status === "cancelada" || remoto.status === "excluida")
+                ) {
                     local.visto_viagem = false;
                 }
 
                 alterou = true;
+                console.log("STATUS:", statusAnterior, "→", remoto.status);
             }
+
+            // ✏️ VIAGEM EDITADA (independente do status)
+            if (remoto.viagem_atualizada) {
+
+                // ⏱ data da última edição vinda do backend
+                const dataEdicaoRemota = remoto.data_edicao
+                    ? new Date(remoto.data_edicao)
+                    : null;
+
+                // 👀 data da última leitura local
+                const ultimaLeitura = local.ultima_edicao_lida
+                    ? new Date(local.ultima_edicao_lida)
+                    : null;
+
+                // 🔔 só notifica se:
+                // - nunca foi lida
+                // - OU edição é mais nova que a leitura
+                if (
+                    !ultimaLeitura ||
+                    (dataEdicaoRemota && dataEdicaoRemota > ultimaLeitura)
+                ) {
+                    local.visto_viagem = false;
+                    local.viagem_atualizada = true;
+                    alterou = true;
+
+                    console.log("🔔 Nova edição REAL detectada:", local.id);
+                }
+            }
+
         });
 
         if (alterou) {
@@ -49,16 +115,32 @@ async function sincronizarSolicitacoes() {
 function atualizarNavbar() {
     const lista = getSolicitacoes();
 
+    const STATUS_SOLICITACAO = ["recusada", "cancelada"];
+
     const novasSolicitacoes = lista.filter(
-        s => s.status !== "pendente" && !s.visto_solicitacao
+        s => STATUS_SOLICITACAO.includes(s.status) && !s.visto_solicitacao
     ).length;
 
+    // 🔔 QUALQUER viagem não vista gera badge
     const novasViagens = lista.filter(
-        s => s.status === "aceita" && !s.visto_viagem
+        s => !s.visto_viagem
     ).length;
 
-    atualizarBadge("badge-solicitacoes", "nav-minhas-solicitacoes", novasSolicitacoes);
-    atualizarBadge("badge-viagens", "nav-minhas-viagens", novasViagens);
+    if (document.body.dataset.page === "viagens-local") {
+        atualizarBadge("badge-viagens", "nav-minhas-viagens", 0);
+        return;
+    }
+
+    atualizarBadge(
+        "badge-solicitacoes",
+        "nav-minhas-solicitacoes",
+        novasSolicitacoes
+    );
+    atualizarBadge(
+        "badge-viagens",
+        "nav-minhas-viagens",
+        novasViagens
+    );
 }
 
 function atualizarBadge(badgeId, linkId, qtd) {

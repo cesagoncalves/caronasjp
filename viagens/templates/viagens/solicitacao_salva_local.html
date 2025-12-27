@@ -12,27 +12,34 @@
 <script>
     console.log("🚀 solicitacao_salva_local.html carregado");
 
-const solicitacao = {
-    id: {{ solicitacao.id }},
-    token_cancelamento: "{{ solicitacao.token_cancelamento }}",
+    const agora = new Date().toISOString();
 
-    carona_id: {{ carona.id }},
-    carona_destino: "{{ carona.destino|escapejs }}",
-    carona_origem: "{{ carona.origem|escapejs }}",
-    carona_data: "{{ carona.data|date:'Y-m-d' }}",
-    carona_hora: "{{ carona.hora|time:'H:i' }}",
+    const solicitacao = {
+        id: {{ solicitacao.id }},
+        token_cancelamento: "{{ solicitacao.token_cancelamento }}",
 
-    motorista_nome: "{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo|escapejs }}",
+        carona_id: {{ carona.id }},
+        carona_destino: "{{ carona.destino|escapejs }}",
+        carona_origem: "{{ carona.origem|escapejs }}",
+        carona_data: "{{ carona.data|date:'Y-m-d' }}",
+        carona_hora: "{{ carona.hora|time:'H:i' }}",
 
-    quantidade: {{ quantidade }},
+        motorista_nome: "{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo|escapejs }}",
 
-    status: "{{ status }}", 
-    carona_status: "{{ carona.status }}", 
+        quantidade: {{ quantidade }},
 
-    data_solicitacao: "{{ solicitacao.data_solicitacao|date:'Y-m-d H:i' }}",
+        status: "{{ status }}",
+        carona_status: "{{ carona.status }}",
 
-    visto_solicitacao: true,
-    visto_viagem: true
+        data_solicitacao: "{{ solicitacao.data_solicitacao|date:'Y-m-d H:i' }}",
+
+        // 🔔 FLAGS DE NOTIFICAÇÃO
+        visto_solicitacao: true,
+        visto_viagem: true,
+
+        viagem_atualizada: false,
+
+        ultima_edicao_lida: agora,
     };
 
     console.log("📦 Solicitação recebida:", solicitacao);
@@ -53,6 +60,7 @@ const solicitacao = {
     console.log("➡️ Redirecionando para Minhas Solicitações...");
     window.location.href = "{% url 'minhas_solicitacoes' %}";
 </script>
+
 
 </body>
 </html>

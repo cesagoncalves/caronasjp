@@ -22,8 +22,6 @@ function renderViagensLocal() {
         return;
     }
 
-    container.innerHTML = "";
-
     lista.forEach(v => {
         container.innerHTML += `
             <div class="card border-0 shadow-sm rounded-3 mb-3">
@@ -55,9 +53,7 @@ async function cancelarViagemLocal(id, token) {
                 "X-CSRFToken": getCSRFToken(),
                 "Content-Type": "application/x-www-form-urlencoded",
             },
-            body: new URLSearchParams({
-                token: token
-            })
+            body: new URLSearchParams({ token })
         });
 
         if (!resp.ok) {
@@ -65,16 +61,13 @@ async function cancelarViagemLocal(id, token) {
             return;
         }
 
-        const lista = getSolicitacoes().map(s => {
-            if (String(s.id) === String(id)) {
-                return { ...s, status: "cancelada" };
-            }
-            return s;
-        });
+        const lista = getSolicitacoes().map(s =>
+            String(s.id) === String(id)
+                ? { ...s, status: "cancelada", visto_viagem: true }
+                : s
+        );
 
-saveSolicitacoes(lista);
-
-        // re-render
+        saveSolicitacoes(lista);
         renderViagensLocal();
         atualizarNavbar();
 
@@ -84,29 +77,33 @@ saveSolicitacoes(lista);
     }
 }
 
+function marcarViagensComoVistas() {
+    const lista = getSolicitacoes();
+    let alterou = false;
+
+    lista.forEach(s => {
+        if (!s.visto_viagem) {
+            s.visto_viagem = true;
+            s.viagem_atualizada = false;
+            s.ultima_edicao_lida = new Date().toISOString();
+            alterou = true;
+        }
+    });
+
+    if (alterou) {
+        saveSolicitacoes(lista);
+        atualizarNavbar();
+        console.log("👀 Viagens marcadas como vistas");
+    }
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
-    console.log("📄 viagens.js carregado");
-
     if (document.body.dataset.page !== "viagens-local") return;
 
-    await sincronizarSolicitacoes();
+    console.log("📄 Página Minhas Viagens");
+
+    await sincronizarSolicitacoes(); // 🔄 pega edição/status do backend
+    marcarViagensComoVistas();       // 👀 lê tudo
     await hidratarCaronas();
     renderViagensLocal();
-
-const lista = getSolicitacoes().map(s => {
-    if (s.status === "aceita") {
-        return {
-            ...s,
-            visto_viagem: true
-        };
-    }
-    return s;
 });
-
-saveSolicitacoes(lista);
-atualizarNavbar();
-
-});
-
-

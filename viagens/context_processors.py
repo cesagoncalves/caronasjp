@@ -27,6 +27,7 @@ def notificacoes(request):
     qtd_viagens_novas = Notificacao.objects.filter(
         usuario=request.user,
         tipo__in=[
+            "viagem_atualizada",
             "viagem_aceita",
             "viagem_cancelada",
             "viagem_concluida"
