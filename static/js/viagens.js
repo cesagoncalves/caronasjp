@@ -102,8 +102,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     console.log("📄 Página Minhas Viagens");
 
-    await sincronizarSolicitacoes(); // 🔄 pega edição/status do backend
-    marcarViagensComoVistas();       // 👀 lê tudo
+    await sincronizarSolicitacoes();
+    marcarViagensComoVistas();       
     await hidratarCaronas();
     renderViagensLocal();
 });

@@ -16,6 +16,16 @@ def notificacoes(request):
         status="pendente"
     ).count()
 
+    # 🚗 MOTORISTA — eventos (informativos)
+    qtd_eventos_motorista = Notificacao.objects.filter(
+        usuario=request.user,
+        tipo__in=[
+            "passageiro_cancelou", 
+            "viagem_concluida",  
+        ],
+        lida=False
+    ).count()
+
     # 👤 PASSAGEIRO — respostas de solicitações
     qtd_solicitacoes_novas = Notificacao.objects.filter(
         usuario=request.user,
@@ -40,9 +50,18 @@ def notificacoes(request):
         qtd_solicitacoes_novas + qtd_viagens_novas
     )
 
+    qtd_notificacoes_motorista = (
+    qtd_solicitacoes_pendentes + qtd_eventos_motorista
+    )
+
     return {
-        "qtd_solicitacoes_pendentes": qtd_solicitacoes_pendentes,
-        "qtd_solicitacoes_novas": qtd_solicitacoes_novas,
-        "qtd_viagens_novas": qtd_viagens_novas,
-        "qtd_notificacoes_passageiro": qtd_notificacoes_passageiro,
+    # MOTORISTA
+    "qtd_solicitacoes_pendentes": qtd_solicitacoes_pendentes,
+    "qtd_eventos_motorista": qtd_eventos_motorista,
+    "qtd_notificacoes_motorista": qtd_notificacoes_motorista,
+
+    # PASSAGEIRO
+    "qtd_solicitacoes_novas": qtd_solicitacoes_novas,
+    "qtd_viagens_novas": qtd_viagens_novas,
+    "qtd_notificacoes_passageiro": qtd_notificacoes_passageiro,
     }

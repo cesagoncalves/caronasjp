@@ -450,8 +450,7 @@ def cancelar_solicitacao(request, id):
             return redirect("minhas_solicitacoes")
 
         if s.status == "aceita":
-            s.status = "cancelada"
-            s.save()
+            s.mudar_status("cancelada")
             return redirect("minhas_viagens")
 
     return redirect("minhas_solicitacoes")
@@ -471,15 +470,12 @@ def cancelar_solicitacao_publica(request, id):
 
     with transaction.atomic():
 
-        # pendente → apaga
         if solicitacao.status == "pendente":
             solicitacao.delete()
             return HttpResponse(status=204)
 
-        # aceita → cancela
         if solicitacao.status == "aceita":
-            solicitacao.status = "cancelada"
-            solicitacao.save()
+            solicitacao.mudar_status("cancelada")
             return HttpResponse(status=204)
 
     return HttpResponseBadRequest("Solicitação não pode ser cancelada")
@@ -695,6 +691,13 @@ def api_estado_caronas(request):
 
 @login_required
 def minhas_caronas_view(request):
+
+    Notificacao.objects.filter(
+            usuario=request.user,
+            tipo__in=["passageiro_cancelou","viagem_cancelada"],
+            lida=False
+        ).update(lida=True)
+
     caronas = (
         Carona.objects
         .filter(

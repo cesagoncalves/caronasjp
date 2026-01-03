@@ -160,22 +160,27 @@ class Solicitacao(models.Model):
             self.status = novo_status
             self.save()
 
-            # 🔔 Passageiro
+            # 🔔 Passageiro — feedback da ação
+            if self.solicitante:
+                Notificacao.objects.create(
+                    usuario=self.solicitante,
+                    tipo="viagem_cancelada",
+                    titulo="Viagem cancelada",
+                    mensagem="Você cancelou a viagem.",
+                    solicitacao=self,
+                    carona=self.carona,
+                )
+
+            # 🔔 Motorista — passageiro cancelou
             Notificacao.objects.create(
-                usuario=self.solicitante,
-                tipo="solicitacao",
+                usuario=self.carona.motorista,
+                tipo="passageiro_cancelou",
+                titulo="Passageiro cancelou",
+                mensagem="Um passageiro cancelou a carona.",
                 solicitacao=self,
-                mensagem=f"Sua solicitação foi {self.get_status_display().lower()}."
+                carona=self.carona,
             )
 
-            # 🔔 Motorista
-            if novo_status == "cancelada":
-                Notificacao.objects.create(
-                    usuario=self.carona.motorista,
-                    tipo="solicitacao",
-                    solicitacao=self,
-                    mensagem="Um passageiro cancelou a solicitação."
-                )
 
 class Veiculo(models.Model):
 
@@ -219,6 +224,7 @@ class Notificacao(models.Model):
         ("viagem_atualizada", "Viagem atualizada"),
         ("viagem_cancelada", "Viagem cancelada"),
         ("viagem_concluida", "Viagem concluída"),
+        ("passageiro_cancelou", "Passageiro cancelou"),
     )
 
     usuario = models.ForeignKey(

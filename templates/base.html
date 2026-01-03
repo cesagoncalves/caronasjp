@@ -202,29 +202,57 @@
 
                 <!-- MOTORISTA -->
                 <li class="nav-item dropdown position-relative">
-                    <a class="nav-link dropdown-toggle 
-                        {% if qtd_solicitacoes_pendentes > 0 %}text-warning fw-bold{% endif %}"
-                        href="#" id="motoristaMenu" role="button" data-bs-toggle="dropdown">
+                    <a class="nav-link dropdown-toggle
+                        {% if qtd_notificacoes_motorista > 0 %}text-warning fw-bold{% endif %}"
+                        href="#"
+                        id="motoristaMenu"
+                        role="button"
+                        data-bs-toggle="dropdown">
 
-                            Motorista
+                        Motorista
 
-                            {% if qtd_solicitacoes_pendentes > 0 %}
-                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
-                                    {{ qtd_solicitacoes_pendentes }}
-                                </span>
-                            {% endif %}
-                        </a>
-
+                        {% if qtd_notificacoes_motorista > 0 %}
+                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
+                                {{ qtd_notificacoes_motorista }}
+                            </span>
+                        {% endif %}
+                    </a>
 
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{% url 'criar_carona' %}">Oferecer Carona</a></li>
-                        <li><a class="dropdown-item" href="{% url 'minhas_caronas' %}">Minhas Caronas</a></li>
-                        <li><a class="dropdown-item" href="{% url 'meus_veiculos' %}">Meus Veículos</a></li>
-                        <li><hr class="dropdown-divider"></li>
+
+                        <li>
+                            <a class="dropdown-item" href="{% url 'criar_carona' %}">
+                                Oferecer Carona
+                            </a>
+                        </li>
+
                         <li>
                             <a class="dropdown-item
-                            {% if qtd_solicitacoes_pendentes > 0 %}fw-bold text-warning{% endif %}"
-                            href="{% url 'gerenciar_solicitacoes' %}">
+                                {% if qtd_eventos_motorista > 0 %}fw-bold text-warning{% endif %}"
+                                href="{% url 'minhas_caronas' %}">
+
+                                Minhas Caronas
+
+                                {% if qtd_eventos_motorista > 0 %}
+                                    <span class="badge bg-danger ms-2">
+                                        {{ qtd_eventos_motorista }}
+                                    </span>
+                                {% endif %}
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item" href="{% url 'meus_veiculos' %}">
+                                Meus Veículos
+                            </a>
+                        </li>
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li>
+                            <a class="dropdown-item
+                                {% if qtd_solicitacoes_pendentes > 0 %}fw-bold text-warning{% endif %}"
+                                href="{% url 'gerenciar_solicitacoes' %}">
 
                                 Solicitações Recebidas
 
@@ -235,6 +263,7 @@
                                 {% endif %}
                             </a>
                         </li>
+
                     </ul>
                 </li>
 
