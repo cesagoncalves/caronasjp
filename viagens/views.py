@@ -735,3 +735,12 @@ def remover_passageiro(request, pk):
         )
 
     return redirect(request.META.get("HTTP_REFERER", "home"))
+
+@login_required
+def marcar_notificacoes_como_lidas(request):
+    Notificacao.objects.filter(
+        usuario=request.user,
+        lida=False
+    ).update(lida=True)
+
+    return JsonResponse({"status": "ok"})
