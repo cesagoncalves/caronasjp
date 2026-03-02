@@ -27,6 +27,8 @@
         motorista_nome: "{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo|escapejs }}",
 
         quantidade: {{ quantidade }},
+        tipo: "{{ solicitacao.tipo|default:'carona' }}",
+        descricao_item: "{{ solicitacao.descricao_item|default:''|escapejs }}",
 
         status: "{{ status }}",
         carona_status: "{{ carona.status }}",

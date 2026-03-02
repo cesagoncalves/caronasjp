@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h2 class="mb-0">Encomendas da Carona</h2>
+        <a href="{% url 'minhas_caronas' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </div>
+
+    <div class="alert alert-light border">
+        <strong>{{ carona.origem }} -> {{ carona.destino }}</strong>
+        em {{ carona.data|date:"d/m/Y" }} as {{ carona.hora }}
+    </div>
+
+    {% if encomendas %}
+        {% for e in encomendas %}
+            <div class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between flex-wrap mb-2">
+                        <div>
+                            <h5 class="mb-0">{{ e.solicitante.nome_curto|default:e.nome_solicitante }}</h5>
+                            <div class="text-muted small">{{ e.telefone_solicitante }}</div>
+                        </div>
+                        <span class="badge {% if e.status == 'pendente' %}bg-warning text-dark{% elif e.status == 'aceita' %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ e.get_status_display }}
+                        </span>
+                    </div>
+
+                    <p class="mb-2"><strong>Descricao:</strong> {{ e.descricao_item }}</p>
+
+                    {% if e.foto_encomenda %}
+                        <img src="{{ e.foto_encomenda.url }}" class="img-fluid rounded border mb-2" style="max-height: 260px; object-fit: cover;">
+                    {% endif %}
+
+                    {% if e.observacoes %}
+                        <p class="mb-2"><strong>Observacoes:</strong> {{ e.observacoes }}</p>
+                    {% endif %}
+
+                    <p class="text-muted small mb-0">Solicitada em {{ e.data_solicitacao|date:"d/m/Y H:i" }}</p>
+
+                    {% if e.status == "pendente" %}
+                        <div class="d-flex gap-2 mt-3">
+                            <a href="{% url 'aceitar_solicitacao' e.id %}" class="btn btn-success flex-fill">
+                                <i class="bi bi-check-circle"></i> Aceitar
+                            </a>
+                            <a href="{% url 'recusar_solicitacao' e.id %}" class="btn btn-outline-danger flex-fill">
+                                <i class="bi bi-x-circle"></i> Recusar
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">Nenhuma encomenda para esta carona.</div>
+    {% endif %}
+</div>
+{% endblock %}

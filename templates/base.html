@@ -354,6 +354,12 @@
                             </a>
                         </li>
 
+                        <li>
+                            <a class="dropdown-item" href="{% url 'minhas_encomendas' %}">
+                                Minhas Encomendas
+                            </a>
+                        </li>
+
                         <li><hr class="dropdown-divider"></li>
 
                         <li>
@@ -535,8 +541,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 "X-CSRFToken": "{{ csrf_token }}",
             },
         }).then(() => {
-            const badge = dropdown.querySelector(".badge");
+            const badge = dropdown.querySelector(".notification-badge");
             if (badge) badge.remove();
+
+            dropdown.querySelectorAll(".notificacao-item.nao-lida").forEach((el) => {
+                el.classList.remove("nao-lida");
+            });
         });
     });
 });

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 560px;">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-4">
+            <h3 class="text-center fw-bold mb-4">Solicitar Encomenda</h3>
+
+            <div class="alert alert-info text-center">
+                <strong>{{ carona.origem }} -> {{ carona.destino }}</strong><br>
+                {{ carona.data|date:"d/m/Y" }} as {{ carona.hora }}
+            </div>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="uuid_local" id="uuid_local">
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nome</label>
+                    {{ form.nome_solicitante }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Telefone</label>
+                    {{ form.telefone_solicitante }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Descricao do item</label>
+                    {{ form.descricao_item }}
+                    {% if form.descricao_item.errors %}
+                        <div class="text-danger small mt-1">{{ form.descricao_item.errors|join:", " }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Foto da encomenda (opcional)</label>
+                    {{ form.foto_encomenda }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Observacoes (opcional)</label>
+                    {{ form.observacoes }}
+                </div>
+
+                <button class="btn btn-primary w-100 py-2 fw-semibold" type="submit">
+                    <i class="bi bi-send-check-fill"></i> Enviar solicitacao
+                </button>
+            </form>
+
+            <a href="{% url 'lista_caronas' %}" class="btn btn-outline-secondary w-100 mt-3 py-2">
+                <i class="bi bi-arrow-left"></i> Voltar para Lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    let uuid = localStorage.getItem("uuid_local");
+
+    if (!uuid) {
+        uuid = crypto.randomUUID();
+        localStorage.setItem("uuid_local", uuid);
+    }
+
+    const input = document.getElementById("uuid_local");
+    if (input) input.value = uuid;
+})();
+</script>
+{% endblock %}

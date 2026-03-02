@@ -9,17 +9,19 @@ async function sincronizarSolicitacoes() {
 
     let url = "";
 
-    if (uuidLocal) {
-        // 👤 DESLOGADO → usa carona_id + quantidade
+    const todosComId = lista.every(s => !!s.id);
+
+    if (!uuidLocal || todosComId) {
+        // Usa ids quando possível (evita colisão entre carona/encomenda)
+        const ids = lista.map(s => s.id).join(",");
+        url = `/api/status-solicitacoes/?ids=${ids}`;
+    } else {
+        // Fallback antigo para registros sem id
         const pares = lista
             .map(s => `${s.carona_id}:${s.quantidade}`)
             .join(",");
 
         url = `/api/status-solicitacoes/?caronas=${pares}`;
-    } else {
-        // 👤 LOGADO → usa ids
-        const ids = lista.map(s => s.id).join(",");
-        url = `/api/status-solicitacoes/?ids=${ids}`;
     }
 
     try {

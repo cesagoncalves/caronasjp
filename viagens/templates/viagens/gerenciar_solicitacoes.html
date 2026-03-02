@@ -4,27 +4,21 @@
 {% block content %}
 <div class="container mt-4">
 
-    <h2 class="mb-4 fw-bold">Solicitações Pendentes</h2>
+    <h2 class="mb-4 fw-bold">Solicitacoes Pendentes</h2>
 
     {% if solicitacoes %}
         {% for s in solicitacoes %}
         <div class="card mb-4 p-3 shadow-sm rounded-4">
 
-            <!-- Cabeçalho -->
             <div class="d-flex align-items-start gap-3">
 
                 {% if s.solicitante and s.solicitante.foto %}
-                    <img src="{{ s.solicitante.foto.url }}"
-                         class="rounded-circle"
-                         width="64" height="64">
+                    <img src="{{ s.solicitante.foto.url }}" class="rounded-circle" width="64" height="64">
                 {% else %}
-                    <img src="{% static 'img/avatar_padrao.jpg' %}"
-                         class="rounded-circle"
-                         width="64" height="64">
+                    <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" width="64" height="64">
                 {% endif %}
 
                 <div class="flex-grow-1">
-
                     <div class="fw-semibold fs-5">
                         {{ s.solicitante.nome_curto|default:s.nome_solicitante }}
                     </div>
@@ -34,33 +28,33 @@
                         {{ s.solicitante.telefone|default:s.telefone_solicitante }}
                     </div>
 
-                    <!-- Badges -->
                     <div class="d-flex flex-wrap gap-2 mt-2">
-
-                        <span class="badge bg-primary fs-6 px-3 py-2">
-                            <i class="bi bi-person-fill me-1"></i>
-                            {{ s.quantidade }} vaga{{ s.quantidade|pluralize }}
-                        </span>
-
-                        {% if s.malas > 0 %}
-                            <span class="badge bg-warning text-dark fs-6 px-3 py-2">
-                                <i class="bi bi-suitcase me-1"></i>
-                                {{ s.get_malas_display }}
+                        {% if s.tipo == "encomenda" %}
+                            <span class="badge bg-secondary fs-6 px-3 py-2">
+                                <i class="bi bi-box-seam me-1"></i> Encomenda
                             </span>
-                        {% endif %}
+                        {% else %}
+                            <span class="badge bg-primary fs-6 px-3 py-2">
+                                <i class="bi bi-person-fill me-1"></i>
+                                {{ s.quantidade }} vaga{{ s.quantidade|pluralize }}
+                            </span>
 
+                            {% if s.malas > 0 %}
+                                <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                                    <i class="bi bi-suitcase me-1"></i>
+                                    {{ s.get_malas_display }}
+                                </span>
+                            {% endif %}
+                        {% endif %}
                     </div>
                 </div>
             </div>
 
-            <!-- Carona -->
             <div class="mt-3 fw-semibold">
                 <i class="bi bi-signpost-2 me-1"></i>
-                {{ s.carona.origem }} → {{ s.carona.destino }}
-                às {{ s.carona.hora }}
+                {{ s.carona.origem }} -> {{ s.carona.destino }} as {{ s.carona.hora }}
             </div>
 
-            <!-- Data -->
             <div class="mt-2">
                 <small class="text-muted">
                     <i class="bi bi-clock me-1"></i>
@@ -68,53 +62,53 @@
                 </small>
             </div>
 
-            <!-- Observações -->
+            {% if s.tipo == "encomenda" %}
+                <div class="mt-3 p-3 rounded-3 bg-light border">
+                    <div class="small text-muted fw-semibold mb-1">
+                        <i class="bi bi-card-text me-1"></i>
+                        Descricao da encomenda
+                    </div>
+                    <div>{{ s.descricao_item }}</div>
+
+                    {% if s.foto_encomenda %}
+                        <img src="{{ s.foto_encomenda.url }}" class="img-fluid rounded mt-3 border" style="max-height: 220px; object-fit: cover;">
+                    {% endif %}
+                </div>
+            {% endif %}
+
             {% if s.observacoes %}
             <div class="mt-3 p-3 rounded-3 bg-light border">
-
                 <div class="small text-muted fw-semibold mb-1">
                     <i class="bi bi-chat-left-text me-1"></i>
-                    Observações do passageiro
+                    Observacoes
                 </div>
-
-                <div>
-                    {{ s.observacoes }}
-                </div>
-
+                <div>{{ s.observacoes }}</div>
             </div>
             {% endif %}
 
-            <!-- Ações -->
             <div class="mt-4 d-flex gap-2">
-
                 {% if s.status == "pendente" %}
-                    <a href="{% url 'aceitar_solicitacao' s.id %}"
-                       class="btn btn-success flex-fill btn-lg">
+                    <a href="{% url 'aceitar_solicitacao' s.id %}" class="btn btn-success flex-fill btn-lg">
                         <i class="bi bi-check-circle me-1"></i>
                         Aceitar
                     </a>
 
-                    <a href="{% url 'recusar_solicitacao' s.id %}"
-                       class="btn btn-outline-danger flex-fill btn-lg">
+                    <a href="{% url 'recusar_solicitacao' s.id %}" class="btn btn-outline-danger flex-fill btn-lg">
                         <i class="bi bi-x-circle me-1"></i>
                         Recusar
                     </a>
                 {% else %}
-                    <span class="badge fs-6
-                        {% if s.status == 'aceita' %}bg-success
-                        {% elif s.status == 'recusada' %}bg-danger
-                        {% else %}bg-secondary{% endif %}">
+                    <span class="badge fs-6 {% if s.status == 'aceita' %}bg-success{% elif s.status == 'recusada' %}bg-danger{% else %}bg-secondary{% endif %}">
                         {{ s.get_status_display }}
                     </span>
                 {% endif %}
-
             </div>
 
         </div>
         {% endfor %}
     {% else %}
         <div class="alert alert-warning text-center fw-semibold fs-5">
-            Nenhuma solicitação pendente no momento
+            Nenhuma solicitacao pendente no momento
         </div>
     {% endif %}
 

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponseBadRequest ,HttpResponse
 from django.db.models import Sum, Count, Q
 from .models import Carona, Solicitacao, Veiculo, Notificacao
-from .forms import CaronaForm, SolicitacaoForm, VeiculoForm
+from .forms import CaronaForm, SolicitacaoForm, EncomendaForm, VeiculoForm
 from datetime import datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -39,7 +39,11 @@ def lista_caronas(request):
         caronas = caronas.filter(data=data)
 
     for carona in caronas:
-        carona.passageiros_aceitos = carona.solicitacoes.filter(status='aceita')
+        carona.passageiros_aceitos = carona.solicitacoes.filter(status='aceita', tipo='carona')
+        carona.encomendas_pendentes = carona.solicitacoes.filter(
+            tipo='encomenda',
+            status='pendente'
+        ).count()
 
     return render(request, 'viagens/lista.html', {
         'caronas': caronas,
@@ -220,7 +224,7 @@ def excluir_carona(request, carona_id):
 def solicitar_vaga(request, carona_id):
     carona = get_object_or_404(Carona, id=carona_id)
 
-    vagas_ocupadas = carona.solicitacoes.filter(status="aceita").aggregate(
+    vagas_ocupadas = carona.solicitacoes.filter(status="aceita", tipo="carona").aggregate(
         total=Sum("quantidade")
     )["total"] or 0
     vagas_restantes = carona.vagas - vagas_ocupadas
@@ -249,6 +253,7 @@ def solicitar_vaga(request, carona_id):
 
             form.instance.carona = carona
             form.instance.status = "pendente"
+            form.instance.tipo = "carona"
 
             if not request.user.is_authenticated:
                 form.instance.uuid_local = uuid_local
@@ -258,6 +263,15 @@ def solicitar_vaga(request, carona_id):
                 solicitacao.id,
                 solicitacao.uuid_local,
                 solicitacao.solicitante
+            )
+
+            Notificacao.objects.create(
+                usuario=carona.motorista,
+                tipo="solicitacao_recebida",
+                titulo="Nova solicitacao de carona",
+                mensagem=f"{solicitacao.nome_solicitante} solicitou {solicitacao.quantidade} vaga(s).",
+                carona=carona,
+                solicitacao=solicitacao,
             )
 
             # 🚨 VISITANTE (SEM LOGIN)
@@ -270,17 +284,6 @@ def solicitar_vaga(request, carona_id):
                     "status": solicitacao.status,
                 })
             
-            # 🔔 NOTIFICA MOTORISTA (usuário logado)
-            if request.user.is_authenticated:
-                if solicitacao.solicitante:
-                    Notificacao.objects.create(
-                        usuario=carona.motorista,
-                        tipo="solicitacao_recebida",
-                        titulo="Nova solicitação de carona",
-                        mensagem=f"{solicitacao.nome_solicitante} solicitou {solicitacao.quantidade} vaga(s).",
-                        carona=carona,
-                        solicitacao=solicitacao,
-                    )
 
             # 👤 USUÁRIO LOGADO
             messages.success(
@@ -306,6 +309,65 @@ def solicitar_vaga(request, carona_id):
 
 
 
+def solicitar_encomenda(request, carona_id):
+    carona = get_object_or_404(Carona, id=carona_id)
+
+    if request.method == "POST":
+        form = EncomendaForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            if request.user.is_authenticated:
+                form.instance.solicitante = request.user
+
+            uuid_local = request.POST.get("uuid_local")
+
+            form.instance.carona = carona
+            form.instance.status = "pendente"
+            form.instance.tipo = "encomenda"
+            form.instance.quantidade = 1
+            form.instance.malas = 0
+
+            if not request.user.is_authenticated:
+                form.instance.uuid_local = uuid_local
+
+            solicitacao = form.save()
+
+            Notificacao.objects.create(
+                usuario=carona.motorista,
+                tipo="solicitacao_recebida",
+                titulo="Nova solicitacao de encomenda",
+                mensagem=f"{solicitacao.nome_solicitante} solicitou envio de encomenda.",
+                carona=carona,
+                solicitacao=solicitacao,
+            )
+
+            if not request.user.is_authenticated:
+                return render(request, "viagens/solicitacao_salva_local.html", {
+                    "carona": carona,
+                    "solicitacao": solicitacao,
+                    "solicitacao_id": solicitacao.id,
+                    "quantidade": solicitacao.quantidade,
+                    "status": solicitacao.status,
+                })
+
+            messages.success(
+                request,
+                "Solicitacao de encomenda enviada com sucesso! Aguarde o motorista confirmar."
+            )
+            return redirect("lista_caronas")
+    else:
+        if request.user.is_authenticated:
+            form = EncomendaForm(initial={
+                "nome_solicitante": request.user.nome_completo or request.user.email,
+                "telefone_solicitante": request.user.telefone,
+            })
+        else:
+            form = EncomendaForm()
+
+    return render(request, "viagens/solicitar_encomenda.html", {
+        "form": form,
+        "carona": carona,
+    })
 @login_required
 def aceitar_solicitacao(request, solicitacao_id):
     solicitacao = get_object_or_404(Solicitacao, id=solicitacao_id)
@@ -314,38 +376,51 @@ def aceitar_solicitacao(request, solicitacao_id):
         return redirect("lista_caronas")
 
     if solicitacao.status == "aceita":
-        messages.info(request, "Essa solicitação já foi aceita.")
+        messages.info(request, "Essa solicitacao ja foi aceita.")
         return redirect("gerenciar_solicitacoes")
 
-    vagas_ocupadas = solicitacao.carona.solicitacoes.filter(
-        status="aceita"
-    ).aggregate(total=Sum("quantidade"))["total"] or 0
+    if solicitacao.tipo == "carona":
+        vagas_ocupadas = solicitacao.carona.solicitacoes.filter(
+            status="aceita",
+            tipo="carona"
+        ).aggregate(total=Sum("quantidade"))["total"] or 0
 
-    vagas_restantes = solicitacao.carona.vagas - vagas_ocupadas
+        vagas_restantes = solicitacao.carona.vagas - vagas_ocupadas
 
-    if solicitacao.quantidade > vagas_restantes:
-        messages.error(request, f"Só restam {vagas_restantes} vaga(s)!")
-        return redirect("gerenciar_solicitacoes")
+        if solicitacao.quantidade > vagas_restantes:
+            messages.error(request, f"So restam {vagas_restantes} vaga(s)!")
+            return redirect("gerenciar_solicitacoes")
 
     solicitacao.status = "aceita"
     solicitacao.save()
-    if solicitacao.solicitante:
 
+    if solicitacao.solicitante:
         Notificacao.objects.create(
             usuario=solicitacao.solicitante,
             tipo="viagem_aceita",
-            titulo="Viagem confirmada 🚗",
+            titulo=(
+                "Encomenda confirmada"
+                if solicitacao.tipo == "encomenda"
+                else "Viagem confirmada"
+            ),
             mensagem=(
-                f"Sua viagem {solicitacao.carona.origem} → "
-                f"{solicitacao.carona.destino} foi confirmada."
+                f"Sua encomenda para {solicitacao.carona.destino} foi confirmada."
+                if solicitacao.tipo == "encomenda"
+                else f"Sua viagem {solicitacao.carona.origem} -> {solicitacao.carona.destino} foi confirmada."
             ),
             carona=solicitacao.carona,
             solicitacao=solicitacao,
+        )
+
+    messages.success(
+        request,
+        "Solicitacao aceita com sucesso!"
+        if solicitacao.tipo == "carona"
+        else "Encomenda aceita com sucesso!"
     )
 
-    messages.success(request, "Solicitação aceita com sucesso! 🎉")
-
     return redirect("gerenciar_solicitacoes")
+
 
 
 @login_required
@@ -368,17 +443,27 @@ def recusar_solicitacao(request, solicitacao_id):
 
     solicitacao.status = "recusada"
     solicitacao.save()
+
     if solicitacao.solicitante:
         Notificacao.objects.create(
             usuario=solicitacao.solicitante,
             tipo="solicitacao_recusada",
-            titulo="Solicitação recusada",
-            mensagem="O motorista recusou sua solicitação de carona.",
+            titulo="Solicitacao recusada",
+            mensagem=(
+                "O motorista recusou sua solicitacao de encomenda."
+                if solicitacao.tipo == "encomenda"
+                else "O motorista recusou sua solicitacao de carona."
+            ),
             carona=solicitacao.carona,
             solicitacao=solicitacao,
         )
 
-    messages.success(request, "Solicitação recusada! 🚫")
+    messages.success(
+        request,
+        "Solicitacao recusada!"
+        if solicitacao.tipo == "carona"
+        else "Encomenda recusada!"
+    )
     return redirect("gerenciar_solicitacoes")
 
 
@@ -420,6 +505,7 @@ def minhas_viagens(request):
 
         viagens = Solicitacao.objects.filter(
             solicitante=request.user,
+            tipo='carona',
             status='aceita',
             carona__status='ativa'  
         ).select_related('carona').order_by('-data_solicitacao')
@@ -634,13 +720,18 @@ def historico_viagens(request):
         elif tipo == 'passageiro':
             filtro = base_filter & Q(
                 solicitacoes__solicitante=request.user,
-                solicitacoes__status='aceita'
+                solicitacoes__status='aceita',
+                solicitacoes__tipo='carona'
             )
 
         else:
             filtro = base_filter & (
                 Q(motorista=request.user) |
-                Q(solicitacoes__solicitante=request.user, solicitacoes__status='aceita')
+                Q(
+                    solicitacoes__solicitante=request.user,
+                    solicitacoes__status='aceita',
+                    solicitacoes__tipo='carona'
+                )
             )
 
         caronas = (
@@ -708,10 +799,44 @@ def minhas_caronas_view(request):
     )
 
     for carona in caronas:
-        carona.passageiros_aceitos = carona.solicitacoes.filter(status='aceita')
+        carona.passageiros_aceitos = carona.solicitacoes.filter(status='aceita', tipo='carona')
+        carona.encomendas_pendentes = carona.solicitacoes.filter(
+            tipo='encomenda',
+            status='pendente'
+        ).count()
 
     return render(request, "viagens/minhas_caronas.html", {
         "caronas": caronas
+    })
+
+
+@login_required
+def encomendas_carona(request, carona_id):
+    carona = get_object_or_404(Carona, id=carona_id, motorista=request.user)
+    encomendas = (
+        Solicitacao.objects
+        .filter(carona=carona, tipo="encomenda")
+        .select_related("solicitante", "carona")
+        .order_by("-data_solicitacao")
+    )
+
+    return render(request, "viagens/encomendas_carona.html", {
+        "carona": carona,
+        "encomendas": encomendas,
+    })
+
+
+@login_required
+def minhas_encomendas(request):
+    encomendas = (
+        Solicitacao.objects
+        .filter(carona__motorista=request.user, tipo="encomenda")
+        .select_related("solicitante", "carona")
+        .order_by("-data_solicitacao")
+    )
+
+    return render(request, "viagens/minhas_encomendas.html", {
+        "encomendas": encomendas,
     })
 
 @login_required
@@ -744,3 +869,6 @@ def marcar_notificacoes_como_lidas(request):
     ).update(lida=True)
 
     return JsonResponse({"status": "ok"})
+
+
+

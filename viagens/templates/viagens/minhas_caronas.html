@@ -27,6 +27,13 @@
                                 <i class="bi bi-eye"></i> Ver detalhes
                             </button>
 
+                            <a href="{% url 'encomendas_carona' carona.id %}" class="btn btn-outline-secondary w-100 mb-2 py-2 fs-6" onclick="event.stopPropagation()">
+                                <i class="bi bi-box-seam"></i> Encomendas da carona
+                                {% if carona.encomendas_pendentes > 0 %}
+                                    <span class="badge bg-danger ms-2">{{ carona.encomendas_pendentes }}</span>
+                                {% endif %}
+                            </a>
+
                             {% if carona.esta_concluida and carona.status == 'ativa' %}
                             <a href="{% url 'concluir_carona' carona.id %}" class="btn btn-outline-success w-100 mb-2 py-2 fs-6">
                                 <i class="bi bi-check-circle"></i> Marcar como concluída

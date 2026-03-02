@@ -99,6 +99,39 @@ class SolicitacaoForm(forms.ModelForm):
             }),
         }
 
+
+class EncomendaForm(forms.ModelForm):
+    class Meta:
+        model = Solicitacao
+        fields = [
+            "nome_solicitante",
+            "telefone_solicitante",
+            "descricao_item",
+            "foto_encomenda",
+            "observacoes",
+        ]
+        widgets = {
+            "nome_solicitante": forms.TextInput(attrs={"class": "form-control"}),
+            "telefone_solicitante": forms.TextInput(attrs={"class": "form-control"}),
+            "descricao_item": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 4,
+                "placeholder": "Descreva o item da encomenda",
+            }),
+            "foto_encomenda": forms.FileInput(attrs={"class": "form-control"}),
+            "observacoes": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Ex: frágil, manter em pé, entregar até 18h...",
+            }),
+        }
+
+    def clean_descricao_item(self):
+        descricao = (self.cleaned_data.get("descricao_item") or "").strip()
+        if not descricao:
+            raise forms.ValidationError("Informe a descrição do item.")
+        return descricao
+
 class VeiculoForm(forms.ModelForm):
     class Meta:
         model = Veiculo

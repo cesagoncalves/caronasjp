@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
 import uuid
 from django.utils.timezone import now
 
@@ -69,7 +70,7 @@ class Carona(models.Model):
     @property
     def vagas_restantes(self):
         # Somente solicitações aceitas
-        vagas_ocupadas = self.solicitacoes.filter(status='aceita').aggregate(
+        vagas_ocupadas = self.solicitacoes.filter(status='aceita', tipo='carona').aggregate(
             total=models.Sum('quantidade')
         )['total'] or 0
         return self.vagas - vagas_ocupadas
@@ -89,6 +90,10 @@ class Carona(models.Model):
 
     
 class Solicitacao(models.Model):
+    TIPO_CHOICES = (
+        ("carona", "Carona"),
+        ("encomenda", "Encomenda"),
+    )
 
     OPCOES_MALAS = [
         (0, 'Nenhuma'),
@@ -126,7 +131,10 @@ class Solicitacao(models.Model):
 
     nome_solicitante = models.CharField(max_length=100)
     telefone_solicitante = models.CharField(max_length=20)
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default="carona")
     quantidade = models.PositiveIntegerField(default=1)
+    descricao_item = models.TextField(blank=True, null=True)
+    foto_encomenda = models.ImageField(upload_to="encomendas/fotos/", blank=True, null=True)
     data_solicitacao = models.DateTimeField(auto_now_add=True)
     viagem_atualizada = models.BooleanField(default=False)
     data_edicao = models.DateTimeField(null=True, blank=True)
@@ -153,7 +161,14 @@ class Solicitacao(models.Model):
 
 
     def __str__(self):
+        if self.tipo == "encomenda":
+            return f"{self.nome_solicitante} pediu envio de encomenda"
         return f"{self.nome_solicitante} pediu {self.quantidade} vaga(s)"
+
+    def clean(self):
+        super().clean()
+        if self.tipo == "encomenda" and not self.descricao_item:
+            raise ValidationError({"descricao_item": "Informe a descrição do item."})
     
     def mudar_status(self, novo_status):
         if self.status != novo_status:

@@ -28,10 +28,13 @@ function renderSolicitacoesLocal() {
             <div class="card border-0 shadow-sm rounded-3 mb-3">
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
-                        <h5>Carona para <strong>${s.carona_destino}</strong></h5>
+                        <h5>${s.tipo === "encomenda" ? "Encomenda para" : "Carona para"} <strong>${s.carona_destino}</strong></h5>
                         <span class="badge ${badgeClass}">${s.status}</span>
                     </div>
-                    <p class="mb-1"><strong>Quantidade:</strong> ${s.quantidade}</p>
+                    ${s.tipo === "encomenda"
+                        ? `<p class="mb-1"><strong>Descricao:</strong> ${s.descricao_item || "-"}</p>`
+                        : `<p class="mb-1"><strong>Quantidade:</strong> ${s.quantidade}</p>`
+                    }
                     <p class="mb-1"><strong>Motorista:</strong> ${s.motorista_nome}</p>
                     ${s.status === "pendente" ? `
                     <button class="btn btn-sm btn-outline-danger mt-2"
