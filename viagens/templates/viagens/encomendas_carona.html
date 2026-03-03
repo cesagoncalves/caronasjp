@@ -5,9 +5,20 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <h2 class="mb-0">Encomendas da Carona</h2>
-        <a href="{% url 'minhas_caronas' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Voltar
-        </a>
+        <div class="d-flex gap-2">
+            {% if mostrar_todas %}
+                <a href="{% url 'encomendas_carona' carona.id %}" class="btn btn-outline-secondary btn-sm">
+                    Mostrar ativas
+                </a>
+            {% else %}
+                <a href="{% url 'encomendas_carona' carona.id %}?todas=1" class="btn btn-outline-secondary btn-sm">
+                    Mostrar todas
+                </a>
+            {% endif %}
+            <a href="{% url 'minhas_caronas' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
     </div>
 
     <div class="alert alert-light border">
@@ -23,6 +34,16 @@
                         <div>
                             <h5 class="mb-0">{{ e.solicitante.nome_curto|default:e.nome_solicitante }}</h5>
                             <div class="text-muted small">{{ e.telefone_solicitante }}</div>
+                            {% if e.endereco_solicitante %}
+                                <div class="text-muted small">
+                                    <i class="bi bi-geo-alt-fill me-1"></i>Coleta: {{ e.endereco_solicitante }}
+                                </div>
+                            {% endif %}
+                            {% if e.endereco_destino_solicitante %}
+                                <div class="text-muted small">
+                                    <i class="bi bi-signpost-2-fill me-1"></i>Entrega: {{ e.endereco_destino_solicitante }}
+                                </div>
+                            {% endif %}
                         </div>
                         <span class="badge {% if e.status == 'pendente' %}bg-warning text-dark{% elif e.status == 'aceita' %}bg-success{% else %}bg-danger{% endif %}">
                             {{ e.get_status_display }}

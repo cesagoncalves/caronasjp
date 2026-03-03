@@ -131,6 +131,8 @@ class Solicitacao(models.Model):
 
     nome_solicitante = models.CharField(max_length=100)
     telefone_solicitante = models.CharField(max_length=20)
+    endereco_solicitante = models.CharField(max_length=255, blank=True, null=True)
+    endereco_destino_solicitante = models.CharField(max_length=255, blank=True, null=True)
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default="carona")
     quantidade = models.PositiveIntegerField(default=1)
     descricao_item = models.TextField(blank=True, null=True)
@@ -180,8 +182,16 @@ class Solicitacao(models.Model):
                 Notificacao.objects.create(
                     usuario=self.solicitante,
                     tipo="viagem_cancelada",
-                    titulo="Viagem cancelada",
-                    mensagem="Você cancelou a viagem.",
+                    titulo=(
+                        "Encomenda cancelada"
+                        if self.tipo == "encomenda"
+                        else "Viagem cancelada"
+                    ),
+                    mensagem=(
+                        "Voce cancelou a encomenda."
+                        if self.tipo == "encomenda"
+                        else "Voce cancelou a viagem."
+                    ),
                     solicitacao=self,
                     carona=self.carona,
                 )
@@ -190,8 +200,16 @@ class Solicitacao(models.Model):
             Notificacao.objects.create(
                 usuario=self.carona.motorista,
                 tipo="passageiro_cancelou",
-                titulo="Passageiro cancelou",
-                mensagem="Um passageiro cancelou a carona.",
+                titulo=(
+                    "Passageiro cancelou encomenda"
+                    if self.tipo == "encomenda"
+                    else "Passageiro cancelou"
+                ),
+                mensagem=(
+                    "Um passageiro cancelou a encomenda."
+                    if self.tipo == "encomenda"
+                    else "Um passageiro cancelou a carona."
+                ),
                 solicitacao=self,
                 carona=self.carona,
             )
@@ -222,9 +240,24 @@ class Veiculo(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        if self.tipo in ["carro", "moto"]:
-            return f"{self.get_tipo_display()} - {self.marca} {self.modelo} ({self.cor})"
-        return self.get_tipo_display()
+        tipo = self.get_tipo_display()
+        detalhes = " ".join(
+            p for p in [self.marca, self.modelo] if p
+        ).strip()
+
+        extras = []
+        if self.ano:
+            extras.append(str(self.ano))
+        if self.cor:
+            extras.append(self.cor)
+
+        if detalhes and extras:
+            return f"{tipo} - {detalhes} ({' · '.join(extras)})"
+        if detalhes:
+            return f"{tipo} - {detalhes}"
+        if extras:
+            return f"{tipo} ({' · '.join(extras)})"
+        return tipo
 
 from django.db import models
 from django.conf import settings

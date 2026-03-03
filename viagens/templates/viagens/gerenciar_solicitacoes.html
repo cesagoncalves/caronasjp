@@ -28,6 +28,20 @@
                         {{ s.solicitante.telefone|default:s.telefone_solicitante }}
                     </div>
 
+                    {% if s.endereco_solicitante %}
+                    <div class="text-muted small">
+                        <i class="bi bi-geo-alt-fill me-1"></i>
+                        Origem: {{ s.endereco_solicitante }}
+                    </div>
+                    {% endif %}
+
+                    {% if s.endereco_destino_solicitante %}
+                    <div class="text-muted small">
+                        <i class="bi bi-signpost-2-fill me-1"></i>
+                        Destino: {{ s.endereco_destino_solicitante }}
+                    </div>
+                    {% endif %}
+
                     <div class="d-flex flex-wrap gap-2 mt-2">
                         {% if s.tipo == "encomenda" %}
                             <span class="badge bg-secondary fs-6 px-3 py-2">

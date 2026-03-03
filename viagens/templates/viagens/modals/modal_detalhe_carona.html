@@ -54,26 +54,35 @@
                     </div>
                     {% endif %}
 
-                    <div class="col-4">
+                    <div class="{% if user == carona.motorista %}col-6 col-md-3{% else %}col-4{% endif %}">
                         <div class="border rounded-3 p-3 h-100">
                             <i class="bi bi-calendar-event fs-3 text-primary"></i>
                             <p class="fw-bold mb-0 mt-2">{{ carona.data|date:"d/m/Y" }}</p>
                         </div>
                     </div>
 
-                    <div class="col-4">
+                    <div class="{% if user == carona.motorista %}col-6 col-md-3{% else %}col-4{% endif %}">
                         <div class="border rounded-3 p-3 h-100">
                             <i class="bi bi-clock fs-3 text-primary"></i>
                             <p class="fw-bold mb-0 mt-2">{{ carona.hora|time:"H:i" }}</p>
                         </div>
                     </div>
 
-                    <div class="col-4">
+                    <div class="{% if user == carona.motorista %}col-6 col-md-3{% else %}col-4{% endif %}">
                         <div class="border rounded-3 p-3 h-100">
                             <i class="bi bi-people fs-3 text-primary"></i>
                             <p class="fw-bold mb-0 mt-2">{{ carona.vagas_restantes }} / {{ carona.vagas }}</p>
                         </div>
                     </div>
+
+                    {% if user == carona.motorista %}
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded-3 p-3 h-100">
+                            <i class="bi bi-box-seam fs-3 text-primary"></i>
+                            <p class="fw-bold mb-0 mt-2">{{ carona.encomendas_ativas|default:0 }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- VEÍCULO -->
@@ -92,8 +101,18 @@
                             {% endif %}
                         </div>
                         <div>
-                            <p class="fw-semibold mb-1">{{ carona.veiculo.marca }} {{ carona.veiculo.modelo }}</p>
-                            <p class="text-muted mb-0 small">{{ carona.veiculo.ano }} · {{ carona.veiculo.cor }}</p>
+                            <p class="fw-semibold mb-1">{{ carona.veiculo.get_tipo_display }}</p>
+                            {% if carona.veiculo.marca or carona.veiculo.modelo or carona.veiculo.ano or carona.veiculo.cor %}
+                                <p class="text-muted mb-0 small">
+                                    {% if carona.veiculo.marca or carona.veiculo.modelo %}
+                                        {{ carona.veiculo.marca|default:"" }} {{ carona.veiculo.modelo|default:"" }}
+                                    {% endif %}
+                                    {% if carona.veiculo.ano or carona.veiculo.cor %}
+                                        {% if carona.veiculo.marca or carona.veiculo.modelo %} · {% endif %}
+                                        {{ carona.veiculo.ano|default:"" }}{% if carona.veiculo.ano and carona.veiculo.cor %} · {% endif %}{{ carona.veiculo.cor|default:"" }}
+                                    {% endif %}
+                                </p>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -146,6 +165,33 @@
                         {% endif %}
                     </div>
                 </div>
+
+                {% if user.is_authenticated and user != carona.motorista %}
+                {% if carona.minha_solicitacao_ativa or carona.minhas_encomendas_ativas_count|default:0 > 0 %}
+                <div class="border rounded-3 p-3 bg-light mb-3">
+                    <h6 class="fw-semibold mb-2">
+                        <i class="bi bi-person-check me-2"></i> Sua participacao nesta viagem
+                    </h6>
+
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        {% if carona.minha_solicitacao_ativa %}
+                            <span class="badge bg-success">Voce e passageiro</span>
+                        {% endif %}
+                        {% if carona.minhas_encomendas_ativas_count|default:0 > 0 %}
+                            <span class="badge bg-info text-dark">Encomenda(s) enviada(s): {{ carona.minhas_encomendas_ativas_count }}</span>
+                        {% endif %}
+                    </div>
+
+                    {% if carona.minhas_encomendas_ativas_count|default:0 > 0 %}
+                        <div class="small text-muted">
+                            {% for e in carona.minhas_encomendas_ativas|slice:":2" %}
+                                <div>- {{ e.descricao_item|default:"Encomenda" }} ({{ e.get_status_display }})</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% endif %}
 
                 <!-- PASSAGEIROS CONFIRMADOS -->
                 {% if user == carona.motorista %}
@@ -268,6 +314,9 @@
             <div class="modal-footer justify-content-between flex-wrap gap-2">
                 {% if user == carona.motorista %}
                     <div class="d-flex gap-2">
+                        <a href="{% url 'encomendas_carona' carona.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-box-seam"></i> Ver encomendas
+                        </a>
                         {% if carona.esta_concluida and carona.status == 'ativa' %}
                         <a href="{% url 'concluir_carona' carona.id %}" class="btn btn-outline-success">
                             <i class="bi bi-check-circle"></i> Marcar como concluída

@@ -8,16 +8,18 @@
     {% else %}
         <i class="bi bi-bus-front-fill me-2 text-primary"></i>
     {% endif %}
-
-    {{ veiculo.marca }} {{ veiculo.modelo }}
+    {{ veiculo.get_tipo_display }}
 </h5>
 
-<p class="mb-1 text-muted">
-    <i class="bi bi-calendar me-2"></i>
-    {{ veiculo.ano }} · {{ veiculo.cor }}
-</p>
-
+{% if veiculo.marca or veiculo.modelo or veiculo.ano or veiculo.cor %}
 <p class="mb-0 text-muted">
-    <i class="bi bi-tag-fill me-2"></i>
-    {{ veiculo.get_tipo_display }}
+    <i class="bi bi-info-circle me-2"></i>
+    {% if veiculo.marca or veiculo.modelo %}
+        {{ veiculo.marca|default:"" }} {{ veiculo.modelo|default:"" }}
+    {% endif %}
+    {% if veiculo.ano or veiculo.cor %}
+        {% if veiculo.marca or veiculo.modelo %} · {% endif %}
+        {{ veiculo.ano|default:"" }}{% if veiculo.ano and veiculo.cor %} · {% endif %}{{ veiculo.cor|default:"" }}
+    {% endif %}
 </p>
+{% endif %}

@@ -5,15 +5,14 @@
 <div class="container mt-5" style="max-width: 520px;">
     <div class="card shadow-sm border-0 rounded-4">
         <div class="card-body p-4">
-
             <h3 class="text-center fw-bold mb-4">
                 Solicitar Vaga
             </h3>
 
             <div class="alert alert-info text-center">
-                <strong>{{ carona.origem }} → {{ carona.destino }}</strong><br>
-                {{ carona.data|date:"d/m/Y" }} às {{ carona.hora }}<br>
-                <span class="badge bg-info fs-6">🚗 Restam {{ carona.vagas_restantes }} vaga(s)</span>
+                <strong>{{ carona.origem }} -> {{ carona.destino }}</strong><br>
+                {{ carona.data|date:"d/m/Y" }} as {{ carona.hora }}<br>
+                <span class="badge bg-info fs-6">Restam {{ carona.vagas_restantes }} vaga(s)</span>
             </div>
 
             <form method="POST">
@@ -27,13 +26,23 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Telefone para Contato</label>
+                    <label class="form-label fw-semibold">Telefone para contato</label>
                     {{ form.telefone_solicitante }}
-                    <small class="text-muted">WhatsApp ou ligação</small>
+                    <small class="text-muted">WhatsApp ou ligacao</small>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Quantidade de Vagas</label>
+                    <label class="form-label fw-semibold">Endereco para embarque</label>
+                    {{ form.endereco_solicitante }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Endereco de destino</label>
+                    {{ form.endereco_destino_solicitante }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Quantidade de vagas</label>
                     {{ form.quantidade }}
                 </div>
 
@@ -48,19 +57,18 @@
                 <div class="mb-3">
                     <label class="form-label">
                         <i class="bi bi-chat-left-text me-1"></i>
-                        Observações (opcional)
+                        Observacoes (opcional)
                     </label>
                     {{ form.observacoes }}
                 </div>
 
-
                 <button class="btn btn-success w-100 py-2 fw-semibold" type="submit">
-                    <i class="bi bi-check-circle-fill"></i> Enviar Solicitação
+                    <i class="bi bi-check-circle-fill"></i> Enviar solicitacao
                 </button>
             </form>
 
             <a href="{% url 'lista_caronas' %}" class="btn btn-outline-secondary w-100 mt-3 py-2">
-                <i class="bi bi-arrow-left"></i> Voltar para Lista
+                <i class="bi bi-arrow-left"></i> Voltar para lista
             </a>
         </div>
     </div>
@@ -72,15 +80,31 @@
     if (!uuid) {
         uuid = crypto.randomUUID();
         localStorage.setItem("uuid_local", uuid);
-        console.log("🆕 UUID gerado:", uuid);
     }
 
     const input = document.getElementById("uuid_local");
     if (input) {
         input.value = uuid;
-        console.log("📤 UUID enviado no formulário:", uuid);
-    } else {
-        console.error("❌ input uuid_local não encontrado no form");
+    }
+
+    const origemKey = "carona_endereco_origem";
+    const destinoKey = "carona_endereco_destino";
+    const campoOrigem = document.getElementById("id_endereco_solicitante");
+    const campoDestino = document.getElementById("id_endereco_destino_solicitante");
+
+    if (campoOrigem && localStorage.getItem(origemKey)) {
+        campoOrigem.value = localStorage.getItem(origemKey);
+    }
+    if (campoDestino && localStorage.getItem(destinoKey)) {
+        campoDestino.value = localStorage.getItem(destinoKey);
+    }
+
+    const form = document.querySelector("form");
+    if (form) {
+        form.addEventListener("submit", () => {
+            if (campoOrigem) localStorage.setItem(origemKey, campoOrigem.value || "");
+            if (campoDestino) localStorage.setItem(destinoKey, campoDestino.value || "");
+        });
     }
 })();
 </script>

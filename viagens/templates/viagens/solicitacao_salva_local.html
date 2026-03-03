@@ -28,6 +28,8 @@
 
         quantidade: {{ quantidade }},
         tipo: "{{ solicitacao.tipo|default:'carona' }}",
+        endereco_solicitante: "{{ solicitacao.endereco_solicitante|default:''|escapejs }}",
+        endereco_destino_solicitante: "{{ solicitacao.endereco_destino_solicitante|default:''|escapejs }}",
         descricao_item: "{{ solicitacao.descricao_item|default:''|escapejs }}",
 
         status: "{{ status }}",
@@ -60,7 +62,10 @@
     }
 
     console.log("➡️ Redirecionando para Minhas Solicitações...");
-    window.location.href = "{% url 'minhas_solicitacoes' %}";
+    const destino = solicitacao.tipo === "encomenda"
+        ? "{% url 'minhas_encomendas_passageiro' %}"
+        : "{% url 'minhas_solicitacoes' %}";
+    window.location.href = destino;
 </script>
 
 

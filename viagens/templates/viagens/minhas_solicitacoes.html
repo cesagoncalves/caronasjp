@@ -19,11 +19,7 @@ data-page="solicitacoes-local"
                         <div class="card-body">
                             <div class="d-flex justify-content-between flex-wrap mb-2">
                                 <h5 class="card-title mb-0">
-                                    {% if s.tipo == 'encomenda' %}
-                                        Encomenda para <strong>{{ s.carona.destino }}</strong>
-                                    {% else %}
-                                        Carona para <strong>{{ s.carona.destino }}</strong>
-                                    {% endif %}
+                                    Carona para <strong>{{ s.carona.destino }}</strong>
                                 </h5>
                                 <span class="badge {% if s.status == 'pendente' %} bg-warning text-dark{% elif s.status == 'aceita' %} bg-success{% else %} bg-danger{% endif %}">
                                     {{ s.get_status_display }}
@@ -32,15 +28,7 @@ data-page="solicitacoes-local"
 
                             <p class="mb-1 text-muted">Solicitado em: {{ s.data_solicitacao|date:"d/m/Y H:i" }}</p>
                             <p class="mb-2"><strong>Motorista:</strong> {{ s.carona.motorista.nome_completo }}</p>
-
-                            {% if s.tipo == 'encomenda' %}
-                                <p class="mb-1"><strong>Descricao:</strong> {{ s.descricao_item }}</p>
-                                {% if s.foto_encomenda %}
-                                    <img src="{{ s.foto_encomenda.url }}" class="img-fluid rounded border mb-2" style="max-height: 220px; object-fit: cover;">
-                                {% endif %}
-                            {% else %}
-                                <p class="mb-1"><strong>Quantidade:</strong> {{ s.quantidade }}</p>
-                            {% endif %}
+                            <p class="mb-1"><strong>Quantidade:</strong> {{ s.quantidade }}</p>
 
                             {% if s.observacoes %}
                                 <p class="mb-2"><strong>Observacoes:</strong> {{ s.observacoes }}</p>
@@ -64,7 +52,7 @@ data-page="solicitacoes-local"
                 {% endfor %}
             </div>
         {% else %}
-            <div class="alert alert-info text-center">Voce ainda nao fez nenhuma solicitacao.</div>
+            <div class="alert alert-info text-center">Voce ainda nao fez nenhuma solicitacao de carona.</div>
         {% endif %}
     {% endif %}
 

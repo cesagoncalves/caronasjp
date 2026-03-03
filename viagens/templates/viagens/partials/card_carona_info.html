@@ -1,7 +1,7 @@
-<!-- Informações resumidas da carona -->
+<!-- Informacoes resumidas da carona -->
 <h5 class="mb-3">
     <i class="bi bi-geo-alt-fill me-2 text-primary"></i>
-    {{ carona.origem }} → {{ carona.destino }}
+    {{ carona.origem }} -> {{ carona.destino }}
 </h5>
 
 <p class="mb-1">
@@ -26,7 +26,6 @@
 
 {% if carona.veiculo %}
 <p class="mb-1">
-
     {% if carona.veiculo.tipo == "carro" %}
         <i class="bi bi-car-front-fill me-2 text-primary"></i>
     {% elif carona.veiculo.tipo == "moto" %}
@@ -37,53 +36,45 @@
         <i class="bi bi-bus-front-fill me-2 text-primary"></i>
     {% endif %}
 
-    <span>
-        {% if carona.veiculo.marca or carona.veiculo.modelo %}
-            {{ carona.veiculo.marca }} {{ carona.veiculo.modelo }}
-        {% else %}
-            <span class="text-muted">Veículo não especificado</span>
-        {% endif %}
-
-        {% if carona.veiculo.ano or carona.veiculo.cor %}
-            <span class="text-muted">
-                {{ carona.veiculo.ano }}
-                {% if carona.veiculo.ano and carona.veiculo.cor %}·{% endif %}
-                {{ carona.veiculo.cor }}
-            </span>
-        {% endif %}
-    </span>
-
+    <span class="fw-semibold">{{ carona.veiculo.get_tipo_display }}</span>
+    {% if carona.veiculo.marca or carona.veiculo.modelo or carona.veiculo.ano or carona.veiculo.cor %}
+        <span class="text-muted">
+            {% if carona.veiculo.marca or carona.veiculo.modelo %}
+                · {{ carona.veiculo.marca|default:"" }} {{ carona.veiculo.modelo|default:"" }}
+            {% endif %}
+            {% if carona.veiculo.ano or carona.veiculo.cor %}
+                {% if carona.veiculo.marca or carona.veiculo.modelo %} · {% else %} · {% endif %}
+                {{ carona.veiculo.ano|default:"" }}{% if carona.veiculo.ano and carona.veiculo.cor %} · {% endif %}{{ carona.veiculo.cor|default:"" }}
+            {% endif %}
+        </span>
+    {% endif %}
 </p>
 {% endif %}
+
 <p class="mb-1">
     {% if carona.observacoes %}
     <span class="text-muted">
-        <i class="bi bi-chat-left-text text-muted opacity-75" title="Observações do motorista"></i>
+        <i class="bi bi-chat-left-text text-muted opacity-75" title="Observacoes do motorista"></i>
     </span>
     {% endif %}
-
 </p>
 
-{# ---------- STATUS DAS SOLICITAÇÕES ---------- #}
+{# ---------- STATUS DAS SOLICITACOES ---------- #}
 {% if carona.aguardando_confirmacao > 0 %}
 <div class="mt-2">
-
     {% if carona.motorista == request.user %}
-        <!-- Mensagem para o motorista dono -->
         <div class="alert alert-warning py-2 px-3 mb-0 text-center">
             <i class="bi bi-exclamation-circle me-1"></i>
-            Você tem
+            Voce tem
             <strong>{{ carona.aguardando_confirmacao }}</strong>
-            solicitação(ões) aguardando sua confirmação
+            solicitacao(oes) aguardando sua confirmacao
         </div>
     {% else %}
-        <!-- Mensagem para outros usuários -->
         <div class="alert alert-info py-2 px-3 mb-0 text-center">
             <i class="bi bi-hourglass-split me-1"></i>
             {{ carona.aguardando_confirmacao }}
             pessoa(s) aguardando resposta do motorista
         </div>
     {% endif %}
-
 </div>
 {% endif %}

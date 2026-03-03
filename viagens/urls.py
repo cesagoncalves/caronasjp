@@ -11,6 +11,7 @@ urlpatterns = [
     path("caronas/<int:carona_id>/encomenda/", views.solicitar_encomenda, name="solicitar_encomenda"),
     path("solicitacoes/", views.gerenciar_solicitacoes, name="gerenciar_solicitacoes"),
     path("encomendas/", views.minhas_encomendas, name="minhas_encomendas"),
+    path("minhas-encomendas/", views.minhas_encomendas_passageiro, name="minhas_encomendas_passageiro"),
     path("caronas/<int:carona_id>/encomendas/", views.encomendas_carona, name="encomendas_carona"),
     path("solicitacao/<int:solicitacao_id>/aceitar/", views.aceitar_solicitacao, name="aceitar_solicitacao"),
     path("solicitacao/<int:solicitacao_id>/recusar/", views.recusar_solicitacao, name="recusar_solicitacao"),

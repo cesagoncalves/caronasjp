@@ -304,6 +304,19 @@
                             </a>
                         </li>
 
+                        <li>
+                            <a class="dropdown-item
+                            {% if qtd_encomendas_novas > 0 %}fw-bold text-warning{% endif %}"
+                            href="{% url 'minhas_encomendas_passageiro' %}">
+                                Minhas Encomendas
+                                {% if qtd_encomendas_novas > 0 %}
+                                    <span class="badge bg-danger ms-2">
+                                        {{ qtd_encomendas_novas }}
+                                    </span>
+                                {% endif %}
+                            </a>
+                        </li>
+
                     </ul>
 
 
@@ -355,8 +368,15 @@
                         </li>
 
                         <li>
-                            <a class="dropdown-item" href="{% url 'minhas_encomendas' %}">
+                            <a class="dropdown-item
+                                {% if qtd_eventos_motorista_encomendas > 0 %}fw-bold text-warning{% endif %}"
+                                href="{% url 'minhas_encomendas' %}">
                                 Minhas Encomendas
+                                {% if qtd_eventos_motorista_encomendas > 0 %}
+                                    <span class="badge bg-danger ms-2">
+                                        {{ qtd_eventos_motorista_encomendas }}
+                                    </span>
+                                {% endif %}
                             </a>
                         </li>
 
@@ -403,6 +423,17 @@
                     href="{% url 'minhas_solicitacoes' %}">
                         Minhas Solicitações
                         <span id="badge-solicitacoes"
+                            class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill d-none">
+                            0
+                        </span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link position-relative" id="nav-minhas-encomendas"
+                    href="{% url 'minhas_encomendas_passageiro' %}">
+                        Minhas Encomendas
+                        <span id="badge-encomendas"
                             class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill d-none">
                             0
                         </span>

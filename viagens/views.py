@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponseBadRequest ,HttpResponse
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Count, Q, Max
 from .models import Carona, Solicitacao, Veiculo, Notificacao
 from .forms import CaronaForm, SolicitacaoForm, EncomendaForm, VeiculoForm
 from datetime import datetime
@@ -15,6 +15,35 @@ from django.utils import timezone
 
 
 def lista_caronas(request):
+    def preencher_dados_carona(carona):
+        if not carona:
+            return None
+        carona.aguardando_confirmacao = carona.solicitacoes.filter(status="pendente").count()
+        carona.passageiros_aceitos = carona.solicitacoes.filter(status="aceita", tipo="carona")
+        carona.encomendas_pendentes = carona.solicitacoes.filter(tipo="encomenda", status="pendente").count()
+        carona.encomendas_ativas = carona.solicitacoes.filter(
+            tipo="encomenda",
+            status__in=["pendente", "aceita"]
+        ).count()
+
+        if request.user.is_authenticated and request.user != carona.motorista:
+            carona.minha_solicitacao_ativa = carona.solicitacoes.filter(
+                solicitante=request.user,
+                tipo="carona",
+                status="aceita",
+            ).first()
+            carona.minhas_encomendas_ativas = carona.solicitacoes.filter(
+                solicitante=request.user,
+                tipo="encomenda",
+                status__in=["pendente", "aceita"],
+            ).order_by("-data_solicitacao")
+            carona.minhas_encomendas_ativas_count = carona.minhas_encomendas_ativas.count()
+        else:
+            carona.minha_solicitacao_ativa = None
+            carona.minhas_encomendas_ativas = []
+            carona.minhas_encomendas_ativas_count = 0
+        return carona
+
     caronas = (
         Carona.objects
         .filter(status='ativa')
@@ -39,17 +68,88 @@ def lista_caronas(request):
         caronas = caronas.filter(data=data)
 
     for carona in caronas:
-        carona.passageiros_aceitos = carona.solicitacoes.filter(status='aceita', tipo='carona')
-        carona.encomendas_pendentes = carona.solicitacoes.filter(
-            tipo='encomenda',
-            status='pendente'
-        ).count()
+        preencher_dados_carona(carona)
+
+    destaques_ativos = []
+    destaque_modais_extras = []
+
+    if request.user.is_authenticated:
+        destaques_map = {}
+
+        def add_destaque(carona, tipo, data_ref, **extras):
+            key = (carona.id, tipo)
+            atual = destaques_map.get(key)
+            if not atual or data_ref > atual["data_ref"]:
+                item = {
+                    "carona": preencher_dados_carona(carona),
+                    "tipo": tipo,
+                    "data_ref": data_ref,
+                }
+                item.update(extras)
+                destaques_map[key] = item
+
+        caronas_motorista = Carona.objects.filter(motorista=request.user, status="ativa")
+        for c in caronas_motorista:
+            add_destaque(c, "motorista", c.criado_em)
+            if c.solicitacoes.filter(tipo="encomenda", status__in=["pendente", "aceita"]).exists():
+                ultima = (
+                    c.solicitacoes.filter(tipo="encomenda", status__in=["pendente", "aceita"])
+                    .order_by("-data_solicitacao")
+                    .first()
+                )
+                add_destaque(
+                    c,
+                    "entregar_encomenda",
+                    ultima.data_solicitacao if ultima else c.criado_em,
+                )
+
+        solicitacoes_carona = (
+            Solicitacao.objects
+            .select_related("carona")
+            .filter(
+                solicitante=request.user,
+                tipo="carona",
+                status="aceita",
+                carona__status="ativa",
+            )
+        )
+        for s in solicitacoes_carona:
+            add_destaque(s.carona, "passageiro", s.data_solicitacao, quantidade=s.quantidade)
+
+        solicitacoes_encomenda = (
+            Solicitacao.objects
+            .select_related("carona")
+            .filter(
+                solicitante=request.user,
+                tipo="encomenda",
+                status__in=["pendente", "aceita"],
+                carona__status="ativa",
+            )
+        )
+        for s in solicitacoes_encomenda:
+            add_destaque(s.carona, "enviada", s.data_solicitacao)
+
+        destaques_ativos = sorted(
+            destaques_map.values(),
+            key=lambda x: x["data_ref"],
+            reverse=True,
+        )
+
+        carona_ids_tela = set(caronas.values_list("id", flat=True))
+        vistos = set()
+        for item in destaques_ativos:
+            c = item["carona"]
+            if c.id not in carona_ids_tela and c.id not in vistos:
+                destaque_modais_extras.append(c)
+                vistos.add(c.id)
 
     return render(request, 'viagens/lista.html', {
         'caronas': caronas,
         'origem': origem or "",
         'destino': destino or "",
         'data': data or "",
+        "destaques_ativos": destaques_ativos,
+        "destaque_modais_extras": destaque_modais_extras,
     })
 
 
@@ -101,7 +201,8 @@ def editar_carona(request, carona_id):
         form = CaronaForm(
             request.POST,
             request.FILES,
-            instance=carona
+            instance=carona,
+            user=request.user,
         )
 
         if form.is_valid():
@@ -164,7 +265,7 @@ def editar_carona(request, carona_id):
             return redirect("minhas_caronas")
 
     else:
-        form = CaronaForm(instance=carona)
+        form = CaronaForm(instance=carona, user=request.user)
 
     veiculo_form = VeiculoForm()
 
@@ -294,9 +395,17 @@ def solicitar_vaga(request, carona_id):
 
     else:
         if request.user.is_authenticated:
+            ultima = (
+                Solicitacao.objects
+                .filter(solicitante=request.user, tipo="carona")
+                .order_by("-data_solicitacao")
+                .first()
+            )
             form = SolicitacaoForm(initial={
                 "nome_solicitante": request.user.nome_completo or request.user.email,
                 "telefone_solicitante": request.user.telefone,
+                "endereco_solicitante": getattr(ultima, "endereco_solicitante", "") or "",
+                "endereco_destino_solicitante": getattr(ultima, "endereco_destino_solicitante", "") or "",
             })
         else:
             form = SolicitacaoForm()
@@ -357,9 +466,17 @@ def solicitar_encomenda(request, carona_id):
             return redirect("lista_caronas")
     else:
         if request.user.is_authenticated:
+            ultima = (
+                Solicitacao.objects
+                .filter(solicitante=request.user, tipo="encomenda")
+                .order_by("-data_solicitacao")
+                .first()
+            )
             form = EncomendaForm(initial={
                 "nome_solicitante": request.user.nome_completo or request.user.email,
                 "telefone_solicitante": request.user.telefone,
+                "endereco_solicitante": getattr(ultima, "endereco_solicitante", "") or "",
+                "endereco_destino_solicitante": getattr(ultima, "endereco_destino_solicitante", "") or "",
             })
         else:
             form = EncomendaForm()
@@ -478,7 +595,8 @@ def minhas_solicitacoes(request):
         ).update(lida=True)
         
         minhas = Solicitacao.objects.filter(
-            solicitante=request.user
+            solicitante=request.user,
+            tipo="carona",
         ).order_by('-data_solicitacao')
 
         return render(request, 'viagens/minhas_solicitacoes.html', {
@@ -489,6 +607,74 @@ def minhas_solicitacoes(request):
     return render(request, 'viagens/minhas_solicitacoes.html', {
         'solicitacoes': [],
         'modo': 'local'
+    })
+
+
+def minhas_encomendas_passageiro(request):
+    if request.user.is_authenticated:
+        Notificacao.objects.filter(
+            usuario=request.user,
+            tipo__in=["viagem_aceita", "solicitacao_recusada", "viagem_cancelada"],
+            lida=False,
+            solicitacao__tipo="encomenda",
+        ).update(lida=True)
+
+        mostrar_todas = request.GET.get("todas") == "1"
+
+        encomendas = (
+            Solicitacao.objects
+            .filter(solicitante=request.user, tipo="encomenda")
+            .select_related("carona", "solicitante", "carona__motorista")
+            .order_by("-data_solicitacao")
+        )
+
+        viagens_ativas = (
+            Carona.objects
+            .filter(
+                status="ativa",
+                solicitacoes__solicitante=request.user,
+                solicitacoes__tipo="encomenda",
+                solicitacoes__status__in=["pendente", "aceita"],
+            )
+            .annotate(
+                encomendas_ativas=Count(
+                    "solicitacoes",
+                    filter=Q(
+                        solicitacoes__solicitante=request.user,
+                        solicitacoes__tipo="encomenda",
+                        solicitacoes__status__in=["pendente", "aceita"],
+                    ),
+                ),
+                encomendas_pendentes=Count(
+                    "solicitacoes",
+                    filter=Q(
+                        solicitacoes__solicitante=request.user,
+                        solicitacoes__tipo="encomenda",
+                        solicitacoes__status="pendente",
+                    ),
+                ),
+                ultima_encomenda=Max(
+                    "solicitacoes__data_solicitacao",
+                    filter=Q(
+                        solicitacoes__solicitante=request.user,
+                        solicitacoes__tipo="encomenda",
+                    ),
+                ),
+            )
+            .order_by("-ultima_encomenda")
+        )
+
+        return render(request, "viagens/minhas_encomendas_passageiro.html", {
+            "encomendas": encomendas,
+            "viagens_ativas": viagens_ativas,
+            "encomendas_recentes": encomendas[:8],
+            "mostrar_todas": mostrar_todas,
+            "modo": "bd",
+        })
+
+    return render(request, "viagens/minhas_encomendas_passageiro.html", {
+        "encomendas": [],
+        "modo": "local",
     })
 
 
@@ -532,12 +718,22 @@ def cancelar_solicitacao(request, id):
     with transaction.atomic():
 
         if s.status == "pendente":
+            destino = (
+                "minhas_encomendas_passageiro"
+                if s.tipo == "encomenda"
+                else "minhas_solicitacoes"
+            )
             s.delete()
-            return redirect("minhas_solicitacoes")
+            return redirect(destino)
 
         if s.status == "aceita":
             s.mudar_status("cancelada")
-            return redirect("minhas_viagens")
+            destino = (
+                "minhas_encomendas_passageiro"
+                if s.tipo == "encomenda"
+                else "minhas_viagens"
+            )
+            return redirect(destino)
 
     return redirect("minhas_solicitacoes")
 
@@ -782,12 +978,18 @@ def api_estado_caronas(request):
 
 @login_required
 def minhas_caronas_view(request):
+    Notificacao.objects.filter(
+        usuario=request.user,
+        tipo="passageiro_cancelou",
+        solicitacao__tipo="carona",
+        lida=False
+    ).update(lida=True)
 
     Notificacao.objects.filter(
-            usuario=request.user,
-            tipo__in=["passageiro_cancelou","viagem_cancelada"],
-            lida=False
-        ).update(lida=True)
+        usuario=request.user,
+        tipo="viagem_concluida",
+        lida=False
+    ).update(lida=True)
 
     caronas = (
         Carona.objects
@@ -804,6 +1006,10 @@ def minhas_caronas_view(request):
             tipo='encomenda',
             status='pendente'
         ).count()
+        carona.encomendas_ativas = carona.solicitacoes.filter(
+            tipo='encomenda',
+            status__in=['pendente', 'aceita']
+        ).count()
 
     return render(request, "viagens/minhas_caronas.html", {
         "caronas": caronas
@@ -813,21 +1019,35 @@ def minhas_caronas_view(request):
 @login_required
 def encomendas_carona(request, carona_id):
     carona = get_object_or_404(Carona, id=carona_id, motorista=request.user)
-    encomendas = (
-        Solicitacao.objects
-        .filter(carona=carona, tipo="encomenda")
-        .select_related("solicitante", "carona")
-        .order_by("-data_solicitacao")
+    mostrar_todas = request.GET.get("todas") == "1"
+
+    encomendas = Solicitacao.objects.filter(
+        carona=carona,
+        tipo="encomenda",
     )
+    if not mostrar_todas:
+        encomendas = encomendas.filter(status__in=["pendente", "aceita"])
+
+    encomendas = encomendas.select_related("solicitante", "carona").order_by("-data_solicitacao")
 
     return render(request, "viagens/encomendas_carona.html", {
         "carona": carona,
         "encomendas": encomendas,
+        "mostrar_todas": mostrar_todas,
     })
 
 
 @login_required
 def minhas_encomendas(request):
+    Notificacao.objects.filter(
+        usuario=request.user,
+        tipo="passageiro_cancelou",
+        solicitacao__tipo="encomenda",
+        lida=False
+    ).update(lida=True)
+
+    mostrar_todas = request.GET.get("todas") == "1"
+
     encomendas = (
         Solicitacao.objects
         .filter(carona__motorista=request.user, tipo="encomenda")
@@ -835,8 +1055,35 @@ def minhas_encomendas(request):
         .order_by("-data_solicitacao")
     )
 
+    viagens_ativas = (
+        Carona.objects
+        .filter(
+            motorista=request.user,
+            status="ativa",
+            solicitacoes__tipo="encomenda",
+        )
+        .annotate(
+            encomendas_ativas=Count(
+                "solicitacoes",
+                filter=Q(solicitacoes__tipo="encomenda", solicitacoes__status__in=["pendente", "aceita"])
+            ),
+            encomendas_pendentes=Count(
+                "solicitacoes",
+                filter=Q(solicitacoes__tipo="encomenda", solicitacoes__status="pendente")
+            ),
+            ultima_encomenda=Max(
+                "solicitacoes__data_solicitacao",
+                filter=Q(solicitacoes__tipo="encomenda")
+            ),
+        )
+        .order_by("-ultima_encomenda")
+    )
+
     return render(request, "viagens/minhas_encomendas.html", {
         "encomendas": encomendas,
+        "viagens_ativas": viagens_ativas,
+        "encomendas_recentes": encomendas[:8],
+        "mostrar_todas": mostrar_todas,
     })
 
 @login_required

@@ -1,9 +1,9 @@
 console.log("📄 solicitacoes.js carregado");
 
 function renderSolicitacoesLocal() {
-    const lista = getSolicitacoes().sort(
-    (a, b) => new Date(b.data_solicitacao) - new Date(a.data_solicitacao)
-    );
+    const lista = getSolicitacoes()
+        .filter(s => s.tipo !== "encomenda")
+        .sort((a, b) => new Date(b.data_solicitacao) - new Date(a.data_solicitacao));
     const container = document.getElementById("lista-solicitacoes");
 
     if (!container) return;
@@ -28,13 +28,10 @@ function renderSolicitacoesLocal() {
             <div class="card border-0 shadow-sm rounded-3 mb-3">
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
-                        <h5>${s.tipo === "encomenda" ? "Encomenda para" : "Carona para"} <strong>${s.carona_destino}</strong></h5>
+                        <h5>Carona para <strong>${s.carona_destino}</strong></h5>
                         <span class="badge ${badgeClass}">${s.status}</span>
                     </div>
-                    ${s.tipo === "encomenda"
-                        ? `<p class="mb-1"><strong>Descricao:</strong> ${s.descricao_item || "-"}</p>`
-                        : `<p class="mb-1"><strong>Quantidade:</strong> ${s.quantidade}</p>`
-                    }
+                    <p class="mb-1"><strong>Quantidade:</strong> ${s.quantidade}</p>
                     <p class="mb-1"><strong>Motorista:</strong> ${s.motorista_nome}</p>
                     ${s.status === "pendente" ? `
                     <button class="btn btn-sm btn-outline-danger mt-2"
@@ -85,7 +82,7 @@ function marcarSolicitacoesComoVistas() {
     let alterou = false;
 
     lista.forEach(s => {
-        if (s.status !== "pendente" && !s.visto_solicitacao) {
+        if (s.tipo !== "encomenda" && s.status !== "pendente" && !s.visto_solicitacao) {
             s.visto_solicitacao = true;
             alterou = true;
         }
@@ -109,7 +106,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderSolicitacoesLocal();
 
 const lista = getSolicitacoes().map(s => {
-    if (s.status !== "pendente") {
+    if (s.tipo !== "encomenda" && s.status !== "pendente") {
         return { ...s, visto_solicitacao: true };
     }
     return s;

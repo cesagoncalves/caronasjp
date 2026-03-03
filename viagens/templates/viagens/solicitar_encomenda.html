@@ -27,6 +27,16 @@
                 </div>
 
                 <div class="mb-3">
+                    <label class="form-label fw-semibold">Endereco de coleta</label>
+                    {{ form.endereco_solicitante }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Endereco de entrega</label>
+                    {{ form.endereco_destino_solicitante }}
+                </div>
+
+                <div class="mb-3">
                     <label class="form-label fw-semibold">Descricao do item</label>
                     {{ form.descricao_item }}
                     {% if form.descricao_item.errors %}
@@ -50,7 +60,7 @@
             </form>
 
             <a href="{% url 'lista_caronas' %}" class="btn btn-outline-secondary w-100 mt-3 py-2">
-                <i class="bi bi-arrow-left"></i> Voltar para Lista
+                <i class="bi bi-arrow-left"></i> Voltar para lista
             </a>
         </div>
     </div>
@@ -67,6 +77,26 @@
 
     const input = document.getElementById("uuid_local");
     if (input) input.value = uuid;
+
+    const coletaKey = "encomenda_endereco_coleta";
+    const entregaKey = "encomenda_endereco_entrega";
+    const campoColeta = document.getElementById("id_endereco_solicitante");
+    const campoEntrega = document.getElementById("id_endereco_destino_solicitante");
+
+    if (campoColeta && localStorage.getItem(coletaKey)) {
+        campoColeta.value = localStorage.getItem(coletaKey);
+    }
+    if (campoEntrega && localStorage.getItem(entregaKey)) {
+        campoEntrega.value = localStorage.getItem(entregaKey);
+    }
+
+    const form = document.querySelector("form");
+    if (form) {
+        form.addEventListener("submit", () => {
+            if (campoColeta) localStorage.setItem(coletaKey, campoColeta.value || "");
+            if (campoEntrega) localStorage.setItem(entregaKey, campoEntrega.value || "");
+        });
+    }
 })();
 </script>
 {% endblock %}
