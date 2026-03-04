@@ -80,7 +80,7 @@ function renderEncomendasLocal() {
     }
 
     const ativas = lista.filter(e =>
-        (e.status === "pendente" || e.status === "aceita") &&
+        e.status === "aceita" &&
         (!e.carona_status || e.carona_status === "ativa")
     );
 
@@ -98,7 +98,6 @@ function renderEncomendasLocal() {
             };
         }
         viagensMap[key].encomendas_ativas += 1;
-        if (e.status === "pendente") viagensMap[key].encomendas_pendentes += 1;
     });
 
     const viagensHtml = Object.entries(viagensMap).map(([caronaId, v]) => `

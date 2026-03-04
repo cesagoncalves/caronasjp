@@ -110,6 +110,16 @@
                         </div>
                         <p class="mb-1"><strong>Descricao:</strong> {{ e.descricao_item }}</p>
                         <p class="text-muted small mb-0">Solicitada em {{ e.data_solicitacao|date:"d/m/Y H:i" }}</p>
+
+                        {% if e.status == 'pendente' or e.status == 'aceita' %}
+                        <form method="post" action="{% url 'cancelar_encomenda_motorista' e.id %}" class="mt-2"
+                              onsubmit="return confirm('Cancelar a entrega desta encomenda?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                Cancelar entrega
+                            </button>
+                        </form>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}

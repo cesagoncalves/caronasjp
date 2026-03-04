@@ -26,9 +26,6 @@
                         {% if carona.minha_solicitacao_ativa %}
                             <span class="badge bg-success">Você é passageiro</span>
                         {% endif %}
-                        {% if carona.minhas_encomendas_ativas_count|default:0 > 0 %}
-                            <span class="badge bg-info text-dark">Encomenda(s) enviada(s): {{ carona.minhas_encomendas_ativas_count }}</span>
-                        {% endif %}
                     </div>
                 </div>
                 {% endif %}
@@ -184,9 +181,19 @@
                 <!-- MOTORISTA -->
                 <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
                     {% if carona.motorista.foto %}
-                        <img src="{{ carona.motorista.foto.url }}" class="rounded-circle" width="56" height="56">
+                        <img src="{{ carona.motorista.foto.url }}"
+                             class="rounded-circle js-foto-motorista"
+                             data-src="{{ carona.motorista.foto.url }}"
+                             data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
+                             width="56" height="56"
+                             style="object-fit: cover;">
                     {% else %}
-                        <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" width="56" height="56">
+                        <img src="{% static 'img/avatar_padrao.jpg' %}"
+                             class="rounded-circle js-foto-motorista"
+                             data-src="{% static 'img/avatar_padrao.jpg' %}"
+                             data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
+                             width="56" height="56"
+                             style="object-fit: cover;">
                     {% endif %}
 
                     <div class="flex-grow-1">
@@ -278,6 +285,11 @@
 
                         <div class="tab-pane fade" id="painelEncomendas{{ carona.id }}" role="tabpanel">
                             {% with encomendas=carona.encomendas_ativas_lista %}
+                            <div class="mb-3 text-center">
+                                <a href="{% url 'encomendas_carona' carona.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-box-seam"></i> Visualizar detalhes das encomendas
+                                </a>
+                            </div>
                             {% if encomendas|length == 0 %}
                                 <div class="text-muted small ps-1">Nenhuma encomenda ativa nesta viagem.</div>
                             {% else %}
@@ -288,19 +300,21 @@
                                                 <div>
                                                     <p class="fw-semibold mb-1">{{ encomenda.solicitante.nome_curto|default:encomenda.nome_solicitante }}</p>
                                                     <div class="small text-muted mb-1">{{ encomenda.descricao_item|default:"Sem descrição" }}</div>
-                                                    <span class="badge {% if encomenda.status == 'pendente' %}bg-warning text-dark{% else %}bg-success{% endif %}">
-                                                        {{ encomenda.get_status_display }}
-                                                    </span>
+                                                    {% if encomenda.status == "pendente" %}
+                                                        <span class="badge bg-warning text-dark">Pendente</span>
+                                                    {% endif %}
                                                 </div>
                                                 <div class="d-flex gap-2">
                                                     {% if encomenda.status == "pendente" %}
                                                         <a href="{% url 'aceitar_solicitacao' encomenda.id %}" class="btn btn-success btn-sm"><i class="bi bi-check-circle"></i></a>
-                                                        <a href="{% url 'recusar_solicitacao' encomenda.id %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle"></i></a>
+                                                        <a href="{% url 'detalhe_encomenda' encomenda.id %}" class="btn btn-outline-primary btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Ver detalhes da encomenda"><i class="bi bi-eye"></i></a>
+                                                        <a href="{% url 'recusar_solicitacao' encomenda.id %}" class="btn btn-outline-danger btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"><i class="bi bi-x-circle"></i></a>
                                                     {% endif %}
                                                     {% if encomenda.status == "aceita" %}
+                                                        <a href="{% url 'detalhe_encomenda' encomenda.id %}" class="btn btn-outline-primary btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Ver detalhes da encomenda"><i class="bi bi-eye"></i></a>
                                                         <form method="post" action="{% url 'cancelar_encomenda_motorista' encomenda.id %}" onsubmit="return confirm('Cancelar a entrega desta encomenda?');">
                                                             {% csrf_token %}
-                                                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Cancelar entrega"><i class="bi bi-x-circle"></i></button>
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Cancelar entrega"><i class="bi bi-x-circle"></i></button>
                                                         </form>
                                                     {% endif %}
                                                 </div>
@@ -321,9 +335,6 @@
             <div class="modal-footer justify-content-between flex-wrap gap-2">
                 {% if user == carona.motorista %}
                     <div class="d-flex gap-2">
-                        <a href="{% url 'encomendas_carona' carona.id %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-box-seam"></i> Ver encomendas
-                        </a>
                         {% if carona.esta_concluida and carona.status == 'ativa' %}
                         <a href="{% url 'concluir_carona' carona.id %}" class="btn btn-outline-success">
                             <i class="bi bi-check-circle"></i> Marcar como concluída

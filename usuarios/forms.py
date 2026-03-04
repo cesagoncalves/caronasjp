@@ -10,7 +10,7 @@ class UsuarioCreationForm(UserCreationForm):
         fields = ("email", "nome_completo", "telefone", "foto")
         widgets = {
             "email": forms.EmailInput(attrs={"class": "form-control"}),
-            "nome_completo": forms.TextInput(attrs={"class": "form-control"}),
+            "nome_completo": forms.TextInput(attrs={"class": "form-control", "autofocus": True}),
             "telefone": forms.TextInput(attrs={"class": "form-control"}),
             "foto": forms.FileInput(attrs={"class": "form-control"}),
         }

@@ -26,6 +26,22 @@
         font-size: 1.5rem; /* ~24px */
         margin-right: 8px;
     }
+    .mobile-avatar-btn {
+        border: 0;
+        background: transparent;
+        padding: 0;
+    }
+    .mobile-avatar-btn img {
+        object-fit: cover;
+    }
+    #menuUsuarioMobile {
+        --bs-offcanvas-width: 50vw;
+    }
+    .mobile-submenu {
+        margin-left: 14px;
+        border-left: 2px solid #e9ecef;
+        padding-left: 8px;
+    }
 
     @media (min-width: 768px) {
         .notification-bell {
@@ -229,11 +245,60 @@
         </a>
 
         <!-- BOTÃO MOBILE -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+        {% if user.is_authenticated %}
+        <div class="d-flex d-lg-none align-items-center ms-auto gap-2">
+            <div class="dropdown">
+                <a class="nav-link position-relative px-1"
+                    href="#"
+                    id="dropdownNotificacoesMobile"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    {% if qtd_notificacoes_gerais > 0 %}
+                    <span class="notification-badge">
+                        {{ qtd_notificacoes_gerais }}
+                    </span>
+                    {% endif %}
+                    <i class="bi bi-bell notification-bell"></i>
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end notificacoes-dropdown"
+                    aria-labelledby="dropdownNotificacoesMobile">
+                    <li class="notificacoes-header">
+                        Notificacoes
+                    </li>
+
+                    <div class="notificacoes-lista">
+                        {% for n in notificacoes_recentes %}
+                            <li class="notificacao-item {% if not n.lida %}nao-lida{% endif %}">
+                                {{ n.mensagem }}
+                            </li>
+                        {% endfor %}
+                    </div>
+
+                    <li><hr class="dropdown-divider"></li>
+                    <li class="px-2 pb-2">
+                        <button id="btnLimparNotificacoesMobile" type="button" class="btn btn-outline-danger btn-sm w-100">
+                            Limpar notificacoes
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <button class="mobile-avatar-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuUsuarioMobile" aria-controls="menuUsuarioMobile">
+                {% if user.foto %}
+                    <img src="{{ user.foto.url }}" class="rounded-circle shadow-sm" width="38" height="38" alt="Perfil">
+                {% else %}
+                    <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle shadow-sm" width="38" height="38" alt="Perfil">
+                {% endif %}
+            </button>
+        </div>
+        {% else %}
+        <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
             <span class="navbar-toggler-icon"></span>
         </button>
+        {% endif %}
 
-        <div class="collapse navbar-collapse" id="navbarContent">
+        <div class="collapse navbar-collapse {% if user.is_authenticated %}d-lg-flex{% endif %}" id="navbarContent">
 
             <!-- ESQUERDA -->
             <ul class="navbar-nav me-auto">
@@ -444,7 +509,7 @@
             </ul>
 
             <!-- DIREITA -->
-            <ul class="navbar-nav ms-auto align-items-center">
+            <ul class="navbar-nav ms-auto align-items-center {% if user.is_authenticated %}d-none d-lg-flex{% endif %}">
 
                 {% if user.is_authenticated %}
 
@@ -477,6 +542,13 @@
                         </li>
                     {% endfor %}
                 </div>
+
+                <li><hr class="dropdown-divider"></li>
+                <li class="px-2 pb-2">
+                    <button id="btnLimparNotificacoes" type="button" class="btn btn-outline-danger btn-sm w-100">
+                        Limpar notificacoes
+                    </button>
+                </li>
             </ul>
             </li>
 
@@ -514,6 +586,53 @@
         </div>
     </div>
 </nav>
+
+{% if user.is_authenticated %}
+<div class="offcanvas offcanvas-end" tabindex="-1" id="menuUsuarioMobile" aria-labelledby="menuUsuarioMobileLabel">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="menuUsuarioMobileLabel">Menu</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item list-group-item-action" href="{% url 'lista_caronas' %}">Buscar Caronas</a>
+            <a class="list-group-item list-group-item-action" href="{% url 'historico_viagens' %}">Historico</a>
+
+            <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#menuPassageiroMobile" aria-expanded="false">
+                Passageiro
+                <i class="bi bi-chevron-down small"></i>
+            </button>
+            <div class="collapse mobile-submenu" id="menuPassageiroMobile">
+                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_viagens' %}">Minhas Viagens</a>
+                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_solicitacoes' %}">Minhas Solicitacoes</a>
+                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_encomendas_passageiro' %}">Minhas Encomendas</a>
+            </div>
+
+            <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#menuMotoristaMobile" aria-expanded="false">
+                Motorista
+                <i class="bi bi-chevron-down small"></i>
+            </button>
+            <div class="collapse mobile-submenu" id="menuMotoristaMobile">
+                <a class="list-group-item list-group-item-action border-0" href="{% url 'criar_carona' %}">Oferecer Carona</a>
+                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_caronas' %}">Minhas Caronas</a>
+                <a class="list-group-item list-group-item-action border-0" href="{% url 'meus_veiculos' %}">Meus Veiculos</a>
+                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_encomendas' %}">Encomendas Motorista</a>
+                <a class="list-group-item list-group-item-action border-0" href="{% url 'gerenciar_solicitacoes' %}">Solicitacoes Recebidas</a>
+            </div>
+
+            <a class="list-group-item list-group-item-action" href="{% url 'perfil' %}">Meu Perfil</a>
+            <div class="list-group-item">
+                <form action="{% url 'logout' %}" method="post" class="d-grid">
+                    {% csrf_token %}
+                    <button class="btn btn-danger">Sair</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 
 <div class="container mb-5">
@@ -561,24 +680,45 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    const dropdown = document.getElementById("dropdownNotificacoes");
+    const dropdownPairs = [
+        { dropdownId: "dropdownNotificacoes", btnId: "btnLimparNotificacoes" },
+        { dropdownId: "dropdownNotificacoesMobile", btnId: "btnLimparNotificacoesMobile" },
+    ];
 
-    if (!dropdown) return;
+    dropdownPairs.forEach((pair) => {
+        const dropdown = document.getElementById(pair.dropdownId);
+        const btnLimpar = document.getElementById(pair.btnId);
+        if (!dropdown) return;
 
-    dropdown.addEventListener("shown.bs.dropdown", () => {
-        fetch("{% url 'marcar_notificacoes_como_lidas' %}", {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}",
-            },
-        }).then(() => {
-            const badge = dropdown.querySelector(".notification-badge");
-            if (badge) badge.remove();
-
-            dropdown.querySelectorAll(".notificacao-item.nao-lida").forEach((el) => {
-                el.classList.remove("nao-lida");
+        dropdown.addEventListener("shown.bs.dropdown", () => {
+            fetch("{% url 'marcar_notificacoes_como_lidas' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+            }).then(() => {
+                document.querySelectorAll(".notification-badge").forEach((badge) => badge.remove());
+                document.querySelectorAll(".notificacao-item.nao-lida").forEach((el) => {
+                    el.classList.remove("nao-lida");
+                });
             });
         });
+
+        if (btnLimpar) {
+            btnLimpar.addEventListener("click", () => {
+                fetch("{% url 'limpar_notificacoes' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                    },
+                }).then(() => {
+                    document.querySelectorAll(".notification-badge").forEach((badge) => badge.remove());
+                    document.querySelectorAll(".notificacoes-lista").forEach((lista) => {
+                        lista.innerHTML = '<li class="notificacao-item text-muted">Sem notificacoes</li>';
+                    });
+                });
+            });
+        }
     });
 });
 </script>

@@ -138,7 +138,7 @@ def lista_caronas(request):
             .filter(
                 solicitante=request.user,
                 tipo="encomenda",
-                status__in=["pendente", "aceita"],
+                status="aceita",
                 carona__status="ativa",
             )
         )
@@ -658,7 +658,7 @@ def minhas_encomendas_passageiro(request):
                 status="ativa",
                 solicitacoes__solicitante=request.user,
                 solicitacoes__tipo="encomenda",
-                solicitacoes__status__in=["pendente", "aceita"],
+                solicitacoes__status="aceita",
             )
             .annotate(
                 encomendas_ativas=Count(
@@ -666,7 +666,7 @@ def minhas_encomendas_passageiro(request):
                     filter=Q(
                         solicitacoes__solicitante=request.user,
                         solicitacoes__tipo="encomenda",
-                        solicitacoes__status__in=["pendente", "aceita"],
+                        solicitacoes__status="aceita",
                     ),
                 ),
                 encomendas_pendentes=Count(
@@ -719,7 +719,7 @@ def minhas_encomendas_carona_passageiro(request, carona_id):
     )
 
     if not mostrar_todas:
-        encomendas = encomendas.filter(status__in=["pendente", "aceita"])
+        encomendas = encomendas.filter(status="aceita")
 
     if not encomendas.exists():
         messages.warning(request, "Voce nao possui encomendas nessa viagem.")
@@ -960,22 +960,22 @@ def concluir_carona(request, carona_id):
 def historico_viagens(request):
     tipo = request.GET.get('tipo', 'todas')
     caronas = Carona.objects.none()
+    historico_itens = []
     solicitacoes = None
 
-    # ===== USUÁRIO LOGADO =====
     if request.user.is_authenticated:
         base_filter = Q(status='concluida')
 
         if tipo == 'motorista':
             filtro = base_filter & Q(motorista=request.user)
-
         elif tipo == 'passageiro':
             filtro = base_filter & Q(
                 solicitacoes__solicitante=request.user,
                 solicitacoes__status='aceita',
                 solicitacoes__tipo='carona'
             )
-
+        elif tipo == 'encomenda':
+            filtro = Q(pk__in=[])
         else:
             filtro = base_filter & (
                 Q(motorista=request.user) |
@@ -993,22 +993,62 @@ def historico_viagens(request):
             .order_by('-data', '-hora')
         )
 
-    # ===== USUÁRIO DESLOGADO =====
+        for carona in caronas:
+            historico_itens.append({
+                'categoria': 'carona',
+                'carona': carona,
+                'descricao_item': '',
+                'foto_encomenda': None,
+                'papel': 'motorista' if carona.motorista_id == request.user.id else 'passageiro',
+            })
+
+        if tipo in ['todas', 'encomenda']:
+            encomendas = (
+                Solicitacao.objects
+                .select_related('carona', 'solicitante')
+                .filter(
+                    tipo='encomenda',
+                    status='aceita',
+                    carona__status='concluida',
+                )
+                .filter(
+                    Q(carona__motorista=request.user) |
+                    Q(solicitante=request.user)
+                )
+                .distinct()
+                .order_by('-carona__data', '-carona__hora', '-data_solicitacao')
+            )
+
+            for e in encomendas:
+                historico_itens.append({
+                    'categoria': 'encomenda',
+                    'carona': e.carona,
+                    'descricao_item': e.descricao_item or '',
+                    'foto_encomenda': e.foto_encomenda,
+                    'papel': 'motorista' if e.carona.motorista_id == request.user.id else 'passageiro',
+                })
+
+        historico_itens.sort(
+            key=lambda item: (item['carona'].data, item['carona'].hora),
+            reverse=True
+        )
+
     else:
-        uuid_local = request.GET.get("uuid")
+        uuid_local = request.GET.get('uuid')
 
         if uuid_local:
             solicitacoes = (
                 Solicitacao.objects
-                .select_related("carona")
+                .select_related('carona')
                 .filter(uuid_local=uuid_local)
                 .order_by('-data_solicitacao')
             )
 
-    return render(request, "viagens/historico.html", {
-        "caronas": caronas,
-        "solicitacoes": solicitacoes,
-        "tipo": tipo,
+    return render(request, 'viagens/historico.html', {
+        'caronas': caronas,
+        'historico_itens': historico_itens,
+        'solicitacoes': solicitacoes,
+        'tipo': tipo,
     })
 
 def api_estado_caronas(request):
@@ -1094,6 +1134,26 @@ def encomendas_carona(request, carona_id):
         "carona": carona,
         "encomendas": encomendas,
         "mostrar_todas": mostrar_todas,
+    })
+
+
+@login_required
+def detalhe_encomenda(request, encomenda_id):
+    encomenda = get_object_or_404(
+        Solicitacao.objects.select_related("carona", "solicitante", "carona__motorista"),
+        id=encomenda_id,
+        tipo="encomenda",
+    )
+
+    pode_visualizar = (
+        encomenda.carona.motorista_id == request.user.id
+        or encomenda.solicitante_id == request.user.id
+    )
+    if not pode_visualizar:
+        return HttpResponseForbidden("Voce nao tem permissao para visualizar esta encomenda.")
+
+    return render(request, "viagens/detalhe_encomenda.html", {
+        "encomenda": encomenda,
     })
 
 
@@ -1211,6 +1271,14 @@ def marcar_notificacoes_como_lidas(request):
     ).update(lida=True)
 
     return JsonResponse({"status": "ok"})
+
+
+@login_required
+@require_POST
+def limpar_notificacoes(request):
+    Notificacao.objects.filter(usuario=request.user).delete()
+    return JsonResponse({"status": "ok"})
+
 
 
 

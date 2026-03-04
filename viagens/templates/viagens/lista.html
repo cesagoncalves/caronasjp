@@ -19,6 +19,16 @@
     70% { box-shadow: 0 0 0 9px rgba(255, 193, 7, 0); }
     100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
 }
+
+#fotoMotoristaAmpliada {
+    transition: transform .2s ease;
+    transform-origin: center center;
+    touch-action: manipulation;
+}
+
+#fotoMotoristaAmpliada.zoom-2 {
+    transform: scale(2);
+}
 </style>
 
 <div class="mb-4" id="ativos-agora-section" {% if not user.is_authenticated %}style="display:none;"{% endif %}>
@@ -48,7 +58,7 @@
                         {% for tipo in d.tipos %}
                             <span class="badge
                                 {% if tipo == 'motorista' %}bg-primary{% elif tipo == 'passageiro' %}bg-success{% elif tipo == 'entregar_encomenda' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
-                            {% if tipo == 'motorista' %}Motorista{% elif tipo == 'passageiro' %}Passageiro{% elif tipo == 'entregar_encomenda' %}Entregar encomenda{% else %}Encomenda enviada{% endif %}
+                            {% if tipo == 'motorista' %}Motorista{% elif tipo == 'passageiro' %}Passageiro{% elif tipo == 'entregar_encomenda' %}Entregar encomenda{% else %}Envio de encomenda{% endif %}
                             </span>
                         {% endfor %}
                     </div>
@@ -89,24 +99,27 @@
     </div>
 </div>
 
-<a href="{% url 'criar_carona' %}" class="btn btn-success mb-3 w-100">Oferecer Carona</a>
-
 <div class="d-flex justify-content-between align-items-center mb-2">
     <h2 class="mb-0 text-center w-100">Filtrar Caronas</h2>
 </div>
-<button class="btn btn-outline-primary w-100 d-md-none mb-2"
+<button id="toggleFiltrosBtn" class="btn btn-outline-primary w-100 d-md-none mb-2"
         type="button"
         data-bs-toggle="collapse"
         data-bs-target="#filtrosCollapse"
         aria-expanded="false"
         aria-controls="filtrosCollapse">
-    <i class="bi bi-funnel me-1"></i> Mostrar/Ocultar filtros
+    <i class="bi bi-funnel me-1"></i> <span id="toggleFiltrosTexto">Mostrar filtros</span>
     {% if origem or destino or data or motorista %}
         <span class="badge bg-primary ms-2">Ativos</span>
     {% endif %}
 </button>
 <div class="collapse d-md-block" id="filtrosCollapse">
 <form method="GET" class="card p-3 mb-4 shadow-sm">
+    <div class="mb-3 d-md-none">
+        <a href="/" class="btn btn-outline-danger w-100">
+            <i class="bi bi-trash"></i> Limpar filtros
+        </a>
+    </div>
     <div class="row gx-2 gy-2 align-items-end">
         <div class="col-12 col-md-2">
             <label class="form-label small text-muted mb-1">Origem</label>
@@ -124,29 +137,34 @@
             <label class="form-label small text-muted mb-1">Data</label>
             <input type="date" name="data" class="form-control" value="{{ data }}">
         </div>
-        <div class="col-12 col-md-3 text-md-end"><a href="/" class="btn btn-outline-danger w-100"><i class="bi bi-trash"></i> Limpar filtros</a></div>
+        <div class="col-12 col-md-3 text-md-end d-none d-md-block"><a href="/" class="btn btn-outline-danger w-100"><i class="bi bi-trash"></i> Limpar filtros</a></div>
     </div>
     <div class="row mt-3"><div class="col-12"><button class="btn btn-primary w-100">Filtrar</button></div></div>
 </form>
 </div>
 
 <h2 class="mb-3 text-center">Caronas Disponiveis</h2>
+<a href="{% url 'criar_carona' %}" class="btn btn-success mb-3 w-100">Oferecer Carona</a>
 {% for carona in caronas %}
-<div class="card mb-3 shadow-sm position-relative card-clickable" data-bs-toggle="modal" data-bs-target="#modalCarona{{ carona.id }}" style="cursor: pointer;">
+<div class="card mb-3 shadow-sm position-relative card-clickable" data-modal-target="#modalCarona{{ carona.id }}" style="cursor: pointer;">
     <div class="card-body">
         <div class="position-absolute top-0 end-0 text-end p-2">
             {% if carona.motorista.foto %}
-                <img src="{{ carona.motorista.foto.url }}" class="rounded-circle shadow-sm mb-1" width="48" height="48" style="object-fit: cover;">
+                <img src="{{ carona.motorista.foto.url }}"
+                     class="rounded-circle shadow-sm mb-1 js-foto-motorista"
+                     data-src="{{ carona.motorista.foto.url }}"
+                     data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
+                     width="48" height="48"
+                     style="object-fit: cover;">
             {% else %}
-                <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle shadow-sm mb-1" width="48" height="48" style="object-fit: cover;">
+                <img src="{% static 'img/avatar_padrao.jpg' %}"
+                     class="rounded-circle shadow-sm mb-1 js-foto-motorista"
+                     data-src="{% static 'img/avatar_padrao.jpg' %}"
+                     data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
+                     width="48" height="48"
+                     style="object-fit: cover;">
             {% endif %}
             <p class="small fw-semibold mb-0">{{ carona.motorista.nome_curto }}</p>
-            {% if carona.motorista == request.user %}
-            <div class="d-flex justify-content-end gap-2 mt-1">
-                <a href="{% url 'editar_carona' carona.id %}" class="btn btn-warning btn-sm rounded-circle p-1" style="width: 34px; height: 34px;"><i class="bi bi-pencil-fill"></i></a>
-                <a href="{% url 'excluir_carona' carona.id %}" class="btn btn-danger btn-sm rounded-circle p-1" style="width: 34px; height: 34px;"><i class="bi bi-x-lg"></i></a>
-            </div>
-            {% endif %}
         </div>
 
         {% include "viagens/partials/card_carona_info.html" %}
@@ -162,6 +180,17 @@
     {% include "viagens/modals/modal_detalhe_carona.html" %}
 {% endfor %}
 
+<div class="modal fade" id="modalFotoMotorista" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-body text-center p-3">
+                <img id="fotoMotoristaAmpliada" src="" class="img-fluid rounded-3" alt="Foto do motorista">
+                <p id="nomeMotoristaFoto" class="mt-2 mb-0 fw-semibold"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
     const scroller = document.getElementById("ativos-scroll");
@@ -169,6 +198,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const next = document.getElementById("ativos-next");
     const section = document.getElementById("ativos-agora-section");
     const count = document.getElementById("ativos-count");
+    const filtrosCollapse = document.getElementById("filtrosCollapse");
+    const toggleFiltrosTexto = document.getElementById("toggleFiltrosTexto");
 
     function updateArrows() {
         if (!scroller || !prev || !next) return;
@@ -220,7 +251,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             item.tipos.add("passageiro");
             item.quantidade = s.quantidade || item.quantidade;
         }
-        if (tipo === "encomenda") {
+        if (tipo === "encomenda" && String(s.status).toLowerCase() === "aceita") {
             item.tipos.add("enviada");
             item.encomendas += 1;
         }
@@ -236,7 +267,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <div class="card border-0 shadow-sm rounded-4 ativo-card" data-bs-toggle="modal" data-bs-target="#modalCarona${c.carona_id}" style="background: linear-gradient(145deg, #f7fbff 0%, #edf5ff 100%);">
                 <div class="card-body p-3">
                     <div class="d-flex flex-wrap gap-1 mb-2">
-                        ${Array.from(c.tipos).map(t => `<span class="badge ${t==='passageiro'?'bg-success':'bg-info text-dark'}">${t==='passageiro'?'Passageiro':'Encomenda enviada'}</span>`).join("")}
+                        ${Array.from(c.tipos).map(t => `<span class="badge ${t==='passageiro'?'bg-success':'bg-info text-dark'}">${t==='passageiro'?'Passageiro':'Envio de encomenda'}</span>`).join("")}
                     </div>
                     <div class="fw-semibold">${c.origem} -> ${c.destino}</div>
                     <div class="text-muted small mb-2">${c.data} ${c.hora ? "as "+c.hora : ""}</div>
@@ -257,11 +288,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const badges = bloco.querySelector(".js-participacao-local-badges");
         const temPassageiro = itens.some(s => s.tipo === "carona" && String(s.status).toLowerCase() === "aceita");
-        const qtdEncomendas = itens.filter(s => s.tipo === "encomenda" && ["pendente", "aceita"].includes(String(s.status).toLowerCase())).length;
 
         let html = "";
         if (temPassageiro) html += `<span class="badge bg-success">Você é passageiro</span>`;
-        if (qtdEncomendas > 0) html += `<span class="badge bg-info text-dark">Encomenda(s) enviada(s): ${qtdEncomendas}</span>`;
 
         if (html) {
             badges.innerHTML = html;
@@ -269,6 +298,68 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
     {% endif %}
+
+    const modalFotoEl = document.getElementById("modalFotoMotorista");
+    const imgAmpliada = document.getElementById("fotoMotoristaAmpliada");
+    const nomeFoto = document.getElementById("nomeMotoristaFoto");
+    const modalFoto = modalFotoEl ? new bootstrap.Modal(modalFotoEl) : null;
+
+    document.querySelectorAll(".js-foto-motorista").forEach((img) => {
+        ["click", "mousedown", "touchstart"].forEach((evtName) => {
+            img.addEventListener(evtName, (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+            });
+        });
+
+        img.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!modalFoto || !imgAmpliada || !nomeFoto) return;
+
+            imgAmpliada.src = img.dataset.src || img.src;
+            imgAmpliada.classList.remove("zoom-2");
+            nomeFoto.textContent = img.dataset.nome || "";
+            modalFoto.show();
+        });
+    });
+
+    document.querySelectorAll(".card-clickable[data-modal-target]").forEach((card) => {
+        card.addEventListener("click", (event) => {
+            if (
+                event.target.closest(".js-foto-motorista") ||
+                event.target.closest("a,button,form,input,select,textarea,label")
+            ) {
+                return;
+            }
+
+            const target = card.getAttribute("data-modal-target");
+            if (!target) return;
+            const modalEl = document.querySelector(target);
+            if (!modalEl) return;
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        });
+    });
+
+    if (imgAmpliada) {
+        imgAmpliada.addEventListener("click", () => {
+            imgAmpliada.classList.toggle("zoom-2");
+        });
+    }
+
+    function atualizarTextoFiltro() {
+        if (!filtrosCollapse || !toggleFiltrosTexto) return;
+        const aberto = filtrosCollapse.classList.contains("show");
+        toggleFiltrosTexto.textContent = aberto ? "Ocultar filtros" : "Mostrar filtros";
+    }
+
+    if (filtrosCollapse) {
+        filtrosCollapse.addEventListener("shown.bs.collapse", atualizarTextoFiltro);
+        filtrosCollapse.addEventListener("hidden.bs.collapse", atualizarTextoFiltro);
+        atualizarTextoFiltro();
+    }
 
     updateArrows();
 });
