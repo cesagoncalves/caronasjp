@@ -12,38 +12,66 @@
 
             {% if form.errors %}
                 <div class="alert alert-danger">
-                    Verifique os dados informados e tente novamente.
+                    <strong>Corrija os campos abaixo:</strong>
+                    <ul class="mb-0 mt-2 ps-3">
+                        {% for erro in form.non_field_errors %}
+                            <li>{{ erro }}</li>
+                        {% endfor %}
+                        {% for field in form %}
+                            {% for erro in field.errors %}
+                                <li><strong>{{ field.label }}:</strong> {{ erro }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
                 </div>
             {% endif %}
 
             <div class="mb-3">
                 <label class="form-label">Nome</label>
                 {{ form.nome_completo }}
+                {% if form.nome_completo.errors %}
+                    <div class="text-danger small mt-1">{{ form.nome_completo.errors|join:", " }}</div>
+                {% endif %}
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Email</label>
                 {{ form.email }}
+                {% if form.email.errors %}
+                    <div class="text-danger small mt-1">{{ form.email.errors|join:", " }}</div>
+                {% endif %}
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Telefone</label>
                 {{ form.telefone }}
+                {% if form.telefone.errors %}
+                    <div class="text-danger small mt-1">{{ form.telefone.errors|join:", " }}</div>
+                {% endif %}
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Foto de Perfil (opcional)</label>
                 {{ form.foto }}
+                {% if form.foto.errors %}
+                    <div class="text-danger small mt-1">{{ form.foto.errors|join:", " }}</div>
+                {% endif %}
             </div>
 
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Senha</label>
                     {{ form.password1 }}
+                    {% if form.password1.errors %}
+                        <div class="text-danger small mt-1">{{ form.password1.errors|join:", " }}</div>
+                    {% endif %}
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Confirmar Senha</label>
                     {{ form.password2 }}
+                    {% if form.password2.errors %}
+                        <div class="text-danger small mt-1">{{ form.password2.errors|join:", " }}</div>
+                    {% endif %}
                 </div>
             </div>
 

@@ -54,12 +54,16 @@ class CaronaForm(forms.ModelForm):
         cleaned_data = super().clean()
         tipo = cleaned_data.get("tipo_valor")
         valor = cleaned_data.get("valor")
+        veiculo = cleaned_data.get("veiculo")
 
         if tipo == "dinheiro" and not valor:
             self.add_error("valor", "Informe o valor da passagem.")
 
         if tipo != "dinheiro":
             cleaned_data["valor"] = None
+
+        if not veiculo:
+            self.add_error("veiculo", "Selecione um veiculo para oferecer carona.")
 
         return cleaned_data
 

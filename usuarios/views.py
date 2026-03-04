@@ -1,13 +1,69 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import update_session_auth_hash, login
+from django.contrib.auth import update_session_auth_hash, login, logout
 from django.contrib.auth import get_user_model
 from django.contrib import messages
+from django.views.decorators.http import require_POST
+from django.db import transaction
 
 from .forms import UsuarioProfileForm, UsuarioPasswordForm, UsuarioCreationForm
-from viagens.models import Carona
+from viagens.models import Carona, Solicitacao, Notificacao
 
 Usuario = get_user_model()
+
+
+def _cancelar_itens_ativos_antes_exclusao(usuario):
+    # Motorista: cancela caronas ativas e notifica passageiros/solicitantes.
+    caronas_ativas = Carona.objects.filter(motorista=usuario, status="ativa")
+    for carona in caronas_ativas:
+        solicitacoes_ativas = carona.solicitacoes.filter(status__in=["pendente", "aceita"])
+        for solicitacao in solicitacoes_ativas:
+            if solicitacao.solicitante and solicitacao.solicitante_id != usuario.id:
+                Notificacao.objects.create(
+                    usuario=solicitacao.solicitante,
+                    tipo="viagem_cancelada",
+                    titulo=(
+                        "Entrega cancelada"
+                        if solicitacao.tipo == "encomenda"
+                        else "Viagem cancelada"
+                    ),
+                    mensagem=(
+                        "A entrega foi cancelada porque o motorista excluiu a conta."
+                        if solicitacao.tipo == "encomenda"
+                        else "A viagem foi cancelada porque o motorista excluiu a conta."
+                    ),
+                )
+            solicitacao.status = "cancelada"
+            solicitacao.save(update_fields=["status"])
+
+        carona.status = "cancelada"
+        carona.save(update_fields=["status"])
+
+    # Passageiro/remetente: cancela participacoes/encomendas ativas e notifica motoristas.
+    minhas_solicitacoes_ativas = Solicitacao.objects.filter(
+        solicitante=usuario,
+        status__in=["pendente", "aceita"],
+        carona__status="ativa",
+    ).select_related("carona", "carona__motorista")
+
+    for solicitacao in minhas_solicitacoes_ativas:
+        if solicitacao.carona.motorista_id != usuario.id:
+            Notificacao.objects.create(
+                usuario=solicitacao.carona.motorista,
+                tipo="passageiro_cancelou",
+                titulo=(
+                    "Passageiro cancelou encomenda"
+                    if solicitacao.tipo == "encomenda"
+                    else "Passageiro cancelou"
+                ),
+                mensagem=(
+                    "Uma encomenda foi cancelada porque o usuario excluiu a conta."
+                    if solicitacao.tipo == "encomenda"
+                    else "Uma solicitacao de carona foi cancelada porque o usuario excluiu a conta."
+                ),
+            )
+        solicitacao.status = "cancelada"
+        solicitacao.save(update_fields=["status"])
 
 
 @login_required
@@ -43,3 +99,15 @@ def signup(request):
         form = UsuarioCreationForm()
 
     return render(request, "usuarios/cadastro.html", {"form": form})
+
+
+@login_required
+@require_POST
+def excluir_conta(request):
+    usuario = request.user
+    with transaction.atomic():
+        _cancelar_itens_ativos_antes_exclusao(usuario)
+        logout(request)
+        usuario.delete()
+    messages.success(request, "Conta excluida com sucesso.")
+    return redirect("login")

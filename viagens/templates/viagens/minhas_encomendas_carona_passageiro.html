@@ -6,15 +6,6 @@
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <h2 class="mb-0">Minhas Encomendas da Viagem</h2>
         <div class="d-flex gap-2">
-            {% if mostrar_todas %}
-                <a href="{% url 'minhas_encomendas_carona_passageiro' carona.id %}" class="btn btn-outline-secondary btn-sm">
-                    Mostrar ativas
-                </a>
-            {% else %}
-                <a href="{% url 'minhas_encomendas_carona_passageiro' carona.id %}?todas=1" class="btn btn-outline-secondary btn-sm">
-                    Mostrar todas
-                </a>
-            {% endif %}
             <a href="{% url 'minhas_encomendas_passageiro' %}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Voltar
             </a>

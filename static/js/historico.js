@@ -21,7 +21,7 @@ function renderHistoricoLocal() {
     lista.forEach(s => {
         const tipo = (s.tipo || "carona").toLowerCase();
         const badge = tipo === "encomenda"
-            ? `<span class="badge bg-secondary"><i class="bi bi-box-seam me-1"></i> Envio de encomenda</span>`
+            ? `<span class="badge bg-secondary"><i class="bi bi-box-seam me-1"></i> Envio de encomenda(s)</span>`
             : `<span class="badge bg-secondary"><i class="bi bi-person-fill"></i> Voce foi passageiro</span>`;
 
         container.innerHTML += `

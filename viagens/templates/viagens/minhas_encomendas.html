@@ -7,7 +7,7 @@
         <h2 class="mb-0 fw-bold">Minhas Encomendas (Motorista)</h2>
         {% if mostrar_todas %}
             <a href="{% url 'minhas_encomendas' %}" class="btn btn-sm btn-outline-secondary">
-                Visao por viagens
+                Mostrar ativas
             </a>
         {% else %}
             <a href="{% url 'minhas_encomendas' %}?todas=1" class="btn btn-sm btn-outline-secondary">
@@ -24,7 +24,13 @@
                         <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
                             <div>
                                 <h5 class="mb-0">{{ e.solicitante.nome_curto|default:e.nome_solicitante }}</h5>
-                                <div class="text-muted small">{{ e.telefone_solicitante }}</div>
+                                {% with telefone=e.telefone_solicitante|default:"" %}
+                                    <div class="small">
+                                        <a href="https://wa.me/{{ telefone|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}" target="_blank" rel="noopener" class="text-decoration-none">
+                                            <i class="bi bi-whatsapp me-1"></i>{{ telefone }}
+                                        </a>
+                                    </div>
+                                {% endwith %}
                             </div>
                             <span class="badge {% if e.status == 'pendente' %}bg-warning text-dark{% elif e.status == 'aceita' %}bg-success{% elif e.status == 'recusada' %}bg-danger{% else %}bg-secondary{% endif %}">
                                 {{ e.get_status_display }}
@@ -50,6 +56,25 @@
                     </div>
                 </div>
             {% endfor %}
+            {% if page_obj and page_obj.paginator.num_pages > 1 %}
+                <nav aria-label="Paginacao de encomendas" class="mt-3">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?todas=1&page={{ page_obj.previous_page_number }}">Anterior</a>
+                            </li>
+                        {% endif %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Pagina {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?todas=1&page={{ page_obj.next_page_number }}">Proxima</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
         {% else %}
             <div class="alert alert-info">Voce ainda nao recebeu encomendas.</div>
         {% endif %}
@@ -71,7 +96,9 @@
                                                 {{ c.data|date:"d/m/Y" }} as {{ c.hora|time:"H:i" }}
                                             </div>
                                         </div>
-                                        <span class="badge bg-success">{{ c.encomendas_ativas }} encomenda(s)</span>
+                                        {% if c.encomendas_ativas > 0 %}
+                                            <span class="badge bg-success">{{ c.encomendas_ativas }} encomenda(s)</span>
+                                        {% endif %}
                                     </div>
 
                                     <div class="d-flex gap-2 mb-3">
@@ -97,12 +124,21 @@
         <h5 class="fw-bold mb-3">Encomendas mais recentes</h5>
         {% if encomendas_recentes %}
             {% for e in encomendas_recentes %}
-                <div class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card border-0 shadow-sm rounded-3 mb-3 js-card-encomenda-detalhe"
+                     data-href="{% url 'detalhe_encomenda' e.id %}"
+                     style="cursor: pointer;">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
                             <div>
                                 <h6 class="mb-0">{{ e.solicitante.nome_curto|default:e.nome_solicitante }}</h6>
                                 <div class="text-muted small">{{ e.carona.origem }} -> {{ e.carona.destino }}</div>
+                                {% with telefone=e.telefone_solicitante|default:"" %}
+                                    <div class="small">
+                                        <a href="https://wa.me/{{ telefone|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}" target="_blank" rel="noopener" class="text-decoration-none">
+                                            <i class="bi bi-whatsapp me-1"></i>{{ telefone }}
+                                        </a>
+                                    </div>
+                                {% endwith %}
                             </div>
                             <span class="badge {% if e.status == 'pendente' %}bg-warning text-dark{% elif e.status == 'aceita' %}bg-success{% elif e.status == 'recusada' %}bg-danger{% else %}bg-secondary{% endif %}">
                                 {{ e.get_status_display }}
@@ -111,8 +147,24 @@
                         <p class="mb-1"><strong>Descricao:</strong> {{ e.descricao_item }}</p>
                         <p class="text-muted small mb-0">Solicitada em {{ e.data_solicitacao|date:"d/m/Y H:i" }}</p>
 
-                        {% if e.status == 'pendente' or e.status == 'aceita' %}
+                        {% if e.status == 'pendente' %}
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <a href="{% url 'aceitar_solicitacao' e.id %}"
+                               class="btn btn-success btn-sm"
+                               onclick="event.stopPropagation();">
+                                <i class="bi bi-check-circle"></i> Aceitar
+                            </a>
+                            <a href="{% url 'recusar_solicitacao' e.id %}"
+                               class="btn btn-outline-danger btn-sm"
+                               onclick="event.stopPropagation();">
+                                <i class="bi bi-x-circle"></i> Recusar
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        {% if e.status == 'aceita' %}
                         <form method="post" action="{% url 'cancelar_encomenda_motorista' e.id %}" class="mt-2"
+                              onclick="event.stopPropagation();"
                               onsubmit="return confirm('Cancelar a entrega desta encomenda?');">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -128,4 +180,15 @@
         {% endif %}
     {% endif %}
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".js-card-encomenda-detalhe").forEach(function (card) {
+        card.addEventListener("click", function (event) {
+            if (event.target.closest("a,button,form,input,select,textarea,label")) return;
+            const href = card.dataset.href;
+            if (href) window.location.href = href;
+        });
+    });
+});
+</script>
 {% endblock %}

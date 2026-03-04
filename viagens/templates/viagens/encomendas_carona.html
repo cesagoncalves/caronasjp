@@ -33,7 +33,13 @@
                     <div class="d-flex justify-content-between flex-wrap mb-2">
                         <div>
                             <h5 class="mb-0">{{ e.solicitante.nome_curto|default:e.nome_solicitante }}</h5>
-                            <div class="text-muted small">{{ e.telefone_solicitante }}</div>
+                            {% with telefone=e.telefone_solicitante|default:"" %}
+                                <div class="small">
+                                    <a href="https://wa.me/{{ telefone|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}" target="_blank" rel="noopener" class="text-decoration-none">
+                                        <i class="bi bi-whatsapp me-1"></i>{{ telefone }}
+                                    </a>
+                                </div>
+                            {% endwith %}
                             {% if e.endereco_solicitante %}
                                 <div class="text-muted small">
                                     <i class="bi bi-geo-alt-fill me-1"></i>Coleta: {{ e.endereco_solicitante }}
@@ -46,7 +52,7 @@
                             {% endif %}
                         </div>
                         {% if e.status != 'aceita' %}
-                            <span class="badge {% if e.status == 'pendente' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                            <span class="badge align-self-start px-2 py-1 {% if e.status == 'pendente' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
                                 {{ e.get_status_display }}
                             </span>
                         {% endif %}

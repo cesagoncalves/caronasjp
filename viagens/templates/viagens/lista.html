@@ -31,7 +31,7 @@
 }
 </style>
 
-<div class="mb-4" id="ativos-agora-section" {% if not user.is_authenticated %}style="display:none;"{% endif %}>
+<div class="mb-4" id="ativos-agora-section" {% if not user.is_authenticated or destaques_ativos|length == 0 %}style="display:none;"{% endif %}>
     <div class="d-flex justify-content-between align-items-center mb-2">
         <h5 class="mb-0 fw-bold">Ativos agora</h5>
         <span class="text-muted small" id="ativos-count">
@@ -58,7 +58,7 @@
                         {% for tipo in d.tipos %}
                             <span class="badge
                                 {% if tipo == 'motorista' %}bg-primary{% elif tipo == 'passageiro' %}bg-success{% elif tipo == 'entregar_encomenda' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
-                            {% if tipo == 'motorista' %}Motorista{% elif tipo == 'passageiro' %}Passageiro{% elif tipo == 'entregar_encomenda' %}Entregar encomenda{% else %}Envio de encomenda{% endif %}
+                            {% if tipo == 'motorista' %}Motorista{% elif tipo == 'passageiro' %}Passageiro{% elif tipo == 'entregar_encomenda' %}Entregar encomenda(s){% else %}Envio de encomenda(s){% endif %}
                             </span>
                         {% endfor %}
                     </div>
@@ -87,8 +87,8 @@
                             <span class="badge bg-light text-dark border">{{ d.carona.minhas_encomendas_ativas_count }} encomenda(s)</span>
                         {% endif %}
 
-                        {% if 'motorista' in d.tipos and d.carona.aguardando_confirmacao > 0 %}
-                            <span class="badge bg-warning text-dark pulse-alert">{{ d.carona.aguardando_confirmacao }} pendencia(s)</span>
+                        {% if 'motorista' in d.tipos and d.carona.pendencias_motorista > 0 %}
+                            <span class="badge bg-warning text-dark pulse-alert">{{ d.carona.pendencias_motorista }} pendencia(s)</span>
                         {% endif %}
                     </div>
 
@@ -221,6 +221,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     {% if not user.is_authenticated %}
+    function formatarDataBr(valor) {
+        if (!valor) return "";
+        const txt = String(valor);
+        const m = txt.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+        const d = new Date(txt);
+        return Number.isNaN(d.getTime()) ? txt : d.toLocaleDateString("pt-BR");
+    }
+
     if (typeof sincronizarSolicitacoes === "function") await sincronizarSolicitacoes();
     if (typeof hidratarCaronas === "function") await hidratarCaronas();
 
@@ -267,10 +276,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             <div class="card border-0 shadow-sm rounded-4 ativo-card" data-bs-toggle="modal" data-bs-target="#modalCarona${c.carona_id}" style="background: linear-gradient(145deg, #f7fbff 0%, #edf5ff 100%);">
                 <div class="card-body p-3">
                     <div class="d-flex flex-wrap gap-1 mb-2">
-                        ${Array.from(c.tipos).map(t => `<span class="badge ${t==='passageiro'?'bg-success':'bg-info text-dark'}">${t==='passageiro'?'Passageiro':'Envio de encomenda'}</span>`).join("")}
+                        ${Array.from(c.tipos).map(t => `<span class="badge ${t==='passageiro'?'bg-success':'bg-info text-dark'}">${t==='passageiro'?'Passageiro':'Envio de encomenda(s)'}</span>`).join("")}
                     </div>
                     <div class="fw-semibold">${c.origem} -> ${c.destino}</div>
-                    <div class="text-muted small mb-2">${c.data} ${c.hora ? "as "+c.hora : ""}</div>
+                    <div class="text-muted small mb-2">${formatarDataBr(c.data)} ${c.hora ? "as "+c.hora : ""}</div>
                     <div class="d-flex flex-wrap gap-1">
                         ${c.tipos.has("passageiro") ? (c.quantidade ? `<span class="badge bg-light text-dark border">${c.quantidade} vaga(s)</span>` : `<span class="badge bg-danger">Lotada</span>`) : ""}
                         ${c.encomendas > 0 ? `<span class="badge bg-light text-dark border">${c.encomendas} encomenda(s)</span>` : ""}
@@ -287,14 +296,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!itens.length) return;
 
         const badges = bloco.querySelector(".js-participacao-local-badges");
+        const btnEncomendas = bloco.querySelector(".js-participacao-local-encomendas-btn");
         const temPassageiro = itens.some(s => s.tipo === "carona" && String(s.status).toLowerCase() === "aceita");
+        const temEncomenda = itens.some(s => s.tipo === "encomenda" && String(s.status).toLowerCase() === "aceita");
 
         let html = "";
-        if (temPassageiro) html += `<span class="badge bg-success">Você é passageiro</span>`;
+        if (temPassageiro) html += `<span class="badge bg-success">Passageiro</span>`;
+        if (temEncomenda) html += `<span class="badge bg-info text-dark">Envio de encomenda(s)</span>`;
 
         if (html) {
             badges.innerHTML = html;
             bloco.classList.remove("d-none");
+            if (btnEncomendas) {
+                btnEncomendas.classList.toggle("d-none", !temEncomenda);
+            }
         }
     });
     {% endif %}
@@ -305,17 +320,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     const modalFoto = modalFotoEl ? new bootstrap.Modal(modalFotoEl) : null;
 
     document.querySelectorAll(".js-foto-motorista").forEach((img) => {
-        ["click", "mousedown", "touchstart"].forEach((evtName) => {
+        ["mousedown", "touchstart"].forEach((evtName) => {
             img.addEventListener(evtName, (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                event.stopImmediatePropagation();
             });
         });
 
         img.addEventListener("click", (event) => {
             event.preventDefault();
             event.stopPropagation();
+            event.stopImmediatePropagation();
             if (!modalFoto || !imgAmpliada || !nomeFoto) return;
 
             imgAmpliada.src = img.dataset.src || img.src;
@@ -348,6 +363,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             imgAmpliada.classList.toggle("zoom-2");
         });
     }
+
+    document.querySelectorAll(".modal .modal-body").forEach((body) => {
+        const painelMotorista = body.querySelector(".js-painel-motorista");
+        const painelDivider = body.querySelector(".js-painel-motorista-divider");
+        const origemDestino = body.querySelector(".js-origem-destino");
+        if (!painelMotorista || !origemDestino) return;
+        if (painelDivider) {
+            body.insertBefore(painelDivider, origemDestino);
+        }
+        body.insertBefore(painelMotorista, origemDestino);
+    });
 
     function atualizarTextoFiltro() {
         if (!filtrosCollapse || !toggleFiltrosTexto) return;

@@ -5,9 +5,16 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm, Password
 Usuario = get_user_model()
 
 class UsuarioCreationForm(UserCreationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["nome_completo"].required = True
+
     class Meta(UserCreationForm.Meta):
         model = Usuario
         fields = ("email", "nome_completo", "telefone", "foto")
+        labels = {
+            "nome_completo": "Nome",
+        }
         widgets = {
             "email": forms.EmailInput(attrs={"class": "form-control"}),
             "nome_completo": forms.TextInput(attrs={"class": "form-control", "autofocus": True}),
@@ -22,6 +29,9 @@ class UsuarioProfileForm(UserChangeForm):
     class Meta:
         model = Usuario
         fields = ("email", "nome_completo", "telefone")
+        labels = {
+            "nome_completo": "Nome",
+        }
         widgets = {
             "email": forms.EmailInput(attrs={"class": "form-control"}),
             "nome_completo": forms.TextInput(attrs={"class": "form-control"}),

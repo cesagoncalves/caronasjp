@@ -11,7 +11,7 @@ data-page="encomendas-local"
         <h2 class="mb-0 fw-bold">Minhas Encomendas (Passageiro)</h2>
         {% if request.GET.todas == '1' %}
             <a href="{% url 'minhas_encomendas_passageiro' %}" class="btn btn-sm btn-outline-secondary">
-                Visão por viagens
+                Mostrar ativas
             </a>
         {% else %}
             <a href="{% url 'minhas_encomendas_passageiro' %}?todas=1" class="btn btn-sm btn-outline-secondary">
@@ -61,6 +61,25 @@ data-page="encomendas-local"
                     </div>
                     {% endfor %}
                 </div>
+                {% if page_obj and page_obj.paginator.num_pages > 1 %}
+                    <nav aria-label="Paginacao de encomendas" class="mt-3">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?todas=1&page={{ page_obj.previous_page_number }}">Anterior</a>
+                                </li>
+                            {% endif %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Pagina {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                            </li>
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?todas=1&page={{ page_obj.next_page_number }}">Proxima</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
             {% else %}
                 <div class="alert alert-info text-center">Você ainda não fez nenhuma solicitação de encomenda.</div>
             {% endif %}

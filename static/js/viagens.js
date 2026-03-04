@@ -1,13 +1,19 @@
 console.log("🚗 viagens.js carregado");
 
 function renderViagensLocal() {
+    const dataHoraCarona = (s) => {
+        const data = s.carona_data || "";
+        const hora = (s.carona_hora || "00:00").slice(0, 5);
+        return new Date(`${data}T${hora}:00`);
+    };
+
     const lista = getSolicitacoes()
         .filter(s =>
             String(s.status).toLowerCase() === "aceita" &&
             String(s.carona_status).toLowerCase() === "ativa"
         )
         .sort((a, b) =>
-            new Date(b.data_solicitacao) - new Date(a.data_solicitacao)
+            dataHoraCarona(a) - dataHoraCarona(b)
         );
 
     const container = document.getElementById("lista-viagens");

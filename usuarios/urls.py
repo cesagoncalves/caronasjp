@@ -1,9 +1,11 @@
 from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
+from django.urls import reverse_lazy
 
 urlpatterns = [
     path("perfil/", views.perfil_view, name="perfil"),
+    path("excluir-conta/", views.excluir_conta, name="excluir_conta"),
 
     # Autenticação
     path("login/", auth_views.LoginView.as_view(
@@ -22,7 +24,7 @@ urlpatterns = [
         "alterar-senha/",
         auth_views.PasswordChangeView.as_view(
             template_name="registration/password_change_form.html",
-            success_url="/conta/alterar-senha/sucesso/"
+            success_url=reverse_lazy("lista_caronas")
         ),
         name="alterar_senha"
     ),

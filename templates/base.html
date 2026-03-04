@@ -42,6 +42,34 @@
         border-left: 2px solid #e9ecef;
         padding-left: 8px;
     }
+    .navbar-brand {
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-right: 1rem;
+        display: flex;
+        align-items: center;
+    }
+    .navbar-brand-logo {
+        height: 38px;
+        width: auto;
+        display: block;
+    }
+    @media (max-width: 991.98px) {
+        .navbar-brand-logo {
+            height: 32px;
+        }
+    }
+    .js-foto-navbar {
+        cursor: pointer;
+    }
+    #fotoNavbarAmpliada {
+        transition: transform .2s ease;
+        transform-origin: center center;
+        touch-action: manipulation;
+    }
+    #fotoNavbarAmpliada.zoom-2 {
+        transform: scale(2);
+    }
 
     @media (min-width: 768px) {
         .notification-bell {
@@ -241,7 +269,7 @@
 
         <!-- LOGO -->
         <a class="navbar-brand fw-bold" href="{% url 'lista_caronas' %}">
-            Caronas
+            <img src="{% static 'img/caronasjp.png' %}" alt="Caronas JP" class="navbar-brand-logo">
         </a>
 
         <!-- BOTÃO MOBILE -->
@@ -554,9 +582,17 @@
 
                     <li class="nav-item me-3 d-none d-lg-block">
                         {% if user.foto %}
-                            <img src="{{ user.foto.url }}" class="rounded-circle" width="38" height="38">
+                            <img src="{{ user.foto.url }}"
+                                 class="rounded-circle js-foto-navbar"
+                                 data-src="{{ user.foto.url }}"
+                                 data-nome="{{ user.nome_curto|default:user.nome_completo|default:user.email }}"
+                                 width="38" height="38" alt="Perfil">
                         {% else %}
-                            <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" width="38" height="38">
+                            <img src="{% static 'img/avatar_padrao.jpg' %}"
+                                 class="rounded-circle js-foto-navbar"
+                                 data-src="{% static 'img/avatar_padrao.jpg' %}"
+                                 data-nome="{{ user.nome_curto|default:user.nome_completo|default:user.email }}"
+                                 width="38" height="38" alt="Perfil">
                         {% endif %}
                     </li>
 
@@ -564,8 +600,8 @@
                         <a href="{% url 'perfil' %}" class="nav-link">Meu Perfil</a>
                     </li>
 
-                    <li class="nav-item">
-                        <form action="{% url 'logout' %}" method="post">
+                    <li class="nav-item d-flex align-items-center">
+                        <form action="{% url 'logout' %}" method="post" class="m-0 d-flex align-items-center">
                             {% csrf_token %}
                             <button class="btn btn-danger">Sair</button>
                         </form>
@@ -628,6 +664,19 @@
                     {% csrf_token %}
                     <button class="btn btn-danger">Sair</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if user.is_authenticated %}
+<div class="modal fade" id="modalFotoNavbar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-body text-center p-3">
+                <img id="fotoNavbarAmpliada" src="" class="img-fluid rounded-3" alt="Foto de perfil">
+                <p id="nomeFotoNavbar" class="mt-2 mb-0 fw-semibold"></p>
             </div>
         </div>
     </div>
@@ -719,6 +768,31 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             });
         }
+    });
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const modalEl = document.getElementById("modalFotoNavbar");
+    const imgAmpliada = document.getElementById("fotoNavbarAmpliada");
+    const nomeEl = document.getElementById("nomeFotoNavbar");
+    const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+    if (!modal || !imgAmpliada || !nomeEl) return;
+
+    document.querySelectorAll(".js-foto-navbar").forEach((img) => {
+        img.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            imgAmpliada.src = img.dataset.src || img.src;
+            nomeEl.textContent = img.dataset.nome || "";
+            imgAmpliada.classList.remove("zoom-2");
+            modal.show();
+        });
+    });
+
+    imgAmpliada.addEventListener("click", () => {
+        imgAmpliada.classList.toggle("zoom-2");
     });
 });
 </script>

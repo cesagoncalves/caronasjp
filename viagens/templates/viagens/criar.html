@@ -16,15 +16,32 @@
             <div class="card-body p-4">
                 <form method="POST" novalidate>
                     {% csrf_token %}
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Corrija os campos abaixo:</strong>
+                            <ul class="mb-0 mt-2 ps-3">
+                                {% for erro in form.non_field_errors %}
+                                    <li>{{ erro }}</li>
+                                {% endfor %}
+                                {% for field in form %}
+                                    {% for erro in field.errors %}
+                                        <li><strong>{{ field.label }}:</strong> {{ erro }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
 
                     <div class="mb-3">
                         <label class="form-label">Origem</label>
                         {{ form.origem }}
+                        {% if form.origem.errors %}<div class="text-danger small mt-1">{{ form.origem.errors|join:", " }}</div>{% endif %}
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Destino</label>
                         {{ form.destino }}
+                        {% if form.destino.errors %}<div class="text-danger small mt-1">{{ form.destino.errors|join:", " }}</div>{% endif %}
                     </div>
 
                     <div class="mb-3">
@@ -32,25 +49,50 @@
                         <div class="row g-2">
                             <div class="col-md-6">
                                 {{ form.data }}
+                                {% if form.data.errors %}<div class="text-danger small mt-1">{{ form.data.errors|join:", " }}</div>{% endif %}
                             </div>
                             <div class="col-md-6">
                                 {{ form.hora }}
+                                {% if form.hora.errors %}<div class="text-danger small mt-1">{{ form.hora.errors|join:", " }}</div>{% endif %}
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="id_repetir_viagem" name="repetir_viagem">
+                            <label class="form-check-label fw-semibold ms-2" for="id_repetir_viagem">
+                                Repetir viagem
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="painel-repeticao" class="mb-4 d-none">
+                        <div class="border rounded-4 p-3" style="background: linear-gradient(145deg, #f8fbff 0%, #eef6ff 100%);">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-calendar-week text-primary"></i>
+                                <span class="fw-semibold">Próximos dias (até 1 semana)</span>
+                            </div>
+                            <p class="text-muted small mb-3">Selecione em quais dias essa mesma carona deve ser criada.</p>
+                            <div id="lista-repeticao" class="d-flex flex-column gap-2"></div>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Quantidade de vagas</label>
                         {{ form.vagas }}
+                        {% if form.vagas.errors %}<div class="text-danger small mt-1">{{ form.vagas.errors|join:", " }}</div>{% endif %}
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Valor da passagem</label>
                         {{ form.tipo_valor }}
+                        {% if form.tipo_valor.errors %}<div class="text-danger small mt-1">{{ form.tipo_valor.errors|join:", " }}</div>{% endif %}
                     </div>
 
                     <div class="mb-4" id="campo-valor">
                         {{ form.valor }}
+                        {% if form.valor.errors %}<div class="text-danger small mt-1">{{ form.valor.errors|join:", " }}</div>{% endif %}
                     </div>
 
                     <div class="mb-3">
@@ -66,6 +108,7 @@
                                 <i class="bi bi-plus-circle"></i>
                             </button>
                         </div>
+                        {% if form.veiculo.errors %}<div class="text-danger small mt-1">{{ form.veiculo.errors|join:", " }}</div>{% endif %}
                     </div>
 
                     <div class="mb-4">
@@ -73,6 +116,7 @@
                             Observações <span class="text-muted">(opcional)</span>
                         </label>
                         {{ form.observacoes }}
+                        {% if form.observacoes.errors %}<div class="text-danger small mt-1">{{ form.observacoes.errors|join:", " }}</div>{% endif %}
                         <small class="text-muted">
                             Informações adicionais para os passageiros
                         </small>
@@ -102,6 +146,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const tipoValor = document.getElementById("id_tipo_valor");
     const campoValor = document.getElementById("campo-valor");
     const inputValor = document.getElementById("id_valor");
+    const inputData = document.getElementById("id_data");
+    const chkRepetir = document.getElementById("id_repetir_viagem");
+    const painelRepeticao = document.getElementById("painel-repeticao");
+    const listaRepeticao = document.getElementById("lista-repeticao");
+    let dataAntesRepetir = inputData ? inputData.value : "";
     if (!tipoValor || !campoValor || !inputValor) return;
 
     function atualizarCampoValor() {
@@ -112,7 +161,71 @@ document.addEventListener("DOMContentLoaded", () => {
 
     tipoValor.addEventListener("change", atualizarCampoValor);
     atualizarCampoValor();
+
+    function formatarDataLabel(dataIso) {
+        const d = new Date(`${dataIso}T00:00:00`);
+        return d.toLocaleDateString("pt-BR", {
+            weekday: "short",
+            day: "2-digit",
+            month: "2-digit",
+        });
+    }
+
+    function montarDiasRepeticao() {
+        if (!inputData || !chkRepetir || !painelRepeticao || !listaRepeticao) return;
+
+        const ativo = chkRepetir.checked;
+        painelRepeticao.classList.toggle("d-none", !ativo);
+        const hoje = new Date();
+        const hojeIso = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString().slice(0, 10);
+
+        if (!ativo) {
+            inputData.readOnly = false;
+            inputData.removeAttribute("max");
+            if (dataAntesRepetir) inputData.value = dataAntesRepetir;
+            return;
+        }
+
+        if (!dataAntesRepetir) dataAntesRepetir = inputData.value;
+        inputData.value = hojeIso;
+        inputData.readOnly = true;
+        inputData.min = hojeIso;
+        inputData.max = hojeIso;
+
+        listaRepeticao.innerHTML = "";
+        const base = new Date(`${hojeIso}T00:00:00`);
+        for (let i = 0; i <= 6; i++) {
+            const dia = new Date(base);
+            dia.setDate(base.getDate() + i);
+            const iso = dia.toISOString().slice(0, 10);
+            const hojeTravado = i === 0;
+
+            const row = document.createElement("label");
+            row.className = "d-flex align-items-center justify-content-between border rounded-3 px-3 py-2 bg-white";
+            row.innerHTML = `
+                <div class="form-check m-0">
+                    <input class="form-check-input" type="checkbox" name="datas_repeticao" value="${iso}" id="rep_${iso}" ${hojeTravado ? "checked disabled" : ""}>
+                    <span class="form-check-label ms-2">${formatarDataLabel(iso)}</span>
+                </div>
+            `;
+            listaRepeticao.appendChild(row);
+        }
+    }
+
+    if (chkRepetir) {
+        chkRepetir.addEventListener("change", montarDiasRepeticao);
+    }
+    if (inputData) {
+        inputData.addEventListener("change", montarDiasRepeticao);
+    }
+
+    if (chkRepetir && "{{ request.POST.repetir_viagem|default:'' }}" === "on") {
+        chkRepetir.checked = true;
+    }
+    montarDiasRepeticao();
+
 });
 </script>
 
 {% endblock %}
+

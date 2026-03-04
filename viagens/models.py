@@ -1,7 +1,11 @@
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 import uuid
+from io import BytesIO
+from pathlib import Path
+from PIL import Image, ImageOps
 from django.utils.timezone import now
 
 class Carona(models.Model):
@@ -172,6 +176,37 @@ class Solicitacao(models.Model):
         if self.tipo == "encomenda" and not self.descricao_item:
             raise ValidationError({"descricao_item": "Informe a descrição do item."})
     
+    def _otimizar_foto_encomenda(self):
+        if not self.foto_encomenda:
+            return
+
+        imagem = Image.open(self.foto_encomenda)
+        imagem = ImageOps.exif_transpose(imagem)
+
+        if imagem.mode not in ("RGB", "L"):
+            imagem = imagem.convert("RGB")
+        elif imagem.mode == "L":
+            imagem = imagem.convert("RGB")
+
+        # Boa qualidade visual com tamanho reduzido para upload e renderizacao.
+        imagem.thumbnail((1280, 1280), Image.Resampling.LANCZOS)
+
+        buffer = BytesIO()
+        imagem.save(buffer, format="JPEG", quality=78, optimize=True, progressive=True)
+        buffer.seek(0)
+
+        nome_base = Path(self.foto_encomenda.name).stem
+        self.foto_encomenda.save(
+            f"{nome_base}.jpg",
+            ContentFile(buffer.read()),
+            save=False,
+        )
+
+    def save(self, *args, **kwargs):
+        if self.foto_encomenda and not self.foto_encomenda._committed:
+            self._otimizar_foto_encomenda()
+        super().save(*args, **kwargs)
+
     def mudar_status(self, novo_status):
         if self.status != novo_status:
             self.status = novo_status
