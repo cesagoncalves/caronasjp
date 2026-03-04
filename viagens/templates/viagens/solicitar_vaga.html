@@ -12,7 +12,11 @@
             <div class="alert alert-info text-center">
                 <strong>{{ carona.origem }} -> {{ carona.destino }}</strong><br>
                 {{ carona.data|date:"d/m/Y" }} as {{ carona.hora }}<br>
-                <span class="badge bg-info fs-6">Restam {{ carona.vagas_restantes }} vaga(s)</span>
+                {% if carona.vagas_restantes > 0 %}
+                    <span class="badge bg-info fs-6">{{ carona.vagas_restantes }} vaga(s)</span>
+                {% else %}
+                    <span class="badge bg-danger fs-6">Lotada</span>
+                {% endif %}
             </div>
 
             <form method="POST">

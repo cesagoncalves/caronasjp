@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h2 class="mb-0">Minhas Encomendas da Viagem</h2>
+        <div class="d-flex gap-2">
+            {% if mostrar_todas %}
+                <a href="{% url 'minhas_encomendas_carona_passageiro' carona.id %}" class="btn btn-outline-secondary btn-sm">
+                    Mostrar ativas
+                </a>
+            {% else %}
+                <a href="{% url 'minhas_encomendas_carona_passageiro' carona.id %}?todas=1" class="btn btn-outline-secondary btn-sm">
+                    Mostrar todas
+                </a>
+            {% endif %}
+            <a href="{% url 'minhas_encomendas_passageiro' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="alert alert-light border">
+        <strong>{{ carona.origem }} -> {{ carona.destino }}</strong>
+        em {{ carona.data|date:"d/m/Y" }} as {{ carona.hora }}
+    </div>
+
+    {% if encomendas %}
+        {% for e in encomendas %}
+            <div class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                        <div>
+                            <div class="fw-semibold">{{ e.carona.origem }} -> {{ e.carona.destino }}</div>
+                            <div class="text-muted small">Solicitada em {{ e.data_solicitacao|date:"d/m/Y H:i" }}</div>
+                        </div>
+                        {% if e.status != 'aceita' %}
+                            <span class="badge {% if e.status == 'pendente' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                {{ e.get_status_display }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <p class="mb-2"><strong>Descricao:</strong> {{ e.descricao_item|default:"-" }}</p>
+
+                    {% if e.endereco_solicitante %}
+                        <p class="mb-1 small text-muted"><i class="bi bi-geo-alt-fill me-1"></i>Coleta: {{ e.endereco_solicitante }}</p>
+                    {% endif %}
+                    {% if e.endereco_destino_solicitante %}
+                        <p class="mb-2 small text-muted"><i class="bi bi-signpost-2-fill me-1"></i>Entrega: {{ e.endereco_destino_solicitante }}</p>
+                    {% endif %}
+
+                    {% if e.observacoes %}
+                        <p class="mb-2"><strong>Observacoes:</strong> {{ e.observacoes }}</p>
+                    {% endif %}
+
+                    {% if e.foto_encomenda %}
+                        <img src="{{ e.foto_encomenda.url }}" class="img-fluid rounded border mb-2" style="max-height: 260px; object-fit: cover;">
+                    {% endif %}
+
+                    {% if e.status == "pendente" or e.status == "aceita" %}
+                        <form action="{% url 'cancelar_solicitacao' e.id %}" method="post" onsubmit="return confirm('Cancelar esta encomenda?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-x-circle"></i> Cancelar encomenda
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">Nenhuma encomenda encontrada para esta viagem.</div>
+    {% endif %}
+</div>
+{% endblock %}

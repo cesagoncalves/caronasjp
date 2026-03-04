@@ -8,7 +8,7 @@ data-page="solicitacoes-local"
 {% block content %}
 <div class="container mt-4">
 
-    <h2 class="mb-4 fw-bold">Minhas Solicitacoes</h2>
+    <h2 class="mb-4 fw-bold">Minhas Solicitações</h2>
 
     {% if modo == 'bd' %}
         {% if solicitacoes %}
@@ -31,7 +31,7 @@ data-page="solicitacoes-local"
                             <p class="mb-1"><strong>Quantidade:</strong> {{ s.quantidade }}</p>
 
                             {% if s.observacoes %}
-                                <p class="mb-2"><strong>Observacoes:</strong> {{ s.observacoes }}</p>
+                                <p class="mb-2"><strong>Observações:</strong> {{ s.observacoes }}</p>
                             {% endif %}
 
                             <hr>
@@ -40,9 +40,9 @@ data-page="solicitacoes-local"
                                 <a href="" class="btn btn-outline-primary btn-sm">Ver Carona</a>
 
                                 {% if s.status == 'pendente' %}
-                                <form action="{% url 'cancelar_solicitacao' s.id %}" method="post">
+                                <form action="{% url 'cancelar_solicitacao' s.id %}" method="post" onsubmit="return confirm('Cancelar esta solicitação?');">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger btn-sm">Cancelar Solicitacao</button>
+                                    <button type="submit" class="btn btn-danger btn-sm">Cancelar Solicitação</button>
                                 </form>
                                 {% endif %}
                             </div>
@@ -52,7 +52,7 @@ data-page="solicitacoes-local"
                 {% endfor %}
             </div>
         {% else %}
-            <div class="alert alert-info text-center">Voce ainda nao fez nenhuma solicitacao de carona.</div>
+            <div class="alert alert-info text-center">Você ainda não fez nenhuma solicitação de carona.</div>
         {% endif %}
     {% endif %}
 

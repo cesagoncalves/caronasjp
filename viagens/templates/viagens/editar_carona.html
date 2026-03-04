@@ -57,9 +57,6 @@
                     <!-- Valor -->
                     <div class="mb-4" id="campo-valor">
                         {{ form.valor }}
-                        <small class="text-muted">
-                            Preencha apenas se o valor for em dinheiro
-                        </small>
                     </div>
 
                     <!-- Veículo -->
@@ -106,5 +103,23 @@
 
 <!-- 🔥 MODAL DE CRIAR VEÍCULO (IGUAL AO CRIAR CARONA) -->
 {% include "viagens/modals/modal_criar_veiculo.html" %}
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const tipoValor = document.getElementById("id_tipo_valor");
+    const campoValor = document.getElementById("campo-valor");
+    const inputValor = document.getElementById("id_valor");
+    if (!tipoValor || !campoValor || !inputValor) return;
+
+    function atualizarCampoValor() {
+        const mostrar = tipoValor.value === "dinheiro";
+        campoValor.classList.toggle("d-none", !mostrar);
+        inputValor.disabled = !mostrar;
+    }
+
+    tipoValor.addEventListener("change", atualizarCampoValor);
+    atualizarCampoValor();
+});
+</script>
 
 {% endblock %}

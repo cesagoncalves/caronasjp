@@ -4,27 +4,84 @@
 
 <div class="container mt-4">
     <h2>Meu Perfil</h2>
-    <div class="row mt-4">
+    <style>
+        .perfil-foto-wrap {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 0 auto;
+            cursor: pointer;
+            border-radius: 50%;
+            overflow: hidden;
+            display: block;
+            background: transparent;
+        }
+        .perfil-foto-wrap img {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
+        .perfil-foto-overlay {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.35);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            font-size: 1.7rem;
+        }
+        .perfil-foto-wrap:hover .perfil-foto-overlay {
+            opacity: 1;
+        }
+    </style>
 
+    <div class="row mt-4">
         <div class="col-md-4 text-center">
-            {% if user.foto %}
-                <img src="{{ user.foto.url }}" class="img-fluid rounded-circle shadow" style="width:180px; height:180px; object-fit: cover;">
-            {% else %}
-                <img src="{% static 'img/avatar_padrao.jpg' %}" class="img-fluid rounded-circle shadow" style="width:180px; height:180px; object-fit: cover;">
-            {% endif %}
+            <label class="perfil-foto-wrap" for="id_foto_upload" title="Alterar foto">
+                {% if user.foto %}
+                    <img id="perfil-preview" src="{{ user.foto.url }}" alt="Foto de perfil" class="shadow">
+                {% else %}
+                    <img id="perfil-preview" src="{% static 'img/avatar_padrao.jpg' %}" alt="Foto de perfil" class="shadow">
+                {% endif %}
+                <span class="perfil-foto-overlay">
+                    <i class="bi bi-pencil-fill"></i>
+                </span>
+            </label>
         </div>
 
         <div class="col-md-8">
             <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm">
                 {% csrf_token %}
+                <input type="file" name="foto" id="id_foto_upload" accept="image/*" class="d-none">
                 {{ form.as_p }}
                 <button class="btn btn-primary mt-2">Salvar alterações</button>
             </form>
 
             <a href="{% url 'alterar_senha' %}" class="btn btn-outline-secondary mt-3">Alterar senha</a>
         </div>
-
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const inputFoto = document.getElementById("id_foto_upload");
+    const preview = document.getElementById("perfil-preview");
+
+    if (!inputFoto || !preview) return;
+
+    inputFoto.addEventListener("change", () => {
+        const file = inputFoto.files && inputFoto.files[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        preview.src = url;
+    });
+});
+</script>
 
 {% endblock %}

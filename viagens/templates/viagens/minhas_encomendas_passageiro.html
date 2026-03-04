@@ -9,16 +9,14 @@ data-page="encomendas-local"
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <h2 class="mb-0 fw-bold">Minhas Encomendas (Passageiro)</h2>
-        {% if modo == 'bd' %}
-            {% if mostrar_todas %}
-                <a href="{% url 'minhas_encomendas_passageiro' %}" class="btn btn-sm btn-outline-secondary">
-                    Visao por viagens
-                </a>
-            {% else %}
-                <a href="{% url 'minhas_encomendas_passageiro' %}?todas=1" class="btn btn-sm btn-outline-secondary">
-                    Mostrar todas
-                </a>
-            {% endif %}
+        {% if request.GET.todas == '1' %}
+            <a href="{% url 'minhas_encomendas_passageiro' %}" class="btn btn-sm btn-outline-secondary">
+                Visão por viagens
+            </a>
+        {% else %}
+            <a href="{% url 'minhas_encomendas_passageiro' %}?todas=1" class="btn btn-sm btn-outline-secondary">
+                Mostrar todas
+            </a>
         {% endif %}
     </div>
 
@@ -42,18 +40,18 @@ data-page="encomendas-local"
                                 <p class="mb-1 text-muted">Solicitado em: {{ e.data_solicitacao|date:"d/m/Y H:i" }}</p>
                                 <p class="mb-1"><strong>Motorista:</strong> {{ e.carona.motorista.nome_completo }}</p>
                                 <p class="mb-1"><strong>Rota:</strong> {{ e.carona.origem }} -> {{ e.carona.destino }}</p>
-                                <p class="mb-2"><strong>Descricao:</strong> {{ e.descricao_item|default:"-" }}</p>
+                                <p class="mb-2"><strong>Descrição:</strong> {{ e.descricao_item|default:"-" }}</p>
 
                                 {% if e.foto_encomenda %}
                                     <img src="{{ e.foto_encomenda.url }}" class="img-fluid rounded border mb-2" style="max-height: 220px; object-fit: cover;">
                                 {% endif %}
 
                                 {% if e.observacoes %}
-                                    <p class="mb-2"><strong>Observacoes:</strong> {{ e.observacoes }}</p>
+                                    <p class="mb-2"><strong>Observações:</strong> {{ e.observacoes }}</p>
                                 {% endif %}
 
                                 {% if e.status == 'pendente' or e.status == 'aceita' %}
-                                <form action="{% url 'cancelar_solicitacao' e.id %}" method="post">
+                                <form action="{% url 'cancelar_solicitacao' e.id %}" method="post" onsubmit="return confirm('Cancelar esta encomenda?');">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-danger btn-sm">Cancelar Encomenda</button>
                                 </form>
@@ -64,7 +62,7 @@ data-page="encomendas-local"
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="alert alert-info text-center">Voce ainda nao fez nenhuma solicitacao de encomenda.</div>
+                <div class="alert alert-info text-center">Você ainda não fez nenhuma solicitação de encomenda.</div>
             {% endif %}
         {% else %}
             <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%);">
@@ -75,6 +73,7 @@ data-page="encomendas-local"
                         <div class="row g-3">
                             {% for c in viagens_ativas %}
                                 <div class="col-lg-6">
+                                    <a href="{% url 'minhas_encomendas_carona_passageiro' c.id %}" class="text-decoration-none text-reset d-block h-100">
                                     <div class="border rounded-3 p-3 h-100 bg-white">
                                         <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                                             <div>
@@ -83,7 +82,7 @@ data-page="encomendas-local"
                                                     {{ c.data|date:"d/m/Y" }} as {{ c.hora|time:"H:i" }}
                                                 </div>
                                             </div>
-                                            <span class="badge bg-success">{{ c.encomendas_ativas }} ativa(s)</span>
+                                            <span class="badge bg-success">{{ c.encomendas_ativas }} encomenda(s)</span>
                                         </div>
 
                                         <div class="d-flex gap-2 mb-3">
@@ -91,7 +90,12 @@ data-page="encomendas-local"
                                                 <span class="badge bg-warning text-dark">{{ c.encomendas_pendentes }} pendente(s)</span>
                                             {% endif %}
                                         </div>
+
+                                        <span class="btn btn-sm btn-outline-primary">
+                                            Ver minhas encomendas da viagem
+                                        </span>
                                     </div>
+                                    </a>
                                 </div>
                             {% endfor %}
                         </div>
@@ -115,13 +119,13 @@ data-page="encomendas-local"
                                     {{ e.get_status_display }}
                                 </span>
                             </div>
-                            <p class="mb-1"><strong>Descricao:</strong> {{ e.descricao_item|default:"-" }}</p>
+                            <p class="mb-1"><strong>Descrição:</strong> {{ e.descricao_item|default:"-" }}</p>
                             <p class="text-muted small mb-0">Solicitado em {{ e.data_solicitacao|date:"d/m/Y H:i" }}</p>
                         </div>
                     </div>
                 {% endfor %}
             {% else %}
-                <div class="alert alert-info text-center">Voce ainda nao fez nenhuma solicitacao de encomenda.</div>
+                <div class="alert alert-info text-center">Você ainda não fez nenhuma solicitação de encomenda.</div>
             {% endif %}
         {% endif %}
     {% endif %}

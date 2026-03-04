@@ -15,6 +15,34 @@
 
             <!-- BODY -->
             <div class="modal-body p-4">
+                {% if user.is_authenticated and user != carona.motorista %}
+                {% if carona.minha_solicitacao_ativa or carona.minhas_encomendas_ativas_count|default:0 > 0 %}
+                <div class="border rounded-3 p-3 bg-light mb-3">
+                    <h6 class="fw-semibold mb-2">
+                        <i class="bi bi-person-check me-2"></i> Sua participação nesta viagem
+                    </h6>
+
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        {% if carona.minha_solicitacao_ativa %}
+                            <span class="badge bg-success">Você é passageiro</span>
+                        {% endif %}
+                        {% if carona.minhas_encomendas_ativas_count|default:0 > 0 %}
+                            <span class="badge bg-info text-dark">Encomenda(s) enviada(s): {{ carona.minhas_encomendas_ativas_count }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+
+                {% if not user.is_authenticated %}
+                <div class="border rounded-3 p-3 bg-light mb-3 d-none js-participacao-local"
+                    data-carona-id="{{ carona.id }}">
+                    <h6 class="fw-semibold mb-2">
+                        <i class="bi bi-person-check me-2"></i> Sua participação nesta viagem
+                    </h6>
+                    <div class="d-flex flex-wrap gap-2 js-participacao-local-badges"></div>
+                </div>
+                {% endif %}
 
                 <!-- Origem / Destino -->
                 <div class="row mb-4">
@@ -70,8 +98,14 @@
 
                     <div class="{% if user == carona.motorista %}col-6 col-md-3{% else %}col-4{% endif %}">
                         <div class="border rounded-3 p-3 h-100">
-                            <i class="bi bi-people fs-3 text-primary"></i>
-                            <p class="fw-bold mb-0 mt-2">{{ carona.vagas_restantes }} / {{ carona.vagas }}</p>
+                            <i class="bi bi-people fs-3 text-primary d-block"></i>
+                            {% if carona.vagas_restantes > 0 %}
+                                <p class="fw-bold mb-0 mt-2">{{ carona.vagas_restantes }} / {{ carona.vagas }}</p>
+                            {% else %}
+                                <div class="mt-2">
+                                    <span class="badge bg-danger">Lotada</span>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -166,145 +200,118 @@
                     </div>
                 </div>
 
-                {% if user.is_authenticated and user != carona.motorista %}
-                {% if carona.minha_solicitacao_ativa or carona.minhas_encomendas_ativas_count|default:0 > 0 %}
-                <div class="border rounded-3 p-3 bg-light mb-3">
-                    <h6 class="fw-semibold mb-2">
-                        <i class="bi bi-person-check me-2"></i> Sua participacao nesta viagem
-                    </h6>
-
-                    <div class="d-flex flex-wrap gap-2 mb-2">
-                        {% if carona.minha_solicitacao_ativa %}
-                            <span class="badge bg-success">Voce e passageiro</span>
-                        {% endif %}
-                        {% if carona.minhas_encomendas_ativas_count|default:0 > 0 %}
-                            <span class="badge bg-info text-dark">Encomenda(s) enviada(s): {{ carona.minhas_encomendas_ativas_count }}</span>
-                        {% endif %}
-                    </div>
-
-                    {% if carona.minhas_encomendas_ativas_count|default:0 > 0 %}
-                        <div class="small text-muted">
-                            {% for e in carona.minhas_encomendas_ativas|slice:":2" %}
-                                <div>- {{ e.descricao_item|default:"Encomenda" }} ({{ e.get_status_display }})</div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                {% endif %}
-                {% endif %}
-
-                <!-- PASSAGEIROS CONFIRMADOS -->
+                <!-- PASSAGEIROS / ENCOMENDAS (MOTORISTA) -->
                 {% if user == carona.motorista %}
                 <hr class="my-4">
                 <div class="px-2 mb-3">
-                    <h6 class="fw-semibold mb-3">
-                        <i class="bi bi-people-fill me-2"></i> Passageiros confirmados
-                    </h6>
+                    <ul class="nav nav-pills nav-fill mb-3" id="painelCarona{{ carona.id }}" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#painelPassageiros{{ carona.id }}" type="button" role="tab">
+                                Passageiros
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#painelEncomendas{{ carona.id }}" type="button" role="tab">
+                                Encomendas
+                            </button>
+                        </li>
+                    </ul>
 
-                    {% with passageiros=carona.passageiros_aceitos %}
-                    {% if passageiros.count == 0 %}
-                        <div class="text-muted small ps-1">
-                            Nenhum passageiro confirmado ainda.
-                        </div>
-                    {% else %}
-                        <div class="list-group list-group-flush">
-                            {% for solicitacao in passageiros %}
-                                <div class="list-group-item border-0 px-2 py-3">
-                                    <div class="d-flex align-items-start gap-3">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="painelPassageiros{{ carona.id }}" role="tabpanel">
+                            {% with passageiros=carona.passageiros_aceitos %}
+                            {% if passageiros.count == 0 %}
+                                <div class="text-muted small ps-1">Nenhum passageiro confirmado ainda.</div>
+                            {% else %}
+                                <div class="list-group list-group-flush">
+                                    {% for solicitacao in passageiros %}
+                                        <div class="list-group-item border-0 px-2 py-3">
+                                            <div class="d-flex align-items-start gap-3">
+                                                <div class="flex-shrink-0">
+                                                    {% if solicitacao.solicitante and solicitacao.solicitante.foto %}
+                                                        <img src="{{ solicitacao.solicitante.foto.url }}" class="rounded-circle" width="48" height="48">
+                                                    {% else %}
+                                                        <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" width="48" height="48">
+                                                    {% endif %}
+                                                </div>
 
-                                        <!-- FOTO -->
-                                        <div class="flex-shrink-0">
-                                            {% if solicitacao.solicitante and solicitacao.solicitante.foto %}
-                                                <img src="{{ solicitacao.solicitante.foto.url }}"
-                                                    class="rounded-circle"
-                                                    width="48" height="48">
-                                            {% else %}
-                                                <img src="{% static 'img/avatar_padrao.jpg' %}"
-                                                    class="rounded-circle"
-                                                    width="48" height="48">
-                                            {% endif %}
-                                        </div>
+                                                <div class="flex-grow-1">
+                                                    <p class="fw-semibold mb-1">
+                                                        {% if solicitacao.solicitante %}
+                                                            {{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}
+                                                        {% else %}
+                                                            {{ solicitacao.nome_solicitante }}
+                                                        {% endif %}
+                                                    </p>
 
-                                        <!-- CONTEÚDO -->
-                                        <div class="flex-grow-1">
-
-                                            <!-- NOME -->
-                                            <p class="fw-semibold mb-1">
-                                                {% if solicitacao.solicitante %}
-                                                    {{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}
-                                                {% else %}
-                                                    {{ solicitacao.nome_solicitante }}
-                                                {% endif %}
-                                            </p>
-
-                                            <!-- TELEFONE -->
-                                            <a href="tel:{{ solicitacao.telefone_solicitante }}"
-                                            class="text-decoration-none text-primary small d-inline-block mb-1">
-                                                <i class="bi bi-telephone-fill me-1"></i>
-                                                {{ solicitacao.telefone_solicitante }}
-                                            </a>
-
-                                            <!-- BADGES: VAGAS / MALAS -->
-                                            <div class="d-flex flex-wrap gap-2 mt-1">
-
-                                                <!-- Vagas -->
-                                                <span class="badge bg-primary bg-opacity-75">
-                                                    <i class="bi bi-person-fill me-1"></i>
-                                                    {{ solicitacao.quantidade }}
-                                                    vaga{{ solicitacao.quantidade|pluralize }}
-                                                </span>
-
-                                                <!-- Malas -->
-                                                {% if solicitacao.malas > 0 %}
-                                                    <span class="badge bg-warning text-dark bg-opacity-75">
-                                                        <i class="bi bi-suitcase me-1"></i>
-                                                        {{ solicitacao.get_malas_display }}
-                                                    </span>
-                                                {% endif %}
-
-                                            </div>
-
-
-                                            <!-- OBSERVAÇÕES -->
-                                            {% if solicitacao.observacoes %}
-                                                <div class="mt-2">
-
-                                                    <a class="small text-decoration-none text-primary"
-                                                    data-bs-toggle="collapse"
-                                                    href="#obs-{{ solicitacao.id }}"
-                                                    role="button"
-                                                    aria-expanded="false"
-                                                    aria-controls="obs-{{ solicitacao.id }}">
-                                                        <i class="bi bi-chat-left-text me-1 opacity-75"></i>
-                                                        Ver observações
+                                                    <a href="tel:{{ solicitacao.telefone_solicitante }}" class="text-decoration-none text-primary small d-inline-block mb-1">
+                                                        <i class="bi bi-telephone-fill me-1"></i>{{ solicitacao.telefone_solicitante }}
                                                     </a>
 
-                                                    <div class="collapse mt-2" id="obs-{{ solicitacao.id }}">
-                                                        <div class="small text-muted border-start ps-2">
-                                                            {{ solicitacao.observacoes }}
-                                                        </div>
+                                                    <div class="d-flex flex-wrap gap-2 mt-1">
+                                                        <span class="badge bg-primary bg-opacity-75">
+                                                            <i class="bi bi-person-fill me-1"></i>{{ solicitacao.quantidade }} vaga{{ solicitacao.quantidade|pluralize }}
+                                                        </span>
+                                                        {% if solicitacao.malas > 0 %}
+                                                            <span class="badge bg-warning text-dark bg-opacity-75">
+                                                                <i class="bi bi-suitcase me-1"></i>{{ solicitacao.get_malas_display }}
+                                                            </span>
+                                                        {% endif %}
                                                     </div>
-
                                                 </div>
-                                            {% endif %}
-                                        </div>
 
-                                        <!-- AÇÃO -->
-                                        <div class="flex-shrink-0">
-                                            <a href="{% url 'remover_passageiro' solicitacao.id %}"
-                                            class="btn btn-outline-danger btn-sm"
-                                            title="Remover passageiro">
-                                                <i class="bi bi-x-circle"></i>
-                                            </a>
+                                                <div class="flex-shrink-0">
+                                                    <form method="post" action="{% url 'remover_passageiro' solicitacao.id %}" onsubmit="return confirm('Remover este passageiro da viagem?');">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Remover passageiro">
+                                                            <i class="bi bi-x-circle"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
                                         </div>
-
-                                    </div>
+                                    {% endfor %}
                                 </div>
-                            {% endfor %}
+                            {% endif %}
+                            {% endwith %}
                         </div>
-                    {% endif %}
-                {% endwith %}
 
+                        <div class="tab-pane fade" id="painelEncomendas{{ carona.id }}" role="tabpanel">
+                            {% with encomendas=carona.encomendas_ativas_lista %}
+                            {% if encomendas|length == 0 %}
+                                <div class="text-muted small ps-1">Nenhuma encomenda ativa nesta viagem.</div>
+                            {% else %}
+                                <div class="list-group list-group-flush">
+                                    {% for encomenda in encomendas %}
+                                        <div class="list-group-item border-0 px-2 py-3">
+                                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                                <div>
+                                                    <p class="fw-semibold mb-1">{{ encomenda.solicitante.nome_curto|default:encomenda.nome_solicitante }}</p>
+                                                    <div class="small text-muted mb-1">{{ encomenda.descricao_item|default:"Sem descrição" }}</div>
+                                                    <span class="badge {% if encomenda.status == 'pendente' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                                        {{ encomenda.get_status_display }}
+                                                    </span>
+                                                </div>
+                                                <div class="d-flex gap-2">
+                                                    {% if encomenda.status == "pendente" %}
+                                                        <a href="{% url 'aceitar_solicitacao' encomenda.id %}" class="btn btn-success btn-sm"><i class="bi bi-check-circle"></i></a>
+                                                        <a href="{% url 'recusar_solicitacao' encomenda.id %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle"></i></a>
+                                                    {% endif %}
+                                                    {% if encomenda.status == "aceita" %}
+                                                        <form method="post" action="{% url 'cancelar_encomenda_motorista' encomenda.id %}" onsubmit="return confirm('Cancelar a entrega desta encomenda?');">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Cancelar entrega"><i class="bi bi-x-circle"></i></button>
+                                                        </form>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
 
@@ -331,12 +338,17 @@
                     </div>
                 {% else %}
                     <div class="d-flex flex-wrap gap-2">
+                        {% if user.is_authenticated and carona.minhas_encomendas_ativas_count|default:0 > 0 %}
+                            <a href="{% url 'minhas_encomendas_carona_passageiro' carona.id %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-box-seam"></i> Minhas encomendas desta viagem
+                            </a>
+                        {% endif %}
                         {% if carona.vagas_restantes > 0 %}
                             <a href="{% url 'solicitar_vaga' carona.id %}" class="btn btn-success btn-lg">
                                 <i class="bi bi-check-circle"></i> Solicitar vaga
                             </a>
                         {% else %}
-                            <span class="badge bg-danger fs-6 px-3 py-2">Sem vagas disponiveis</span>
+                            <span class="badge bg-danger fs-6 px-3 py-2">Lotada</span>
                         {% endif %}
 
                         <a href="{% url 'solicitar_encomenda' carona.id %}" class="btn btn-outline-primary btn-lg">

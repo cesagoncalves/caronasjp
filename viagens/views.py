@@ -20,6 +20,10 @@ def lista_caronas(request):
             return None
         carona.aguardando_confirmacao = carona.solicitacoes.filter(status="pendente").count()
         carona.passageiros_aceitos = carona.solicitacoes.filter(status="aceita", tipo="carona")
+        carona.encomendas_ativas_lista = carona.solicitacoes.filter(
+            tipo="encomenda",
+            status__in=["pendente", "aceita"]
+        ).select_related("solicitante")
         carona.encomendas_pendentes = carona.solicitacoes.filter(tipo="encomenda", status="pendente").count()
         carona.encomendas_ativas = carona.solicitacoes.filter(
             tipo="encomenda",
@@ -59,6 +63,7 @@ def lista_caronas(request):
     origem = request.GET.get('origem')
     destino = request.GET.get('destino')
     data = request.GET.get('data')
+    motorista = request.GET.get('motorista')
 
     if origem:
         caronas = caronas.filter(origem__icontains=origem)
@@ -66,6 +71,11 @@ def lista_caronas(request):
         caronas = caronas.filter(destino__icontains=destino)
     if data:
         caronas = caronas.filter(data=data)
+    if motorista:
+        caronas = caronas.filter(
+            Q(motorista__nome_completo__icontains=motorista) |
+            Q(motorista__email__icontains=motorista)
+        )
 
     for carona in caronas:
         preencher_dados_carona(carona)
@@ -77,16 +87,22 @@ def lista_caronas(request):
         destaques_map = {}
 
         def add_destaque(carona, tipo, data_ref, **extras):
-            key = (carona.id, tipo)
+            key = carona.id
             atual = destaques_map.get(key)
-            if not atual or data_ref > atual["data_ref"]:
-                item = {
+            if not atual:
+                atual = {
                     "carona": preencher_dados_carona(carona),
-                    "tipo": tipo,
+                    "tipos": set(),
                     "data_ref": data_ref,
                 }
-                item.update(extras)
-                destaques_map[key] = item
+                destaques_map[key] = atual
+
+            atual["tipos"].add(tipo)
+            if data_ref > atual["data_ref"]:
+                atual["data_ref"] = data_ref
+
+            if tipo == "passageiro" and extras.get("quantidade"):
+                atual["quantidade"] = extras["quantidade"]
 
         caronas_motorista = Carona.objects.filter(motorista=request.user, status="ativa")
         for c in caronas_motorista:
@@ -129,11 +145,18 @@ def lista_caronas(request):
         for s in solicitacoes_encomenda:
             add_destaque(s.carona, "enviada", s.data_solicitacao)
 
-        destaques_ativos = sorted(
-            destaques_map.values(),
-            key=lambda x: x["data_ref"],
-            reverse=True,
-        )
+        ordem_tipos = {
+            "motorista": 1,
+            "passageiro": 2,
+            "entregar_encomenda": 3,
+            "enviada": 4,
+        }
+        destaques_ativos = []
+        for item in destaques_map.values():
+            item["tipos"] = sorted(item["tipos"], key=lambda t: ordem_tipos.get(t, 99))
+            destaques_ativos.append(item)
+
+        destaques_ativos.sort(key=lambda x: x["data_ref"], reverse=True)
 
         carona_ids_tela = set(caronas.values_list("id", flat=True))
         vistos = set()
@@ -148,6 +171,7 @@ def lista_caronas(request):
         'origem': origem or "",
         'destino': destino or "",
         'data': data or "",
+        'motorista': motorista or "",
         "destaques_ativos": destaques_ativos,
         "destaque_modais_extras": destaque_modais_extras,
     })
@@ -678,6 +702,36 @@ def minhas_encomendas_passageiro(request):
     })
 
 
+@login_required
+def minhas_encomendas_carona_passageiro(request, carona_id):
+    carona = get_object_or_404(Carona, id=carona_id)
+    mostrar_todas = request.GET.get("todas") == "1"
+
+    encomendas = (
+        Solicitacao.objects
+        .filter(
+            carona=carona,
+            solicitante=request.user,
+            tipo="encomenda",
+        )
+        .select_related("solicitante", "carona", "carona__motorista")
+        .order_by("-data_solicitacao")
+    )
+
+    if not mostrar_todas:
+        encomendas = encomendas.filter(status__in=["pendente", "aceita"])
+
+    if not encomendas.exists():
+        messages.warning(request, "Voce nao possui encomendas nessa viagem.")
+        return redirect("minhas_encomendas_passageiro")
+
+    return render(request, "viagens/minhas_encomendas_carona_passageiro.html", {
+        "carona": carona,
+        "encomendas": encomendas,
+        "mostrar_todas": mostrar_todas,
+    })
+
+
 
 def minhas_viagens(request):
 
@@ -708,6 +762,8 @@ def minhas_viagens(request):
     })
 
 
+@login_required
+@require_POST
 def cancelar_solicitacao(request, id):
     s = get_object_or_404(
         Solicitacao,
@@ -1002,6 +1058,10 @@ def minhas_caronas_view(request):
 
     for carona in caronas:
         carona.passageiros_aceitos = carona.solicitacoes.filter(status='aceita', tipo='carona')
+        carona.encomendas_ativas_lista = carona.solicitacoes.filter(
+            tipo="encomenda",
+            status__in=["pendente", "aceita"]
+        ).select_related("solicitante")
         carona.encomendas_pendentes = carona.solicitacoes.filter(
             tipo='encomenda',
             status='pendente'
@@ -1087,26 +1147,61 @@ def minhas_encomendas(request):
     })
 
 @login_required
+@require_POST
 def remover_passageiro(request, pk):
     solicitacao = get_object_or_404(Solicitacao, pk=pk)
 
-    if solicitacao.carona.motorista != request.user:
-        return redirect("home")
+    if solicitacao.carona.motorista != request.user or solicitacao.tipo != "carona":
+        return redirect("lista_caronas")
+
+    if solicitacao.status not in ["aceita", "pendente"]:
+        messages.warning(request, "Esse passageiro nao pode mais ser removido.")
+        return redirect(request.META.get("HTTP_REFERER", "minhas_caronas"))
 
     solicitacao.status = "cancelada"
-    solicitacao.save()
-    
+    solicitacao.save(update_fields=["status"])
+
     if solicitacao.solicitante:
         Notificacao.objects.create(
             usuario=solicitacao.solicitante,
             tipo="viagem_cancelada",
-            titulo="Você foi removido da carona",
-            mensagem="O motorista removeu você da carona.",
+            titulo="Viagem cancelada pelo motorista",
+            mensagem="O motorista cancelou sua participacao nessa carona.",
             carona=solicitacao.carona,
             solicitacao=solicitacao,
         )
 
-    return redirect(request.META.get("HTTP_REFERER", "home"))
+    messages.success(request, "Passageiro removido com sucesso.")
+    return redirect(request.META.get("HTTP_REFERER", "minhas_caronas"))
+
+
+@login_required
+@require_POST
+def cancelar_encomenda_motorista(request, pk):
+    solicitacao = get_object_or_404(Solicitacao, pk=pk)
+
+    if solicitacao.carona.motorista != request.user or solicitacao.tipo != "encomenda":
+        return redirect("lista_caronas")
+
+    if solicitacao.status not in ["aceita", "pendente"]:
+        messages.warning(request, "Essa encomenda nao pode mais ser cancelada.")
+        return redirect(request.META.get("HTTP_REFERER", "minhas_encomendas"))
+
+    solicitacao.status = "cancelada"
+    solicitacao.save(update_fields=["status"])
+
+    if solicitacao.solicitante:
+        Notificacao.objects.create(
+            usuario=solicitacao.solicitante,
+            tipo="viagem_cancelada",
+            titulo="Entrega cancelada pelo motorista",
+            mensagem="O motorista cancelou a entrega da sua encomenda.",
+            carona=solicitacao.carona,
+            solicitacao=solicitacao,
+        )
+
+    messages.success(request, "Encomenda cancelada com sucesso.")
+    return redirect(request.META.get("HTTP_REFERER", "minhas_encomendas"))
 
 @login_required
 def marcar_notificacoes_como_lidas(request):

@@ -51,7 +51,7 @@ data-page="viagens-local"
                                 Ver detalhes da carona
                             </a>
 
-                            <form method="post" action="{% url 'cancelar_solicitacao' v.id %}">
+                            <form method="post" action="{% url 'cancelar_solicitacao' v.id %}" onsubmit="return confirm('Cancelar sua participacao nesta viagem?');">
                                 {% csrf_token %}
                                 <button class="btn btn-outline-danger btn-sm">
                                     <i class="bi bi-x-circle"></i> Cancelar viagem

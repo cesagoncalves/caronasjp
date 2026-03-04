@@ -16,7 +16,11 @@
 
 <p class="mb-1">
     <i class="bi bi-people-fill me-2 text-warning"></i>
-    {{ carona.vagas_restantes }} vagas restantes
+    {% if carona.vagas_restantes > 0 %}
+        {{ carona.vagas_restantes }} vaga(s)
+    {% else %}
+        <span class="badge bg-danger">Lotada</span>
+    {% endif %}
 </p>
 
 <p class="mb-1">

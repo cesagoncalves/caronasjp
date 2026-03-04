@@ -4,43 +4,36 @@
 {% block content %}
 <style>
 .ativos-wrap { position: relative; }
-.ativos-scroll {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    padding-bottom: 6px;
-    scroll-snap-type: x mandatory;
-}
+.ativos-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
 .ativos-scroll::-webkit-scrollbar { height: 8px; }
 .ativos-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,.2); border-radius: 99px; }
-.ativo-card {
-    min-width: 260px;
-    max-width: 290px;
-    scroll-snap-align: start;
-    cursor: pointer;
-}
-.ativo-arrow {
-    position: absolute;
-    top: 42%;
-    transform: translateY(-50%);
-    z-index: 3;
-}
+.ativo-card { min-width: 260px; max-width: 290px; scroll-snap-align: start; cursor: pointer; }
+.ativo-arrow { position: absolute; top: 42%; transform: translateY(-50%); z-index: 3; }
 .ativo-prev { left: -10px; }
 .ativo-next { right: -10px; }
+.pulse-alert {
+    animation: pulseAlert 1.2s infinite ease-in-out;
+}
+@keyframes pulseAlert {
+    0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, .55); }
+    70% { box-shadow: 0 0 0 9px rgba(255, 193, 7, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+}
 </style>
 
-{% if destaques_ativos %}
-<div class="mb-4">
+<div class="mb-4" id="ativos-agora-section" {% if not user.is_authenticated %}style="display:none;"{% endif %}>
     <div class="d-flex justify-content-between align-items-center mb-2">
         <h5 class="mb-0 fw-bold">Ativos agora</h5>
-        <span class="text-muted small">{{ destaques_ativos|length }} ativo(s)</span>
+        <span class="text-muted small" id="ativos-count">
+            {% if user.is_authenticated %}{{ destaques_ativos|length }} ativo(s){% else %}0 ativo(s){% endif %}
+        </span>
     </div>
 
     <div class="ativos-wrap">
-        <button type="button" class="btn btn-light border rounded-circle ativo-arrow ativo-prev d-none d-md-flex" id="ativos-prev">
+        <button type="button" class="btn btn-light border rounded-circle ativo-arrow ativo-prev d-none" id="ativos-prev">
             <i class="bi bi-chevron-left"></i>
         </button>
-        <button type="button" class="btn btn-light border rounded-circle ativo-arrow ativo-next d-none d-md-flex" id="ativos-next">
+        <button type="button" class="btn btn-light border rounded-circle ativo-arrow ativo-next d-none" id="ativos-next">
             <i class="bi bi-chevron-right"></i>
         </button>
 
@@ -51,83 +44,95 @@
                  data-bs-target="#modalCarona{{ d.carona.id }}"
                  style="background: linear-gradient(145deg, #f7fbff 0%, #edf5ff 100%);">
                 <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                        <span class="badge
-                            {% if d.tipo == 'motorista' %}bg-primary
-                            {% elif d.tipo == 'passageiro' %}bg-success
-                            {% elif d.tipo == 'entregar_encomenda' %}bg-warning text-dark
-                            {% else %}bg-info text-dark{% endif %}">
-                            {% if d.tipo == 'motorista' %}Motorista
-                            {% elif d.tipo == 'passageiro' %}Passageiro
-                            {% elif d.tipo == 'entregar_encomenda' %}Entregar encomenda
-                            {% else %}Enviada{% endif %}
-                        </span>
-
-                        {% if d.tipo == "passageiro" and d.quantidade %}
-                        <span class="badge bg-light text-dark border">{{ d.quantidade }} vaga(s)</span>
-                        {% endif %}
+                    <div class="d-flex flex-wrap gap-1 mb-2">
+                        {% for tipo in d.tipos %}
+                            <span class="badge
+                                {% if tipo == 'motorista' %}bg-primary{% elif tipo == 'passageiro' %}bg-success{% elif tipo == 'entregar_encomenda' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+                            {% if tipo == 'motorista' %}Motorista{% elif tipo == 'passageiro' %}Passageiro{% elif tipo == 'entregar_encomenda' %}Entregar encomenda{% else %}Encomenda enviada{% endif %}
+                            </span>
+                        {% endfor %}
                     </div>
 
                     <div class="fw-semibold">{{ d.carona.origem }} -> {{ d.carona.destino }}</div>
                     <div class="text-muted small mb-2">{{ d.carona.data|date:"d/m/Y" }} as {{ d.carona.hora|time:"H:i" }}</div>
 
                     <div class="d-flex flex-wrap gap-1">
-                        <span class="badge bg-light text-dark border">{{ d.carona.vagas_restantes }} restante(s)</span>
-                        {% if d.carona.encomendas_ativas > 0 %}
-                        <span class="badge bg-light text-dark border">{{ d.carona.encomendas_ativas }} encomenda(s) ativa(s)</span>
+                        {% if 'motorista' in d.tipos %}
+                            {% if d.carona.vagas_restantes > 0 %}
+                                <span class="badge bg-light text-dark border">{{ d.carona.vagas_restantes }} vaga(s)</span>
+                            {% else %}
+                                <span class="badge bg-danger">Lotada</span>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if 'passageiro' in d.tipos and d.quantidade %}
+                            <span class="badge bg-light text-dark border">{{ d.quantidade }} vaga(s)</span>
+                        {% endif %}
+
+                        {% if 'entregar_encomenda' in d.tipos and d.carona.encomendas_ativas > 0 %}
+                            <span class="badge bg-light text-dark border">{{ d.carona.encomendas_ativas }} encomenda(s)</span>
+                        {% endif %}
+
+                        {% if 'enviada' in d.tipos and d.carona.minhas_encomendas_ativas_count|default:0 > 0 %}
+                            <span class="badge bg-light text-dark border">{{ d.carona.minhas_encomendas_ativas_count }} encomenda(s)</span>
+                        {% endif %}
+
+                        {% if 'motorista' in d.tipos and d.carona.aguardando_confirmacao > 0 %}
+                            <span class="badge bg-warning text-dark pulse-alert">{{ d.carona.aguardando_confirmacao }} pendencia(s)</span>
                         {% endif %}
                     </div>
 
-                    {% if user == d.carona.motorista and d.carona.encomendas_ativas > 0 %}
-                    <a href="{% url 'encomendas_carona' d.carona.id %}" class="btn btn-sm btn-outline-primary mt-3" onclick="event.stopPropagation()">
-                        Ver encomendas da viagem
-                    </a>
-                    {% endif %}
                 </div>
             </div>
             {% endfor %}
         </div>
     </div>
 </div>
-{% endif %}
 
-<a href="{% url 'criar_carona' %}" class="btn btn-success mb-3 w-100">
-    Oferecer Carona
-</a>
+<a href="{% url 'criar_carona' %}" class="btn btn-success mb-3 w-100">Oferecer Carona</a>
 
-<h2 class="mb-3 text-center">Filtrar Caronas</h2>
-
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h2 class="mb-0 text-center w-100">Filtrar Caronas</h2>
+</div>
+<button class="btn btn-outline-primary w-100 d-md-none mb-2"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#filtrosCollapse"
+        aria-expanded="false"
+        aria-controls="filtrosCollapse">
+    <i class="bi bi-funnel me-1"></i> Mostrar/Ocultar filtros
+    {% if origem or destino or data or motorista %}
+        <span class="badge bg-primary ms-2">Ativos</span>
+    {% endif %}
+</button>
+<div class="collapse d-md-block" id="filtrosCollapse">
 <form method="GET" class="card p-3 mb-4 shadow-sm">
     <div class="row gx-2 gy-2 align-items-end">
-        <div class="col-12 col-md-3">
-            <input type="text" name="origem" placeholder="Origem" class="form-control" value="{{ origem }}">
+        <div class="col-12 col-md-2">
+            <label class="form-label small text-muted mb-1">Origem</label>
+            <input type="text" name="origem" placeholder="Cidade" class="form-control" value="{{ origem }}">
+        </div>
+        <div class="col-12 col-md-2">
+            <label class="form-label small text-muted mb-1">Destino</label>
+            <input type="text" name="destino" placeholder="Cidade" class="form-control" value="{{ destino }}">
         </div>
         <div class="col-12 col-md-3">
-            <input type="text" name="destino" placeholder="Destino" class="form-control" value="{{ destino }}">
+            <label class="form-label small text-muted mb-1">Motorista</label>
+            <input type="text" name="motorista" placeholder="Nome do motorista" class="form-control" value="{{ motorista }}">
         </div>
-        <div class="col-12 col-md-3">
+        <div class="col-12 col-md-2">
+            <label class="form-label small text-muted mb-1">Data</label>
             <input type="date" name="data" class="form-control" value="{{ data }}">
         </div>
-        <div class="col-12 col-md-3 text-md-end">
-            <a href="/" class="btn btn-outline-danger w-100">
-                <i class="bi bi-trash"></i> Limpar Filtros
-            </a>
-        </div>
+        <div class="col-12 col-md-3 text-md-end"><a href="/" class="btn btn-outline-danger w-100"><i class="bi bi-trash"></i> Limpar filtros</a></div>
     </div>
-    <div class="row mt-3">
-        <div class="col-12">
-            <button class="btn btn-primary w-100">Filtrar</button>
-        </div>
-    </div>
+    <div class="row mt-3"><div class="col-12"><button class="btn btn-primary w-100">Filtrar</button></div></div>
 </form>
+</div>
 
 <h2 class="mb-3 text-center">Caronas Disponiveis</h2>
-
 {% for carona in caronas %}
-<div class="card mb-3 shadow-sm position-relative card-clickable"
-     data-bs-toggle="modal"
-     data-bs-target="#modalCarona{{ carona.id }}"
-     style="cursor: pointer;">
+<div class="card mb-3 shadow-sm position-relative card-clickable" data-bs-toggle="modal" data-bs-target="#modalCarona{{ carona.id }}" style="cursor: pointer;">
     <div class="card-body">
         <div class="position-absolute top-0 end-0 text-end p-2">
             {% if carona.motorista.foto %}
@@ -136,29 +141,18 @@
                 <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle shadow-sm mb-1" width="48" height="48" style="object-fit: cover;">
             {% endif %}
             <p class="small fw-semibold mb-0">{{ carona.motorista.nome_curto }}</p>
-
             {% if carona.motorista == request.user %}
             <div class="d-flex justify-content-end gap-2 mt-1">
-                <a href="{% url 'editar_carona' carona.id %}" class="btn btn-warning btn-sm rounded-circle p-1" style="width: 34px; height: 34px;">
-                    <i class="bi bi-pencil-fill"></i>
-                </a>
-                <a href="{% url 'excluir_carona' carona.id %}" class="btn btn-danger btn-sm rounded-circle p-1" style="width: 34px; height: 34px;">
-                    <i class="bi bi-x-lg"></i>
-                </a>
+                <a href="{% url 'editar_carona' carona.id %}" class="btn btn-warning btn-sm rounded-circle p-1" style="width: 34px; height: 34px;"><i class="bi bi-pencil-fill"></i></a>
+                <a href="{% url 'excluir_carona' carona.id %}" class="btn btn-danger btn-sm rounded-circle p-1" style="width: 34px; height: 34px;"><i class="bi bi-x-lg"></i></a>
             </div>
             {% endif %}
         </div>
 
         {% include "viagens/partials/card_carona_info.html" %}
-
-        <div class="d-grid gap-2 mt-3">
-            <button class="btn btn-outline-primary mt-2" onclick="event.stopPropagation()" data-bs-toggle="modal" data-bs-target="#modalCarona{{ carona.id }}">
-                <i class="bi bi-eye"></i> Ver detalhes
-            </button>
-        </div>
+        <div class="d-grid gap-2 mt-3"><button class="btn btn-outline-primary mt-2" onclick="event.stopPropagation()" data-bs-toggle="modal" data-bs-target="#modalCarona{{ carona.id }}"><i class="bi bi-eye"></i> Ver detalhes</button></div>
     </div>
 </div>
-
 {% include "viagens/modals/modal_detalhe_carona.html" %}
 {% empty %}
 <p class="text-center">Nenhuma carona disponivel no momento.</p>
@@ -169,15 +163,114 @@
 {% endfor %}
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const scroller = document.getElementById("ativos-scroll");
     const prev = document.getElementById("ativos-prev");
     const next = document.getElementById("ativos-next");
-    if (!scroller || !prev || !next) return;
+    const section = document.getElementById("ativos-agora-section");
+    const count = document.getElementById("ativos-count");
 
-    const step = 320;
-    prev.addEventListener("click", () => scroller.scrollBy({ left: -step, behavior: "smooth" }));
-    next.addEventListener("click", () => scroller.scrollBy({ left: step, behavior: "smooth" }));
+    function updateArrows() {
+        if (!scroller || !prev || !next) return;
+        const overflow = scroller.scrollWidth > scroller.clientWidth + 5;
+        if (!overflow) {
+            prev.classList.add("d-none");
+            next.classList.add("d-none");
+            return;
+        }
+        prev.classList.toggle("d-none", scroller.scrollLeft <= 5);
+        next.classList.toggle("d-none", scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 5);
+    }
+
+    if (prev && next && scroller) {
+        prev.addEventListener("click", () => scroller.scrollBy({ left: -320, behavior: "smooth" }));
+        next.addEventListener("click", () => scroller.scrollBy({ left: 320, behavior: "smooth" }));
+        scroller.addEventListener("scroll", updateArrows);
+        window.addEventListener("resize", updateArrows);
+    }
+
+    {% if not user.is_authenticated %}
+    if (typeof sincronizarSolicitacoes === "function") await sincronizarSolicitacoes();
+    if (typeof hidratarCaronas === "function") await hidratarCaronas();
+
+    const lista = (typeof getSolicitacoes === "function" ? getSolicitacoes() : []).filter(
+        s => ["pendente", "aceita"].includes(String(s.status).toLowerCase())
+    );
+
+    const mapa = {};
+    lista.forEach(s => {
+        const id = String(s.carona_id || "");
+        if (!id) return;
+        if (!mapa[id]) {
+            mapa[id] = {
+                carona_id: id,
+                origem: s.carona_origem || "-",
+                destino: s.carona_destino || "-",
+                data: s.carona_data || "",
+                hora: s.carona_hora || "",
+                tipos: new Set(),
+                quantidade: null,
+                encomendas: 0,
+                data_ref: new Date(s.data_solicitacao || Date.now()),
+            };
+        }
+        const item = mapa[id];
+        const tipo = (s.tipo || "carona").toLowerCase();
+        if (tipo === "carona" && String(s.status).toLowerCase() === "aceita") {
+            item.tipos.add("passageiro");
+            item.quantidade = s.quantidade || item.quantidade;
+        }
+        if (tipo === "encomenda") {
+            item.tipos.add("enviada");
+            item.encomendas += 1;
+        }
+        const dt = new Date(s.data_solicitacao || Date.now());
+        if (dt > item.data_ref) item.data_ref = dt;
+    });
+
+    const cards = Object.values(mapa).filter(i => i.tipos.size > 0).sort((a,b) => b.data_ref - a.data_ref);
+    if (cards.length) {
+        section.style.display = "";
+        count.textContent = `${cards.length} ativo(s)`;
+        scroller.innerHTML = cards.map(c => `
+            <div class="card border-0 shadow-sm rounded-4 ativo-card" data-bs-toggle="modal" data-bs-target="#modalCarona${c.carona_id}" style="background: linear-gradient(145deg, #f7fbff 0%, #edf5ff 100%);">
+                <div class="card-body p-3">
+                    <div class="d-flex flex-wrap gap-1 mb-2">
+                        ${Array.from(c.tipos).map(t => `<span class="badge ${t==='passageiro'?'bg-success':'bg-info text-dark'}">${t==='passageiro'?'Passageiro':'Encomenda enviada'}</span>`).join("")}
+                    </div>
+                    <div class="fw-semibold">${c.origem} -> ${c.destino}</div>
+                    <div class="text-muted small mb-2">${c.data} ${c.hora ? "as "+c.hora : ""}</div>
+                    <div class="d-flex flex-wrap gap-1">
+                        ${c.tipos.has("passageiro") ? (c.quantidade ? `<span class="badge bg-light text-dark border">${c.quantidade} vaga(s)</span>` : `<span class="badge bg-danger">Lotada</span>`) : ""}
+                        ${c.encomendas > 0 ? `<span class="badge bg-light text-dark border">${c.encomendas} encomenda(s)</span>` : ""}
+                    </div>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    document.querySelectorAll(".js-participacao-local").forEach(bloco => {
+        const caronaId = String(bloco.dataset.caronaId || "");
+        if (!caronaId) return;
+        const itens = lista.filter(s => String(s.carona_id) === caronaId);
+        if (!itens.length) return;
+
+        const badges = bloco.querySelector(".js-participacao-local-badges");
+        const temPassageiro = itens.some(s => s.tipo === "carona" && String(s.status).toLowerCase() === "aceita");
+        const qtdEncomendas = itens.filter(s => s.tipo === "encomenda" && ["pendente", "aceita"].includes(String(s.status).toLowerCase())).length;
+
+        let html = "";
+        if (temPassageiro) html += `<span class="badge bg-success">Você é passageiro</span>`;
+        if (qtdEncomendas > 0) html += `<span class="badge bg-info text-dark">Encomenda(s) enviada(s): ${qtdEncomendas}</span>`;
+
+        if (html) {
+            badges.innerHTML = html;
+            bloco.classList.remove("d-none");
+        }
+    });
+    {% endif %}
+
+    updateArrows();
 });
 </script>
 {% endblock %}

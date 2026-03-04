@@ -12,6 +12,7 @@ urlpatterns = [
     path("solicitacoes/", views.gerenciar_solicitacoes, name="gerenciar_solicitacoes"),
     path("encomendas/", views.minhas_encomendas, name="minhas_encomendas"),
     path("minhas-encomendas/", views.minhas_encomendas_passageiro, name="minhas_encomendas_passageiro"),
+    path("minhas-encomendas/carona/<int:carona_id>/", views.minhas_encomendas_carona_passageiro, name="minhas_encomendas_carona_passageiro"),
     path("caronas/<int:carona_id>/encomendas/", views.encomendas_carona, name="encomendas_carona"),
     path("solicitacao/<int:solicitacao_id>/aceitar/", views.aceitar_solicitacao, name="aceitar_solicitacao"),
     path("solicitacao/<int:solicitacao_id>/recusar/", views.recusar_solicitacao, name="recusar_solicitacao"),
@@ -28,5 +29,6 @@ urlpatterns = [
     path('carona/<int:carona_id>/concluir/', views.concluir_carona, name='concluir_carona'),
     path("api/estado-caronas/", views.api_estado_caronas, name="api_estado_caronas"),
     path("solicitacao/<int:pk>/remover/", views.remover_passageiro, name="remover_passageiro"),
+    path("solicitacao/<int:pk>/cancelar-encomenda-motorista/", views.cancelar_encomenda_motorista, name="cancelar_encomenda_motorista"),
     path("notificacoes/marcar-lidas/", views.marcar_notificacoes_como_lidas, name="marcar_notificacoes_como_lidas"),
 ]
