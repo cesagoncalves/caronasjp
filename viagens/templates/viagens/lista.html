@@ -165,7 +165,7 @@
                      style="object-fit: cover;">
             {% endif %}
             {% if carona.motorista == request.user %}
-                <span class="badge bg-primary d-inline-block">Você</span><br>
+                <br><span class="badge bg-primary d-inline-block">Você</span>
             {% else %}
                 <p class="small fw-semibold mb-0">{{ carona.motorista.nome_curto }}</p>
             {% endif %}

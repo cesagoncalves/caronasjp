@@ -1,151 +1,301 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
-{% block body_data %}
-data-page="encomendas-local"
-{% endblock %}
-
 {% block content %}
+
+<style>
+.card-hover:hover{
+    transform: translateY(-3px);
+    transition: all .15s ease;
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important;
+}
+</style>
+
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-        <h2 class="mb-0 fw-bold">Minhas Encomendas (Passageiro)</h2>
-        {% if request.GET.todas == '1' %}
-            <a href="{% url 'minhas_encomendas_passageiro' %}" class="btn btn-sm btn-outline-secondary">
-                Mostrar ativas
-            </a>
-        {% else %}
-            <a href="{% url 'minhas_encomendas_passageiro' %}?todas=1" class="btn btn-sm btn-outline-secondary">
-                Mostrar todas
-            </a>
-        {% endif %}
-    </div>
 
-    {% if modo == 'bd' %}
-        {% if mostrar_todas %}
-            {% if encomendas %}
-                <div class="row g-3">
-                    {% for e in encomendas %}
-                    <div class="col-12">
-                        <div class="card border-0 shadow-sm rounded-3">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between flex-wrap mb-2">
-                                    <h5 class="card-title mb-0">
-                                        Encomenda para <strong>{{ e.carona.destino }}</strong>
-                                    </h5>
-                                    <span class="badge {% if e.status == 'pendente' %} bg-warning text-dark{% elif e.status == 'aceita' %} bg-success{% else %} bg-danger{% endif %}">
-                                        {{ e.get_status_display }}
-                                    </span>
-                                </div>
-
-                                <p class="mb-1 text-muted">Solicitado em: {{ e.data_solicitacao|date:"d/m/Y H:i" }}</p>
-                                <p class="mb-1"><strong>Motorista:</strong> {{ e.carona.motorista.nome_completo }}</p>
-                                <p class="mb-1"><strong>Rota:</strong> {{ e.carona.origem }} -> {{ e.carona.destino }}</p>
-                                <p class="mb-2"><strong>Descrição:</strong> {{ e.descricao_item|default:"-" }}</p>
-
-                                {% if e.foto_encomenda %}
-                                    <img src="{{ e.foto_encomenda.url }}" class="img-fluid rounded border mb-2" style="max-height: 220px; object-fit: cover;">
-                                {% endif %}
-
-                                {% if e.observacoes %}
-                                    <p class="mb-2"><strong>Observações:</strong> {{ e.observacoes }}</p>
-                                {% endif %}
-
-                                {% if e.status == 'pendente' or e.status == 'aceita' %}
-                                <form action="{% url 'cancelar_solicitacao' e.id %}" method="post" onsubmit="return confirm('Cancelar esta encomenda?');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger btn-sm">Cancelar Encomenda</button>
-                                </form>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% include "viagens/partials/paginacao_padrao.html" with page_obj=page_obj querystring="todas=1" %}
-            {% else %}
-                <div class="alert alert-info text-center">Você ainda não fez nenhuma solicitação de encomenda.</div>
-            {% endif %}
-        {% else %}
-            <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%);">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold mb-3">Viagens ativas com suas encomendas</h5>
-
-                    {% if viagens_ativas %}
-                        <div class="row g-3">
-                            {% for c in viagens_ativas %}
-                                <div class="col-lg-6">
-                                    <a href="{% url 'minhas_encomendas_carona_passageiro' c.id %}" class="text-decoration-none text-reset d-block h-100">
-                                    <div class="border rounded-3 p-3 h-100 bg-white">
-                                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                                            <div>
-                                                <div class="fw-semibold">{{ c.origem }} -> {{ c.destino }}</div>
-                                                <div class="text-muted small">
-                                                    {{ c.data|date:"d/m/Y" }} as {{ c.hora|time:"H:i" }}
-                                                </div>
-                                            </div>
-                                            <span class="badge bg-success">{{ c.encomendas_ativas }} encomenda(s)</span>
-                                        </div>
-
-                                        <div class="d-flex gap-2 mb-3">
-                                            {% if c.encomendas_pendentes > 0 %}
-                                                <span class="badge bg-warning text-dark">{{ c.encomendas_pendentes }} pendente(s)</span>
-                                            {% endif %}
-                                        </div>
-
-                                        <span class="btn btn-sm btn-outline-primary">
-                                            Ver minhas encomendas da viagem
-                                        </span>
-                                    </div>
-                                    </a>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info mb-0">Nenhuma viagem ativa com encomendas no momento.</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <h5 class="fw-bold mb-3">Encomendas mais recentes</h5>
-            {% if encomendas_recentes %}
-                {% for e in encomendas_recentes %}
-                    <div class="card border-0 shadow-sm rounded-3 mb-3">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
-                                <div>
-                                    <h6 class="mb-0">Para {{ e.carona.destino }}</h6>
-                                    <div class="text-muted small">{{ e.carona.origem }} -> {{ e.carona.destino }}</div>
-                                </div>
-                                <span class="badge {% if e.status == 'pendente' %}bg-warning text-dark{% elif e.status == 'aceita' %}bg-success{% elif e.status == 'recusada' %}bg-danger{% else %}bg-secondary{% endif %}">
-                                    {{ e.get_status_display }}
-                                </span>
-                            </div>
-                            <p class="mb-1"><strong>Descrição:</strong> {{ e.descricao_item|default:"-" }}</p>
-                            <p class="text-muted small mb-0">Solicitado em {{ e.data_solicitacao|date:"d/m/Y H:i" }}</p>
-                            {% if e.status == 'pendente' or e.status == 'aceita' %}
-                            <form method="post" action="{% url 'cancelar_solicitacao' e.id %}" class="mt-2"
-                                  onsubmit="return confirm('Cancelar envio desta encomenda?');">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                    Cancelar envio
-                                </button>
-                            </form>
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <div class="alert alert-info text-center">Você ainda não fez nenhuma solicitação de encomenda.</div>
-            {% endif %}
-        {% endif %}
-    {% endif %}
-
-    {% if modo == 'local' %}
-        <div id="lista-encomendas"></div>
-    {% endif %}
+<div class="d-flex flex-column align-items-center gap-2 mb-4">
+    <h2 class="mb-0 fw-bold text-center">
+        Minhas encomendas <br>
+        <span class="badge bg-success text-white">Passageiro</span>
+    </h2>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script src="{% static 'js/encomendas.js' %}"></script>
+{% if mostrar_todas %}
+
+{% if encomendas %}
+{% for e in encomendas %}
+
+<div class="card border-0 shadow-sm rounded-3 mb-3 card-hover">
+<div class="card-body p-2">
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-1 mb-1">
+
+<div>
+<h5 class="mb-0">
+Para {{ e.carona.destino }}
+</h5>
+
+<div class="small text-muted">
+Motorista: {{ e.carona.motorista.nome_completo }}
+</div>
+
+</div>
+
+<span class="badge
+{% if e.status == 'pendente' %}bg-warning text-dark
+{% elif e.status == 'aceita' %}bg-success
+{% elif e.status == 'recusada' %}bg-danger
+{% else %}bg-secondary
+{% endif %}">
+{{ e.get_status_display }}
+</span>
+
+</div>
+
+<p class="mb-1">
+<strong>Rota:</strong>
+{{ e.carona.origem }} -> {{ e.carona.destino }}
+({{ e.carona.data|date:"d/m/Y" }} às {{ e.carona.hora }})
+</p>
+
+<p class="mb-1">
+<strong>Descrição:</strong> {{ e.descricao_item }}
+</p>
+
+{% if e.foto_encomenda %}
+<img src="{{ e.foto_encomenda.url }}"
+class="img-fluid rounded border mb-1"
+style="max-height:220px;object-fit:cover;">
+{% endif %}
+
+{% if e.observacoes %}
+<p class="mb-1">
+<strong>Observações:</strong> {{ e.observacoes }}
+</p>
+{% endif %}
+
+<p class="text-muted small mb-1">
+Solicitada em {{ e.data_solicitacao|date:"d/m/Y H:i" }}
+</p>
+
+{% if e.status == 'pendente' or e.status == 'aceita' %}
+
+<form method="post"
+action="{% url 'cancelar_solicitacao' e.id %}"
+class="mt-1"
+onsubmit="return confirm('Cancelar envio desta encomenda?');">
+
+{% csrf_token %}
+
+<button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2">
+Cancelar envio
+</button>
+
+</form>
+
+{% endif %}
+
+</div>
+</div>
+
+{% endfor %}
+
+{% include "viagens/partials/paginacao_padrao.html" with page_obj=page_obj querystring="todas=1" %}
+
+{% else %}
+<div class="alert alert-info text-center">
+Você ainda não fez nenhuma solicitação de encomenda.
+</div>
+{% endif %}
+
+
+{% else %}
+
+<div class="card border-0 shadow-sm rounded-4 mb-4"
+style="background:linear-gradient(135deg,#f8fbff 0%,#eef6ff 100%);">
+
+<div class="card-body p-3">
+
+<h5 class="fw-bold mb-3 text-center">
+Viagens ativas com suas encomendas
+</h5>
+
+{% if viagens_ativas %}
+
+<div class="row g-2">
+
+{% for c in viagens_ativas %}
+
+{% if c.encomendas_ativas > 0 or c.encomendas_pendentes > 0 %}
+
+<div class="col-md-6 col-lg-4">
+
+<a href="{% url 'minhas_encomendas_carona_passageiro' c.id %}"
+class="text-decoration-none text-reset d-block h-100">
+
+<div class="border rounded-3 p-2 h-100 bg-white card-hover">
+
+<div class="d-flex justify-content-between align-items-start gap-1 mb-1">
+
+<div>
+
+<div class="fw-semibold">
+{{ c.origem }} -> {{ c.destino }}
+</div>
+
+<div class="text-muted small">
+{{ c.data|date:"d/m/Y" }} às {{ c.hora|time:"H:i" }}
+</div>
+
+</div>
+
+{% if c.encomendas_ativas > 0 %}
+<span class="badge bg-success">
+{{ c.encomendas_ativas }} encomenda(s)
+</span>
+{% endif %}
+
+</div>
+
+<div class="d-flex gap-1 mb-2">
+
+{% if c.encomendas_pendentes > 0 %}
+<span class="badge bg-warning text-dark">
+{{ c.encomendas_pendentes }} pendente(s)
+</span>
+{% endif %}
+
+</div>
+
+<span class="btn btn-sm btn-outline-primary py-0 px-2">
+Ver minhas encomendas
+</span>
+
+</div>
+
+</a>
+
+</div>
+
+{% endif %}
+
+{% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="alert alert-info mb-0 text-center">
+Nenhuma viagem ativa com encomendas no momento.
+</div>
+
+{% endif %}
+
+</div>
+
+</div>
+
+
+<div class="mb-3 text-center position-relative">
+
+<h5 class="fw-bold mb-1">
+Encomendas mais recentes
+</h5>
+
+<a href="{% url 'minhas_encomendas_passageiro' %}?todas=1"
+class="d-none d-md-inline small text-primary text-decoration-none fw-semibold position-absolute end-0 top-50 translate-middle-y">
+Ver todas →
+</a>
+
+<a href="{% url 'minhas_encomendas_passageiro' %}?todas=1"
+class="d-inline d-md-none small text-primary text-decoration-none fw-semibold">
+Ver todas →
+</a>
+
+</div>
+
+{% if encomendas_recentes and encomendas_recentes|length > 0 %}
+
+<div class="row g-2">
+
+{% for e in encomendas_recentes %}
+
+<div class="col-md-6 col-lg-4">
+
+<div class="card border-0 shadow-sm rounded-3 h-100 card-hover">
+
+<div class="card-body p-2">
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-1 mb-1">
+
+<div>
+
+<h6 class="mb-0">
+Para {{ e.carona.destino }}
+</h6>
+
+<div class="text-muted small">
+{{ e.carona.origem }} -> {{ e.carona.destino }}
+</div>
+
+</div>
+
+<span class="badge
+{% if e.status == 'pendente' %}bg-warning text-dark
+{% elif e.status == 'aceita' %}bg-success
+{% elif e.status == 'recusada' %}bg-danger
+{% else %}bg-secondary
+{% endif %}">
+{{ e.get_status_display }}
+</span>
+
+</div>
+
+<p class="mb-1">
+<strong>Descrição:</strong> {{ e.descricao_item }}
+</p>
+
+<p class="text-muted small mb-1">
+Solicitada em {{ e.data_solicitacao|date:"d/m/Y H:i" }}
+</p>
+
+{% if e.status == 'pendente' or e.status == 'aceita' %}
+
+<form method="post"
+action="{% url 'cancelar_solicitacao' e.id %}"
+class="mt-1"
+onsubmit="return confirm('Cancelar envio desta encomenda?');">
+
+{% csrf_token %}
+
+<button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2">
+Cancelar envio
+</button>
+
+</form>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="alert alert-info text-center">
+Você ainda não fez nenhuma solicitação de encomenda.
+</div>
+
+{% endif %}
+
+{% endif %}
+
+</div>
+
 {% endblock %}

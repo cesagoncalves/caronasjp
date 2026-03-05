@@ -128,39 +128,86 @@
                     {% endif %}
                 </div>
 
-                <!-- VEÍCULO -->
-                {% if carona.veiculo %}
-                <div class="border rounded-3 p-3 mb-4">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="fs-1 text-primary">
-                            {% if carona.veiculo.tipo == "carro" %}
-                                <i class="bi bi-car-front-fill"></i>
-                            {% elif carona.veiculo.tipo == "moto" %}
-                                <i class="bi bi-bicycle"></i>
-                            {% elif carona.veiculo.tipo == "van" %}
-                                <i class="bi bi-truck-front-fill"></i>
-                            {% elif carona.veiculo.tipo == "onibus" %}
-                                <i class="bi bi-bus-front-fill"></i>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <p class="fw-semibold mb-1">{{ carona.veiculo.get_tipo_display }}</p>
-                            {% if carona.veiculo.marca or carona.veiculo.modelo or carona.veiculo.ano or carona.veiculo.cor %}
-                                <p class="text-muted mb-0 small">
-                                    {% if carona.veiculo.marca or carona.veiculo.modelo %}
-                                        {{ carona.veiculo.marca|default:"" }} {{ carona.veiculo.modelo|default:"" }}
-                                    {% endif %}
-                                    {% if carona.veiculo.ano or carona.veiculo.cor %}
-                                        {% if carona.veiculo.marca or carona.veiculo.modelo %} · {% endif %}
-                                        {{ carona.veiculo.ano|default:"" }}{% if carona.veiculo.ano and carona.veiculo.cor %} · {% endif %}{{ carona.veiculo.cor|default:"" }}
-                                    {% endif %}
-                                </p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
+                <!-- VEÍCULO + MOTORISTA -->
+<div class="border rounded-3 p-3 mb-4">
 
+    <div class="d-flex justify-content-center align-items-center flex-wrap text-center gap-4">
+
+        <!-- VEÍCULO -->
+        {% if carona.veiculo %}
+        <div class="d-flex flex-column align-items-center px-3">
+
+            <div class="fs-1 text-primary mb-1">
+                {% if carona.veiculo.tipo == "carro" %}
+                    <i class="bi bi-car-front-fill"></i>
+                {% elif carona.veiculo.tipo == "moto" %}
+                    <i class="bi bi-bicycle"></i>
+                {% elif carona.veiculo.tipo == "van" %}
+                    <i class="bi bi-truck-front-fill"></i>
+                {% elif carona.veiculo.tipo == "onibus" %}
+                    <i class="bi bi-bus-front-fill"></i>
+                {% endif %}
+            </div>
+
+            <p class="fw-semibold mb-1">
+                {{ carona.veiculo.get_tipo_display }}
+            </p>
+
+            {% if carona.veiculo.marca or carona.veiculo.modelo or carona.veiculo.ano or carona.veiculo.cor %}
+            <p class="text-muted mb-0 small">
+                {{ carona.veiculo.marca|default:"" }} {{ carona.veiculo.modelo|default:"" }}
+                {% if carona.veiculo.ano %} · {{ carona.veiculo.ano }}{% endif %}
+                {% if carona.veiculo.cor %} · {{ carona.veiculo.cor }}{% endif %}
+            </p>
+            {% endif %}
+
+        </div>
+        {% endif %}
+
+        <!-- DIVISOR -->
+        <div class="vr d-none d-md-block"></div>
+
+        <!-- MOTORISTA -->
+        <div class="d-flex flex-column align-items-center px-3">
+
+            {% if carona.motorista.foto %}
+                <img src="{{ carona.motorista.foto.url }}"
+                     class="rounded-circle js-foto-motorista mb-1"
+                     data-src="{{ carona.motorista.foto.url }}"
+                     data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
+                     width="64" height="64"
+                     style="object-fit: cover; cursor: pointer;">
+            {% else %}
+                <img src="{% static 'img/avatar_padrao.jpg' %}"
+                     class="rounded-circle js-foto-motorista mb-1"
+                     data-src="{% static 'img/avatar_padrao.jpg' %}"
+                     data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
+                     width="64" height="64"
+                     style="object-fit: cover; cursor: pointer;">
+            {% endif %}
+
+            <p class="text-muted small mb-0">Motorista</p>
+
+            {% if user == carona.motorista %}
+                <span class="badge bg-primary mb-1">Você</span>
+            {% else %}
+                <p class="fw-semibold mb-1">
+                    {{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}
+                </p>
+            {% endif %}
+
+            {% if carona.motorista.telefone %}
+            <a href="tel:{{ carona.motorista.telefone }}"
+               class="text-decoration-none text-primary fw-semibold small">
+                <i class="bi bi-telephone-fill me-1"></i>{{ carona.motorista.telefone }}
+            </a>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
                 <!-- Valor -->
                 <div class="text-center mb-4">
                     {% if carona.tipo_valor == "gratuita" %}
@@ -190,38 +237,7 @@
 
                 <hr>
 
-                <!-- MOTORISTA -->
-                <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
-                    {% if carona.motorista.foto %}
-                        <img src="{{ carona.motorista.foto.url }}"
-                             class="rounded-circle js-foto-motorista"
-                             data-src="{{ carona.motorista.foto.url }}"
-                             data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
-                             width="56" height="56"
-                             style="object-fit: cover; cursor: pointer;">
-                    {% else %}
-                        <img src="{% static 'img/avatar_padrao.jpg' %}"
-                             class="rounded-circle js-foto-motorista"
-                             data-src="{% static 'img/avatar_padrao.jpg' %}"
-                             data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
-                             width="56" height="56"
-                             style="object-fit: cover; cursor: pointer;">
-                    {% endif %}
-
-                    <div class="flex-grow-1">
-                        <p class="mb-1 text-muted small">Motorista</p>
-                        {% if user == carona.motorista %}
-                            <span class="badge bg-primary mb-1 d-inline-block">Você</span><br>
-                        {% else %}
-                            <p class="fw-semibold mb-1">{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}</p>
-                        {% endif %}
-                        {% if carona.motorista.telefone %}
-                            <a href="tel:{{ carona.motorista.telefone }}" class="text-decoration-none text-primary fw-semibold">
-                                <i class="bi bi-telephone-fill me-1"></i>{{ carona.motorista.telefone }}
-                            </a>
-                        {% endif %}
-                    </div>
-                </div>
+                
 
                 <!-- PASSAGEIROS / ENCOMENDAS (MOTORISTA) -->
                 {% if user == carona.motorista %}
@@ -243,7 +259,7 @@
                         <div class="tab-pane fade show active" id="painelPassageiros{{ carona.id }}" role="tabpanel">
                             {% with passageiros=carona.passageiros_aceitos %}
                             {% if passageiros.count == 0 %}
-                                <div class="text-muted small ps-1">Nenhum passageiro confirmado ainda.</div>
+                                <div class="text-muted small ps-1 text-center">Nenhum passageiro confirmado ainda.</div>
                             {% else %}
                                 <div class="js-paginated-panel" data-page-size="4">
                                 <div class="list-group list-group-flush">
@@ -322,7 +338,7 @@
                         <div class="tab-pane fade" id="painelEncomendas{{ carona.id }}" role="tabpanel">
                             {% with encomendas=carona.encomendas_ativas_lista %}
                             {% if encomendas|length == 0 %}
-                                <div class="text-muted small ps-1">Nenhuma encomenda ativa nesta viagem.</div>
+                                <div class="text-muted small ps-1 text-center">Nenhuma encomenda ativa nesta viagem.</div>
                             {% else %}
                                 <div class="mb-3 text-center">
                                     <a href="{% url 'encomendas_carona' carona.id %}" class="btn btn-outline-primary btn-sm">
@@ -373,8 +389,10 @@
                             {% endwith %}
                         </div>
                     </div>
+                    <hr>
                 </div>
                 {% endif %}
+                
 
             </div>
 
