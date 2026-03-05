@@ -16,6 +16,13 @@
                     <!-- Conteúdo da carona -->
                     <div class="card-body">
                         {% include "viagens/partials/card_carona_info.html" %}
+                        <div class="mb-2">
+                            {% if carona.encomendas_para_entregar > 0 %}
+                                <span class="badge bg-info text-dark">
+                                    {{ carona.encomendas_para_entregar }} encomenda(s) para entregar
+                                </span>
+                            {% endif %}
+                        </div>
 
                         <!-- Botões Editar / Excluir -->
                         <div class="mt-3">

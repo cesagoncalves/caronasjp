@@ -11,12 +11,63 @@ from django.views.decorators.csrf import csrf_protect
 from django.db import transaction
 from django.utils.html import format_html
 from django.core.paginator import Paginator
+from difflib import SequenceMatcher
+import re
+import unicodedata
 import json
 from django.utils import timezone
 
 
 
 def lista_caronas(request):
+    def normalizar_texto(valor):
+        base = (valor or "").strip().lower()
+        if not base:
+            return ""
+        sem_acento = "".join(
+            ch for ch in unicodedata.normalize("NFD", base)
+            if unicodedata.category(ch) != "Mn"
+        )
+        sem_pontuacao = re.sub(r"[^a-z0-9\s]", " ", sem_acento)
+        return re.sub(r"\s+", " ", sem_pontuacao).strip()
+
+    def gerar_sigla(valor):
+        stopwords = {"de", "da", "do", "das", "dos", "e"}
+        tokens = [t for t in normalizar_texto(valor).split() if t and t not in stopwords]
+        return "".join(token[0] for token in tokens)
+
+    def match_cidade(consulta, valor_cidade):
+        consulta_n = normalizar_texto(consulta)
+        cidade_n = normalizar_texto(valor_cidade)
+        if not consulta_n:
+            return True
+        if not cidade_n:
+            return False
+
+        if consulta_n in cidade_n:
+            return True
+
+        sigla = gerar_sigla(valor_cidade)
+        if consulta_n == sigla or (len(consulta_n) <= 4 and sigla.startswith(consulta_n)):
+            return True
+
+        palavras = cidade_n.split()
+        if len(consulta_n.split()) == 1:
+            if any(p.startswith(consulta_n) for p in palavras):
+                return True
+        else:
+            termos = consulta_n.split()
+            if all(any(p.startswith(t) for p in palavras) for t in termos):
+                return True
+
+        # Fallback leve para erro de digitação.
+        if len(consulta_n) >= 4:
+            similaridade = SequenceMatcher(None, consulta_n, cidade_n).ratio()
+            if similaridade >= 0.72:
+                return True
+
+        return False
+
     def preencher_dados_carona(carona):
         if not carona:
             return None
@@ -71,10 +122,6 @@ def lista_caronas(request):
     data = request.GET.get('data')
     motorista = request.GET.get('motorista')
 
-    if origem:
-        caronas = caronas.filter(origem__icontains=origem)
-    if destino:
-        caronas = caronas.filter(destino__icontains=destino)
     if data:
         caronas = caronas.filter(data=data)
     if motorista:
@@ -82,6 +129,13 @@ def lista_caronas(request):
             Q(motorista__nome_completo__icontains=motorista) |
             Q(motorista__email__icontains=motorista)
         )
+
+    if origem or destino:
+        caronas = [
+            c for c in caronas
+            if (not origem or match_cidade(origem, c.origem))
+            and (not destino or match_cidade(destino, c.destino))
+        ]
 
     for carona in caronas:
         preencher_dados_carona(carona)
@@ -170,7 +224,10 @@ def lista_caronas(request):
             )
         )
 
-        carona_ids_tela = set(caronas.values_list("id", flat=True))
+        if hasattr(caronas, "values_list"):
+            carona_ids_tela = set(caronas.values_list("id", flat=True))
+        else:
+            carona_ids_tela = {c.id for c in caronas}
         vistos = set()
         for item in destaques_ativos:
             c = item["carona"]
@@ -1186,6 +1243,10 @@ def minhas_caronas_view(request):
             tipo="encomenda",
             status__in=["pendente", "aceita"]
         ).select_related("solicitante")
+        carona.encomendas_para_entregar = carona.solicitacoes.filter(
+            tipo="encomenda",
+            status="aceita"
+        ).count()
         carona.encomendas_pendentes = carona.solicitacoes.filter(
             tipo='encomenda',
             status='pendente'
