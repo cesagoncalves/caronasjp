@@ -100,6 +100,10 @@
     </div>
 </div>
 
+{% for d in destaques_ativos %}
+{% include "viagens/modals/modal_detalhe_carona.html" with carona=d.carona %}
+{% endfor %}
+
 <div class="d-flex justify-content-between align-items-center mb-2">
     <h2 class="mb-0 text-center w-100">Filtrar Caronas</h2>
 </div>

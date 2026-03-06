@@ -115,9 +115,17 @@ def lista_caronas(request):
             carona.minhas_encomendas_ativas_count = 0
         return carona
 
+    # somente caronas ativas e que ainda não partiram
+    agora = timezone.localtime(timezone.now())
+    data_atual = agora.date()
+    hora_atual = agora.time()
     caronas = (
         Carona.objects
         .filter(status='ativa')
+        .filter(
+            Q(data__gt=data_atual) |
+            Q(data=data_atual, hora__gte=hora_atual)
+        )
         .annotate(
             aguardando_confirmacao=Count(
                 'solicitacoes',
@@ -230,8 +238,8 @@ def lista_caronas(request):
             key=lambda x: (
                 x["carona"].data,
                 x["carona"].hora,
-                -x["carona"].id,
-            )
+            ),
+            reverse=True
         )
 
         if hasattr(caronas, "values_list"):

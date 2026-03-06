@@ -6,7 +6,7 @@ import uuid
 from io import BytesIO
 from pathlib import Path
 from PIL import Image, ImageOps
-from django.utils.timezone import now
+from django.utils import timezone
 
 class Carona(models.Model):
     STATUS_CHOICES = (
@@ -90,7 +90,15 @@ class Carona(models.Model):
     
     @property
     def esta_concluida(self):
-        return self.data < now().date()
+        agora = timezone.localtime(timezone.now())
+        data_atual = agora.date()
+        hora_atual = agora.time()
+        if self.data < data_atual:
+            return True
+        elif self.data == data_atual:
+            return self.hora < hora_atual
+        else:
+            return False
 
     
 class Solicitacao(models.Model):
