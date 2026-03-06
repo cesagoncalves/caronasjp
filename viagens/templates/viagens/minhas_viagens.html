@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load filters %}
 
 {% block body_data %}
 data-page="viagens-local"
@@ -30,7 +31,7 @@ data-page="viagens-local"
 
                             <p class="mb-1">
                                 <strong>Saída:</strong>
-                                {{ v.carona.data|date:"d/m/Y" }} às {{ v.carona.hora|time:"H:i" }}
+                                {{ v.carona.data|friendly_date_time:v.carona.hora }}
                             </p>
 
                             <p class="mb-1">

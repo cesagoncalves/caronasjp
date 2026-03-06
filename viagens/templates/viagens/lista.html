@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load filters %}
 
 {% block content %}
 <style>
@@ -64,7 +65,7 @@
                     </div>
 
                     <div class="fw-semibold">{{ d.carona.origem }} -> {{ d.carona.destino }}</div>
-                    <div class="text-muted small mb-2">{{ d.carona.data|date:"d/m/Y" }} as {{ d.carona.hora|time:"H:i" }}</div>
+                    <div class="text-muted small mb-2">{{ d.carona.data|friendly_date_time:d.carona.hora }}</div>
 
                     <div class="d-flex flex-wrap gap-1">
                         {% if 'motorista' in d.tipos %}
@@ -168,7 +169,7 @@
                 </div>
 
                 <div class="text-muted small">
-                    {{ carona.data|date:"d/m/Y" }} às {{ carona.hora|time:"H:i" }}
+                    {{ carona.data|friendly_date_time:carona.hora }}
                 </div>
 
             </div>

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load filters %}
 
 {% block content %}
 
@@ -61,7 +62,7 @@ class="text-decoration-none">
 <p class="mb-1">
 <strong>Rota:</strong>
 {{ e.carona.origem }} -> {{ e.carona.destino }}
-({{ e.carona.data|date:"d/m/Y" }} às {{ e.carona.hora }})
+({{ e.carona.data|friendly_date_time:e.carona.hora }})
 </p>
 
 <p class="mb-1">
@@ -133,7 +134,7 @@ class="text-decoration-none text-reset d-block h-100">
 </div>
 
 <div class="text-muted small">
-{{ c.data|date:"d/m/Y" }} às {{ c.hora|time:"H:i" }}
+{{ c.data|friendly_date_time:c.hora }}
 </div>
 
 </div>

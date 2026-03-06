@@ -1,4 +1,5 @@
 {% load static %}
+{% load filters %}
 
 <div class="modal fade" id="modalCarona{{ carona.id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
@@ -94,14 +95,14 @@
                     <div class="{% if user == carona.motorista %}col-6 col-md-3{% else %}col-4{% endif %}">
                         <div class="border rounded-3 p-3 h-100">
                             <i class="bi bi-calendar-event fs-3 text-primary"></i>
-                            <p class="fw-bold mb-0 mt-2">{{ carona.data|date:"d/m/Y" }}</p>
+                            <p class="fw-bold mb-0">{{ carona.data|friendly_date }}</p>
                         </div>
                     </div>
 
                     <div class="{% if user == carona.motorista %}col-6 col-md-3{% else %}col-4{% endif %}">
                         <div class="border rounded-3 p-3 h-100">
                             <i class="bi bi-clock fs-3 text-primary"></i>
-                            <p class="fw-bold mb-0 mt-2">{{ carona.hora|time:"H:i" }}</p>
+                            <p class="fw-bold mb-0">{{ carona.hora|time:"H:i" }}</p>
                         </div>
                     </div>
 
@@ -109,9 +110,9 @@
                         <div class="border rounded-3 p-3 h-100">
                             <i class="bi bi-people fs-3 text-primary d-block"></i>
                             {% if carona.vagas_restantes > 0 %}
-                                <p class="fw-bold mb-0 mt-2">{{ carona.vagas_restantes }} / {{ carona.vagas }}</p>
+                                <p class="fw-bold mb-0">{{ carona.vagas_restantes }} / {{ carona.vagas }}</p>
                             {% else %}
-                                <div class="mt-2">
+                                <div>
                                     <span class="badge bg-danger">Lotada</span>
                                 </div>
                             {% endif %}
@@ -122,7 +123,7 @@
                     <div class="col-6 col-md-3">
                         <div class="border rounded-3 p-3 h-100">
                             <i class="bi bi-box-seam fs-3 text-primary"></i>
-                            <p class="fw-bold mb-0 mt-2">{{ carona.encomendas_ativas|default:0 }}</p>
+                            <p class="fw-bold mb-0">{{ carona.encomendas_ativas|default:0 }}</p>
                         </div>
                     </div>
                     {% endif %}

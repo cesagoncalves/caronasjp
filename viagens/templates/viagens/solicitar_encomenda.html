@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load filters %}
 
 {% block content %}
 <div class="container mt-5" style="max-width: 560px;">
@@ -9,7 +10,7 @@
 
             <div class="alert alert-info text-center">
                 <strong>{{ carona.origem }} -> {{ carona.destino }}</strong><br>
-                {{ carona.data|date:"d/m/Y" }} as {{ carona.hora }}
+                {{ carona.data|friendly_date_time:carona.hora }}
             </div>
 
             <form method="POST" enctype="multipart/form-data">

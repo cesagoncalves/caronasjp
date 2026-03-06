@@ -164,17 +164,31 @@ function renderEncomendasLocal() {
         </div>
     `).join("");
 
+    const verTodasLink = lista.length > limiteRecentes ? `
+        <div class="mb-3 text-center position-relative">
+            <h5 class="fw-bold mb-1">Encomendas mais recentes</h5>
+            <a href="?todas=1" class="d-none d-md-inline small text-primary text-decoration-none fw-semibold position-absolute end-0 top-50 translate-middle-y">
+                Ver todas →
+            </a>
+            <a href="?todas=1" class="d-inline d-md-none small text-primary text-decoration-none fw-semibold">
+                Ver todas →
+            </a>
+        </div>
+    ` : `
+        <div class="mb-3 text-center">
+            <h5 class="fw-bold mb-0">Encomendas mais recentes</h5>
+        </div>
+    `;
+
     container.innerHTML = `
         <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%);">
             <div class="card-body p-4">
-                <h5 class="fw-bold mb-3">Ativas agora</h5>
+                <h5 class="fw-bold mb-3">Viagens ativas com suas encomendas</h5>
                 ${viagensHtml ? `<div class="row g-3">${viagensHtml}</div>` : `<div class="alert alert-info mb-0">Nenhuma viagem ativa com encomendas no momento.</div>`}
             </div>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">${detalhesTitulo}</h5>
-        </div>
+        ${verTodasLink}
         ${detalhesHtml || `<div class="alert alert-info">Nenhuma encomenda ativa para esta viagem.</div>`}
     `;
 }

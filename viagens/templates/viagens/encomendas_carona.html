@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load filters %}
 
 {% block content %}
 <div class="container mt-4">
@@ -23,7 +24,7 @@
 
     <div class="alert alert-light border">
         <strong>{{ carona.origem }} -> {{ carona.destino }}</strong>
-        em {{ carona.data|date:"d/m/Y" }} as {{ carona.hora }}
+        em {{ carona.data|friendly_date_time:carona.hora }}
     </div>
 
     {% if encomendas %}

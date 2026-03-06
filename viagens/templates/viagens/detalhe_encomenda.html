@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load filters %}
 
 {% block content %}
 <div class="container mt-4">
@@ -27,7 +28,7 @@
 
             <div class="alert alert-light border mb-3">
                 <strong>{{ encomenda.carona.origem }} -> {{ encomenda.carona.destino }}</strong><br>
-                {{ encomenda.carona.data|date:"d/m/Y" }} as {{ encomenda.carona.hora|time:"H:i" }}
+                {{ encomenda.carona.data|friendly_date_time:encomenda.carona.hora }}
             </div>
 
             <p class="mb-2"><strong>Descricao do item:</strong> {{ encomenda.descricao_item|default:"-" }}</p>

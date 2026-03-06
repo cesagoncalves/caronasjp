@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load filters %}
 
 {% block content %}
 <div class="container mt-5" style="max-width: 520px;">
@@ -11,7 +12,7 @@
 
             <div class="alert alert-info text-center">
                 <strong>{{ carona.origem }} -> {{ carona.destino }}</strong><br>
-                {{ carona.data|date:"d/m/Y" }} as {{ carona.hora }}<br>
+                {{ carona.data|friendly_date_time:carona.hora }}<br>
                 {% if carona.vagas_restantes > 0 %}
                     <span class="badge bg-info fs-6">{{ carona.vagas_restantes }} vaga(s)</span>
                 {% else %}

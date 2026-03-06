@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load filters %}
 
 {% block body_data %}
 data-page="historico-local"
@@ -35,7 +36,7 @@ data-page="historico-local"
                 </h5>
 
                 <p class="text-muted mb-1">
-                    {{ item.carona.data|date:"d/m/Y" }} as {{ item.carona.hora|time:"H:i" }}
+                    {{ item.carona.data|friendly_date_time:item.carona.hora }}
                 </p>
 
                 {% if item.categoria == 'encomenda' and item.descricao_item %}
