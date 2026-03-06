@@ -71,6 +71,16 @@ def lista_caronas(request):
     def preencher_dados_carona(carona):
         if not carona:
             return None
+        if carona.veiculo:
+            if carona.veiculo.tipo == "van":
+                carona.veiculo_card = "Van"
+            elif carona.veiculo.tipo == "onibus":
+                carona.veiculo_card = "Ônibus"
+            else:
+                carona.veiculo_card = carona.veiculo.modelo
+        else:
+            carona.veiculo_card = ""
+            
         carona.aguardando_confirmacao = carona.solicitacoes.filter(
             status="pendente",
             tipo="carona",

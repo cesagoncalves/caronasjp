@@ -145,44 +145,118 @@
 
 <h2 class="mb-3 text-center">Caronas Disponiveis</h2>
 <a href="{% url 'criar_carona' %}" class="btn btn-success mb-3 w-100">Oferecer Carona</a>
+<div class="row g-2">
 {% for carona in caronas %}
-<div class="card mb-3 shadow-sm position-relative card-clickable" data-modal-target="#modalCarona{{ carona.id }}" style="cursor: pointer;">
-    <div class="card-body">
-        <div class="position-absolute top-0 end-0 text-end p-2">
-            {% if carona.motorista.foto %}
-                <img src="{{ carona.motorista.foto.url }}"
-                     class="rounded-circle shadow-sm mb-1 js-foto-motorista"
-                     data-src="{{ carona.motorista.foto.url }}"
-                     data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
-                     width="48" height="48"
-                     style="object-fit: cover;">
+<div class="col-12 col-md-6">
+
+<div class="card shadow-sm card-clickable h-100"
+     data-modal-target="#modalCarona{{ carona.id }}"
+     style="cursor:pointer;">
+
+    <div class="card-body py-2 px-3">
+
+        <div class="d-flex align-items-center gap-3">
+
+            <!-- ESQUERDA -->
+            <div class="flex-grow-1">
+
+                <div class="fw-semibold small">
+                    <i class="bi bi-geo-alt text-success"></i>
+                    {{ carona.origem }}
+                    <i class="bi bi-arrow-right mx-1"></i>
+                    {{ carona.destino }}
+                </div>
+
+                <div class="text-muted small">
+                    {{ carona.data|date:"d/m/Y" }} às {{ carona.hora|time:"H:i" }}
+                </div>
+
+            </div>
+
+            <!-- DIREITA -->
+            <div class="d-flex align-items-center gap-2">
+
+                <div class="text-end small">
+
+    <div class="fw-semibold">
+
+        {% if carona.motorista == request.user %}
+            <span class="badge bg-primary">Você</span>
+        {% else %}
+            {{ carona.motorista.nome_curto }}
+        {% endif %}
+
+    </div>
+
+    <div class="text-muted d-flex align-items-center gap-2 justify-content-end">
+
+        {% if carona.veiculo %}
+
+            {% if carona.veiculo.tipo == "carro" %}
+                <i class="bi bi-car-front-fill"></i>
+            {% elif carona.veiculo.tipo == "moto" %}
+                <i class="bi bi-bicycle"></i>
+            {% elif carona.veiculo.tipo == "van" %}
+                <i class="bi bi-truck-front-fill"></i>
+            {% elif carona.veiculo.tipo == "onibus" %}
+                <i class="bi bi-bus-front-fill"></i>
             {% else %}
-                <img src="{% static 'img/avatar_padrao.jpg' %}"
-                     class="rounded-circle shadow-sm mb-1 js-foto-motorista"
-                     data-src="{% static 'img/avatar_padrao.jpg' %}"
-                     data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
-                     width="48" height="48"
-                     style="object-fit: cover;">
+                <i class="bi bi-car-front"></i>
             {% endif %}
-            {% if carona.motorista == request.user %}
-                <br><span class="badge bg-primary d-inline-block">Você</span>
-            {% else %}
-                <p class="small fw-semibold mb-0">{{ carona.motorista.nome_curto }}</p>
-            {% endif %}
+
+            {{ carona.veiculo_card }}
+
+        {% endif %}
+
+        {% if carona.vagas_restantes > 0 %}
+
+            <span class="badge bg-warning text-dark ms-1">
+                <i class="bi bi-person-fill"></i>
+                {{ carona.vagas_restantes }} vaga{% if carona.vagas_restantes > 1 %}s{% endif %}
+            </span>
+
+        {% else %}
+
+            <span class="badge bg-danger ms-1">
+                Lotada
+            </span>
+
+        {% endif %}
+
+    </div>
+
+</div>
+                {% if carona.motorista.foto %}
+                    <img src="{{ carona.motorista.foto.url }}"
+                         class="rounded-circle shadow-sm js-foto-motorista"
+                         data-src="{{ carona.motorista.foto.url }}"
+                         data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
+                         width="40" height="40"
+                         style="object-fit:cover;">
+                {% else %}
+                    <img src="{% static 'img/avatar_padrao.jpg' %}"
+                         class="rounded-circle shadow-sm js-foto-motorista"
+                         data-src="{% static 'img/avatar_padrao.jpg' %}"
+                         data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
+                         width="40" height="40"
+                         style="object-fit:cover;">
+                {% endif %}
+
+            </div>
+
         </div>
 
-        {% include "viagens/partials/card_carona_info.html" %}
-        <div class="d-grid gap-2 mt-3"><button class="btn btn-outline-primary mt-2" onclick="event.stopPropagation()" data-bs-toggle="modal" data-bs-target="#modalCarona{{ carona.id }}"><i class="bi bi-eye"></i> Ver detalhes</button></div>
     </div>
+
 </div>
+
+</div>
+
 {% include "viagens/modals/modal_detalhe_carona.html" %}
 {% empty %}
 <p class="text-center">Nenhuma carona disponivel no momento.</p>
 {% endfor %}
-
-{% for carona in destaque_modais_extras %}
-    {% include "viagens/modals/modal_detalhe_carona.html" %}
-{% endfor %}
+</div>
 
 <div class="modal fade" id="modalFotoMotorista" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
