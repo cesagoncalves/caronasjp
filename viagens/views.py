@@ -75,7 +75,7 @@ def lista_caronas(request):
             if carona.veiculo.tipo == "van":
                 carona.veiculo_card = "Van"
             elif carona.veiculo.tipo == "onibus":
-                carona.veiculo_card = "Ônibus"
+                carona.veiculo_card = "Onibus"
             else:
                 carona.veiculo_card = carona.veiculo.modelo
         else:
@@ -87,6 +87,10 @@ def lista_caronas(request):
         ).count()
         carona.pendencias_motorista = carona.solicitacoes.filter(status="pendente").count()
         carona.passageiros_aceitos = carona.solicitacoes.filter(status="aceita", tipo="carona")
+        carona.passageiros_pendentes = carona.solicitacoes.filter(
+            status="pendente",
+            tipo="carona",
+        ).select_related("solicitante")
         carona.encomendas_ativas_lista = carona.solicitacoes.filter(
             tipo="encomenda",
             status__in=["pendente", "aceita"]
@@ -786,7 +790,7 @@ def minhas_encomendas_passageiro(request):
     if request.user.is_authenticated:
         Notificacao.objects.filter(
             usuario=request.user,
-            tipo__in=["viagem_aceita", "solicitacao_recusada", "viagem_cancelada"],
+            tipo__in=["viagem_aceita", "solicitacao_recusada", "viagem_cancelada", "viagem_concluida"],
             lida=False,
             solicitacao__tipo="encomenda",
         ).update(lida=True)
@@ -930,6 +934,15 @@ def cancelar_solicitacao(request, id):
         solicitante=request.user
     )
 
+    if s.carona.status != "ativa":
+        messages.warning(request, "Esta viagem ja foi concluida e nao pode ser cancelada.")
+        destino = (
+            "minhas_encomendas_passageiro"
+            if s.tipo == "encomenda"
+            else "minhas_viagens"
+        )
+        return redirect(destino)
+
     with transaction.atomic():
 
         if s.status == "pendente":
@@ -964,6 +977,9 @@ def cancelar_solicitacao_publica(request, id):
         id=id,
         token_cancelamento=token
     )
+
+    if solicitacao.carona.status != "ativa":
+        return HttpResponseBadRequest("Carona nao esta ativa")
 
     with transaction.atomic():
 
@@ -1110,8 +1126,37 @@ def excluir_veiculo(request, veiculo_id):
 def concluir_carona(request, carona_id):
     carona = get_object_or_404(Carona, id=carona_id, motorista=request.user)
 
-    carona.status = 'concluida'
-    carona.save()
+    if carona.status == "concluida":
+        return redirect("lista_caronas")
+
+    carona.status = "concluida"
+    carona.save(update_fields=["status"])
+
+    solicitacoes_aceitas = (
+        carona.solicitacoes
+        .select_related("solicitante")
+        .filter(status="aceita")
+    )
+
+    for s in solicitacoes_aceitas:
+        if not s.solicitante:
+            continue
+
+        if s.tipo == "encomenda":
+            titulo = "Encomenda concluida"
+            mensagem = f"A entrega da sua encomenda para {carona.destino} foi concluida."
+        else:
+            titulo = "Viagem concluida"
+            mensagem = f"Sua viagem de {carona.origem} para {carona.destino} foi concluida."
+
+        Notificacao.objects.create(
+            usuario=s.solicitante,
+            tipo="viagem_concluida",
+            titulo=titulo,
+            mensagem=mensagem,
+            carona=carona,
+            solicitacao=s,
+        )
 
     return redirect('lista_caronas')
 
@@ -1257,6 +1302,10 @@ def minhas_caronas_view(request):
 
     for carona in caronas:
         carona.passageiros_aceitos = carona.solicitacoes.filter(status='aceita', tipo='carona')
+        carona.passageiros_pendentes = carona.solicitacoes.filter(
+            status="pendente",
+            tipo="carona",
+        ).select_related("solicitante")
         carona.encomendas_ativas_lista = carona.solicitacoes.filter(
             tipo="encomenda",
             status__in=["pendente", "aceita"]
@@ -1414,6 +1463,10 @@ def cancelar_encomenda_motorista(request, pk):
 
     if solicitacao.carona.motorista != request.user or solicitacao.tipo != "encomenda":
         return redirect("lista_caronas")
+
+    if solicitacao.carona.status != "ativa":
+        messages.warning(request, "Essa viagem ja foi concluida e a encomenda nao pode ser cancelada.")
+        return redirect(request.META.get("HTTP_REFERER", "minhas_encomendas"))
 
     if solicitacao.status not in ["aceita", "pendente"]:
         messages.warning(request, "Essa encomenda nao pode mais ser cancelada.")

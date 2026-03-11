@@ -269,7 +269,7 @@ class="text-decoration-none">
 Solicitada em {{ e.data_solicitacao|date:"d/m/Y H:i" }}
 </p>
 
-{% if e.status == 'pendente' %}
+{% if e.status == 'pendente' and e.carona.status == 'ativa' %}
 <div class="d-flex flex-wrap gap-1 mt-1">
 
 <a href="{% url 'aceitar_solicitacao' e.id %}"
@@ -291,7 +291,7 @@ onclick="event.stopPropagation();">
 </div>
 {% endif %}
 
-{% if e.status == 'aceita' %}
+{% if e.status == 'aceita' and e.carona.status == 'ativa' %}
 
 <form method="post"
 action="{% url 'cancelar_encomenda_motorista' e.id %}"

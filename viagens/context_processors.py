@@ -52,7 +52,7 @@ def notificacoes(request):
 
     qtd_encomendas_novas = Notificacao.objects.filter(
         usuario=request.user,
-        tipo__in=["viagem_aceita", "solicitacao_recusada", "viagem_cancelada"],
+        tipo__in=["viagem_aceita", "solicitacao_recusada", "viagem_cancelada", "viagem_concluida"],
         solicitacao__tipo="encomenda",
         lida=False,
     ).count()

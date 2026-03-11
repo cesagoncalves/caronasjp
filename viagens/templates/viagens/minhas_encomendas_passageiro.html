@@ -25,7 +25,8 @@ data-page="encomendas-local"
     </h2>
 </div>
 
-{% if mostrar_todas %}
+    {% if modo == 'bd' %}
+    {% if mostrar_todas %}
 
 {% if encomendas %}
 {% for e in encomendas %}
@@ -83,6 +84,7 @@ style="max-height:220px;object-fit:cover;">
 Solicitada em {{ e.data_solicitacao|date:"d/m/Y H:i" }}
 </p>
 
+{% if e.carona.status == 'ativa' %}
 {% if e.status == 'pendente' or e.status == 'aceita' %}
 
 <form method="post"
@@ -98,6 +100,7 @@ Cancelar envio
 
 </form>
 
+{% endif %}
 {% endif %}
 
 </div>
@@ -264,6 +267,7 @@ Para {{ e.carona.destino }}
 Solicitada em {{ e.data_solicitacao|date:"d/m/Y H:i" }}
 </p>
 
+{% if e.carona.status == 'ativa' %}
 {% if e.status == 'pendente' or e.status == 'aceita' %}
 
 <form method="post"
@@ -279,6 +283,7 @@ Cancelar envio
 
 </form>
 
+{% endif %}
 {% endif %}
 
 </div>
@@ -299,9 +304,10 @@ Você ainda não fez nenhuma solicitação de encomenda.
 
 {% endif %}
 
-{% endif %}
+    {% endif %}
+    {% endif %}
 
-{% if modo == 'local' %}
+    {% if modo == 'local' %}
 <div id="lista-encomendas"></div>
 <script src="{% static 'js/encomendas.js' %}"></script>
 {% endif %}

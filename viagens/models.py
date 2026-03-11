@@ -1,4 +1,4 @@
-from django.db import models
+﻿from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
@@ -11,7 +11,7 @@ from django.utils import timezone
 class Carona(models.Model):
     STATUS_CHOICES = (
         ('ativa', 'Ativa'),
-        ('concluida', 'Concluída'),
+        ('concluida', 'ConcluÃ­da'),
         ('cancelada', 'Cancelada'),
     )
 
@@ -64,16 +64,16 @@ class Carona(models.Model):
     observacoes = models.TextField(
         blank=True,
         null=True,
-        verbose_name="Observações"
+        verbose_name="ObservaÃ§Ãµes"
     )
 
 
     def __str__(self):
-        return f"{self.origem} → {self.destino} às {self.hora}"
+        return f"{self.origem} â†’ {self.destino} Ã s {self.hora}"
 
     @property
     def vagas_restantes(self):
-        # Somente solicitações aceitas
+        # Somente solicitaÃ§Ãµes aceitas
         vagas_ocupadas = self.solicitacoes.filter(status='aceita', tipo='carona').aggregate(
             total=models.Sum('quantidade')
         )['total'] or 0
@@ -137,7 +137,7 @@ class Solicitacao(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         null=True,
-        blank=True,  # permite solicitações sem login
+        blank=True,  # permite solicitaÃ§Ãµes sem login
         related_name="minhas_solicitacoes"
     )
 
@@ -182,7 +182,7 @@ class Solicitacao(models.Model):
     def clean(self):
         super().clean()
         if self.tipo == "encomenda" and not self.descricao_item:
-            raise ValidationError({"descricao_item": "Informe a descrição do item."})
+            raise ValidationError({"descricao_item": "Informe a descriÃ§Ã£o do item."})
     
     def _otimizar_foto_encomenda(self):
         if not self.foto_encomenda:
@@ -220,7 +220,7 @@ class Solicitacao(models.Model):
             self.status = novo_status
             self.save()
 
-            # 🔔 Passageiro — feedback da ação
+            # ðŸ”” Passageiro â€” feedback da aÃ§Ã£o
             if self.solicitante:
                 Notificacao.objects.create(
                     usuario=self.solicitante,
@@ -239,7 +239,7 @@ class Solicitacao(models.Model):
                     carona=self.carona,
                 )
 
-            # 🔔 Motorista — passageiro cancelou
+            # ðŸ”” Motorista â€” passageiro cancelou
             Notificacao.objects.create(
                 usuario=self.carona.motorista,
                 tipo="passageiro_cancelou",
@@ -264,7 +264,7 @@ class Veiculo(models.Model):
         ("carro", "Carro"),
         ("moto", "Moto"),
         ("van", "Van"),
-        ("onibus", "Ônibus / Micro-ônibus"),
+        ("onibus", "Onibus / Micro-onibus"),
     ]
 
     motorista = models.ForeignKey(
@@ -295,11 +295,11 @@ class Veiculo(models.Model):
             extras.append(self.cor)
 
         if detalhes and extras:
-            return f"{tipo} - {detalhes} ({' · '.join(extras)})"
+            return f"{tipo} - {detalhes} ({' Â· '.join(extras)})"
         if detalhes:
             return f"{tipo} - {detalhes}"
         if extras:
-            return f"{tipo} ({' · '.join(extras)})"
+            return f"{tipo} ({' Â· '.join(extras)})"
         return tipo
 
 from django.db import models
@@ -308,13 +308,13 @@ from django.conf import settings
 class Notificacao(models.Model):
 
     TIPOS = (
-        ("solicitacao_recebida", "Solicitação recebida"),
-        ("solicitacao_recusada", "Solicitação recusada"),
+        ("solicitacao_recebida", "SolicitaÃ§Ã£o recebida"),
+        ("solicitacao_recusada", "SolicitaÃ§Ã£o recusada"),
 
         ("viagem_aceita", "Viagem confirmada"),
         ("viagem_atualizada", "Viagem atualizada"),
         ("viagem_cancelada", "Viagem cancelada"),
-        ("viagem_concluida", "Viagem concluída"),
+        ("viagem_concluida", "Viagem concluÃ­da"),
         ("passageiro_cancelou", "Passageiro cancelou"),
     )
 
@@ -351,4 +351,5 @@ class Notificacao(models.Model):
 
     def __str__(self):
         return f"{self.usuario} - {self.titulo}"
+
 

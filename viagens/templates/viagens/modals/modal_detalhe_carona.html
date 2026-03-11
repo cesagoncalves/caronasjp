@@ -1,4 +1,4 @@
-{% load static %}
+﻿{% load static %}
 {% load filters %}
 
 <div class="modal fade" id="modalCarona{{ carona.id }}" tabindex="-1" aria-hidden="true">
@@ -20,7 +20,7 @@
                 {% if carona.minha_solicitacao_ativa or carona.minhas_encomendas_ativas_count|default:0 > 0 %}
                 <div class="border rounded-3 p-3 bg-light mb-3 text-center">
                     <h6 class="fw-semibold mb-2">
-                        <i class="bi bi-person-check me-2"></i> Sua participação nesta viagem
+                        <i class="bi bi-person-check me-2"></i> Sua participacao nesta viagem
                     </h6>
 
                     <div class="d-flex flex-wrap gap-2 mb-2 justify-content-center">
@@ -44,7 +44,7 @@
                 <div class="border rounded-3 p-3 bg-light mb-3 d-none js-participacao-local text-center"
                     data-carona-id="{{ carona.id }}">
                     <h6 class="fw-semibold mb-2">
-                        <i class="bi bi-person-check me-2"></i> Sua participação nesta viagem
+                        <i class="bi bi-person-check me-2"></i> Sua participacao nesta viagem
                     </h6>
                     <div class="d-flex flex-wrap gap-2 js-participacao-local-badges justify-content-center"></div>
                     <a href="{% url 'minhas_encomendas_carona_publica' carona.id %}"
@@ -70,28 +70,6 @@
 
                 <!-- Data / Hora / Vagas -->
                 <div class="row text-center mb-4">
-                    {% if user == carona.motorista and carona.pendencias_motorista > 0 %}
-                    <div class="mb-4">
-                        <a href="{% url 'gerenciar_solicitacoes' %}" class="text-decoration-none">
-                            <div class="border border-warning rounded-3 p-3 text-center text-warning hover-shadow"
-                                style="cursor: pointer;">
-                                <i class="bi bi-exclamation-circle fs-5 d-block mb-1"></i>
-                                <strong>{{ carona.pendencias_motorista }}</strong>
-                                solicitação(ões) aguardando sua confirmação
-                                <div class="small mt-1 text-warning-emphasis">Toque para gerenciar</div>
-                            </div>
-                        </a>
-                    </div>
-                    {% elif user != carona.motorista and carona.aguardando_confirmacao > 0 %}
-                    <div class="mb-4">
-                        <div class="border rounded-3 p-3 text-center text-muted">
-                            <i class="bi bi-hourglass-split fs-5 d-block mb-1"></i>
-                            {{ carona.aguardando_confirmacao }}
-                            pessoa(s) aguardando resposta do motorista
-                        </div>
-                    </div>
-                    {% endif %}
-
                     <div class="{% if user == carona.motorista %}col-6 col-md-3{% else %}col-4{% endif %}">
                         <div class="border rounded-3 p-3 h-100">
                             <i class="bi bi-calendar-event fs-3 text-primary"></i>
@@ -129,12 +107,12 @@
                     {% endif %}
                 </div>
 
-                <!-- VEÍCULO + MOTORISTA -->
+                <!-- VEICULO + MOTORISTA -->
 <div class="border rounded-3 p-3 mb-4">
 
     <div class="d-flex justify-content-center align-items-center flex-wrap text-center gap-4">
 
-        <!-- VEÍCULO -->
+        <!-- VEICULO -->
         {% if carona.veiculo %}
         <div class="d-flex flex-column align-items-center px-3">
 
@@ -157,8 +135,8 @@
             {% if carona.veiculo.marca or carona.veiculo.modelo or carona.veiculo.ano or carona.veiculo.cor %}
             <p class="text-muted mb-0 small">
                 {{ carona.veiculo.marca|default:"" }} {{ carona.veiculo.modelo|default:"" }}
-                {% if carona.veiculo.ano %} · {{ carona.veiculo.ano }}{% endif %}
-                {% if carona.veiculo.cor %} · {{ carona.veiculo.cor }}{% endif %}
+                {% if carona.veiculo.ano %} Â· {{ carona.veiculo.ano }}{% endif %}
+                {% if carona.veiculo.cor %} Â· {{ carona.veiculo.cor }}{% endif %}
             </p>
             {% endif %}
 
@@ -190,7 +168,7 @@
             <p class="text-muted small mb-0">Motorista</p>
 
             {% if user == carona.motorista %}
-                <span class="badge bg-primary mb-1">Você</span>
+                <span class="badge bg-primary mb-1">Voce</span>
             {% else %}
                 <p class="fw-semibold mb-1">
                     {{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}
@@ -227,7 +205,7 @@
                 <div class="px-2">
                     <h6 class="fw-semibold mb-2">
                         <i class="bi bi-chat-left-text text-muted opacity-75 me-2"></i>
-                        Observações do motorista
+                        Observacoes do motorista
                     </h6>
 
                     <div class="border rounded-3 p-3 bg-light small">
@@ -247,91 +225,163 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#painelPassageiros{{ carona.id }}" type="button" role="tab">
                                 Passageiros
+                                {% if carona.aguardando_confirmacao > 0 %}
+                                    <span class="badge bg-warning text-dark ms-2">{{ carona.aguardando_confirmacao }}</span>
+                                {% endif %}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" data-bs-toggle="pill" data-bs-target="#painelEncomendas{{ carona.id }}" type="button" role="tab">
                                 Encomendas
+                                {% if carona.encomendas_pendentes > 0 %}
+                                    <span class="badge bg-warning text-dark ms-2">{{ carona.encomendas_pendentes }}</span>
+                                {% endif %}
                             </button>
                         </li>
                     </ul>
 
                     <div class="tab-content">
                         <div class="tab-pane fade show active" id="painelPassageiros{{ carona.id }}" role="tabpanel">
-                            {% with passageiros=carona.passageiros_aceitos %}
-                            {% if passageiros.count == 0 %}
+                                                        {% with passageiros=carona.passageiros_aceitos pendentes=carona.passageiros_pendentes %}
+                            {% if passageiros.count == 0 and pendentes.count == 0 %}
                                 <div class="text-muted small ps-1 text-center">Nenhum passageiro confirmado ainda.</div>
                             {% else %}
-                                <div class="js-paginated-panel" data-page-size="4">
-                                <div class="list-group list-group-flush">
-                                    {% for solicitacao in passageiros %}
-                                        <div class="list-group-item border-0 px-2 py-3 js-paginated-item">
-                                            <div class="d-flex align-items-start gap-3">
-                                                <div class="flex-shrink-0">
-                                                    {% if solicitacao.solicitante and solicitacao.solicitante.foto %}
-                                                        <img src="{{ solicitacao.solicitante.foto.url }}"
-                                                             class="rounded-circle js-foto-motorista"
-                                                             data-src="{{ solicitacao.solicitante.foto.url }}"
-                                                             data-nome="{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}"
-                                                             width="48" height="48"
-                                                             style="object-fit: cover; cursor: pointer;">
-                                                    {% else %}
-                                                        <img src="{% static 'img/avatar_padrao.jpg' %}"
-                                                             class="rounded-circle js-foto-motorista"
-                                                             data-src="{% static 'img/avatar_padrao.jpg' %}"
-                                                             data-nome="{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}"
-                                                             width="48" height="48"
-                                                             style="object-fit: cover; cursor: pointer;">
-                                                    {% endif %}
-                                                </div>
+                                {% if pendentes.count > 0 %}
+                                    <div class="mb-3">
+                                        <div class="list-group list-group-flush">
+                                            {% for solicitacao in pendentes %}
+                                                <div class="list-group-item border-0 px-2 py-3">
+                                                    <div class="d-flex align-items-start gap-3">
+                                                        <div class="flex-shrink-0">
+                                                            {% if solicitacao.solicitante and solicitacao.solicitante.foto %}
+                                                                <img src="{{ solicitacao.solicitante.foto.url }}"
+                                                                     class="rounded-circle js-foto-motorista"
+                                                                     data-src="{{ solicitacao.solicitante.foto.url }}"
+                                                                     data-nome="{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}"
+                                                                     width="48" height="48"
+                                                                     style="object-fit: cover; cursor: pointer;">
+                                                            {% else %}
+                                                                <img src="{% static 'img/avatar_padrao.jpg' %}"
+                                                                     class="rounded-circle js-foto-motorista"
+                                                                     data-src="{% static 'img/avatar_padrao.jpg' %}"
+                                                                     data-nome="{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}"
+                                                                     width="48" height="48"
+                                                                     style="object-fit: cover; cursor: pointer;">
+                                                            {% endif %}
+                                                        </div>
 
-                                                <div class="flex-grow-1">
-                                                    <p class="fw-semibold mb-1">
-                                                        {% if solicitacao.solicitante %}
-                                                            {{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}
-                                                        {% else %}
-                                                            {{ solicitacao.nome_solicitante }}
-                                                        {% endif %}
-                                                    </p>
+                                                        <div class="flex-grow-1">
+                                                            <p class="fw-semibold mb-1">
+                                                                {% if solicitacao.solicitante %}
+                                                                    {{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}
+                                                                {% else %}
+                                                                    {{ solicitacao.nome_solicitante }}
+                                                                {% endif %}
+                                                            </p>
 
-                                                    <a href="tel:{{ solicitacao.telefone_solicitante }}" class="text-decoration-none text-primary small d-inline-block mb-1">
-                                                        <i class="bi bi-telephone-fill me-1"></i>{{ solicitacao.telefone_solicitante }}
-                                                    </a>
+                                                            <a href="tel:{{ solicitacao.telefone_solicitante }}" class="text-decoration-none text-primary small d-inline-block mb-1">
+                                                                <i class="bi bi-telephone-fill me-1"></i>{{ solicitacao.telefone_solicitante }}
+                                                            </a>
 
-                                                    <div class="d-flex flex-wrap gap-2 mt-1">
-                                                        <span class="badge bg-primary bg-opacity-75">
-                                                            <i class="bi bi-person-fill me-1"></i>{{ solicitacao.quantidade }} vaga{{ solicitacao.quantidade|pluralize }}
-                                                        </span>
-                                                        {% if solicitacao.malas > 0 %}
-                                                            <span class="badge bg-warning text-dark bg-opacity-75">
-                                                                <i class="bi bi-suitcase me-1"></i>{{ solicitacao.get_malas_display }}
-                                                            </span>
-                                                        {% endif %}
+                                                            <div class="d-flex flex-wrap gap-2 mt-1">
+                                                                <span class="badge bg-warning text-dark bg-opacity-75">
+                                                                    <i class="bi bi-person-fill me-1"></i>Solicitando {{ solicitacao.quantidade }} vaga{{ solicitacao.quantidade|pluralize }}
+                                                                </span>
+                                                                {% if solicitacao.malas > 0 %}
+                                                                    <span class="badge bg-warning text-dark bg-opacity-75">
+                                                                        <i class="bi bi-suitcase me-1"></i>{{ solicitacao.get_malas_display }}
+                                                                    </span>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="flex-shrink-0 d-flex gap-2">
+                                                            <a href="{% url 'aceitar_solicitacao' solicitacao.id %}" class="btn btn-success btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Aceitar passageiro">
+                                                                <i class="bi bi-check-circle"></i>
+                                                            </a>
+                                                            <a href="{% url 'recusar_solicitacao' solicitacao.id %}" class="btn btn-outline-danger btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Recusar passageiro">
+                                                                <i class="bi bi-x-circle"></i>
+                                                            </a>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
 
-                                                <div class="flex-shrink-0">
-                                                    <form method="post" action="{% url 'remover_passageiro' solicitacao.id %}" onsubmit="return confirm('Remover este passageiro da viagem?');">
-                                                        {% csrf_token %}
-                                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Remover passageiro">
-                                                            <i class="bi bi-x-circle"></i>
-                                                        </button>
-                                                    </form>
+                                {% if passageiros.count > 0 %}
+                                    <div class="js-paginated-panel" data-page-size="4">
+                                    <div class="list-group list-group-flush">
+                                        {% for solicitacao in passageiros %}
+                                            <div class="list-group-item border-0 px-2 py-3 js-paginated-item">
+                                                <div class="d-flex align-items-start gap-3">
+                                                    <div class="flex-shrink-0">
+                                                        {% if solicitacao.solicitante and solicitacao.solicitante.foto %}
+                                                            <img src="{{ solicitacao.solicitante.foto.url }}"
+                                                                 class="rounded-circle js-foto-motorista"
+                                                                 data-src="{{ solicitacao.solicitante.foto.url }}"
+                                                                 data-nome="{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}"
+                                                                 width="48" height="48"
+                                                                 style="object-fit: cover; cursor: pointer;">
+                                                        {% else %}
+                                                            <img src="{% static 'img/avatar_padrao.jpg' %}"
+                                                                 class="rounded-circle js-foto-motorista"
+                                                                 data-src="{% static 'img/avatar_padrao.jpg' %}"
+                                                                 data-nome="{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}"
+                                                                 width="48" height="48"
+                                                                 style="object-fit: cover; cursor: pointer;">
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div class="flex-grow-1">
+                                                        <p class="fw-semibold mb-1">
+                                                            {% if solicitacao.solicitante %}
+                                                                {{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}
+                                                            {% else %}
+                                                                {{ solicitacao.nome_solicitante }}
+                                                            {% endif %}
+                                                        </p>
+
+                                                        <a href="tel:{{ solicitacao.telefone_solicitante }}" class="text-decoration-none text-primary small d-inline-block mb-1">
+                                                            <i class="bi bi-telephone-fill me-1"></i>{{ solicitacao.telefone_solicitante }}
+                                                        </a>
+
+                                                        <div class="d-flex flex-wrap gap-2 mt-1">
+                                                            <span class="badge bg-primary bg-opacity-75">
+                                                                <i class="bi bi-person-fill me-1"></i>{{ solicitacao.quantidade }} vaga{{ solicitacao.quantidade|pluralize }}
+                                                            </span>
+                                                            {% if solicitacao.malas > 0 %}
+                                                                <span class="badge bg-warning text-dark bg-opacity-75">
+                                                                    <i class="bi bi-suitcase me-1"></i>{{ solicitacao.get_malas_display }}
+                                                                </span>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="flex-shrink-0">
+                                                        <form method="post" action="{% url 'remover_passageiro' solicitacao.id %}" onsubmit="return confirm('Remover este passageiro da viagem?');">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Remover passageiro">
+                                                                <i class="bi bi-x-circle"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center mt-3 p-2 rounded-3 bg-primary-subtle border border-primary-subtle js-paginated-controls">
-                                    <button type="button" class="btn btn-sm btn-outline-primary js-page-prev">
-                                        <i class="bi bi-chevron-left"></i> Anterior
-                                    </button>
-                                    <span class="small text-primary fw-semibold js-page-info"></span>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mt-3 p-2 rounded-3 bg-primary-subtle border border-primary-subtle js-paginated-controls">
+                                        <button type="button" class="btn btn-sm btn-outline-primary js-page-prev">
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </button>
+                                        <span class="small text-primary fw-semibold js-page-info"></span>
                                     <button type="button" class="btn btn-sm btn-outline-primary js-page-next">
-                                        Próxima <i class="bi bi-chevron-right"></i>
+                                        Proxima <i class="bi bi-chevron-right"></i>
                                     </button>
-                                </div>
-                                </div>
+                                    </div>
+                                    </div>
+                                {% endif %}
                             {% endif %}
                             {% endwith %}
                         </div>
@@ -342,7 +392,7 @@
                                 <div class="text-muted small ps-1 text-center">Nenhuma encomenda ativa nesta viagem.</div>
                             {% else %}
                                 <div class="mb-3 text-center">
-                                    <a href="{% url 'encomendas_carona' carona.id %}" class="btn btn-outline-primary btn-sm">
+                                    <a href="{% url 'encomendas_carona' carona.id %}" class="btn btn-outline-primary">
                                         <i class="bi bi-box-seam"></i> Visualizar detalhes das encomendas
                                     </a>
                                 </div>
@@ -353,15 +403,15 @@
                                             <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                                                 <div>
                                                     <p class="fw-semibold mb-1">{{ encomenda.solicitante.nome_curto|default:encomenda.nome_solicitante }}</p>
-                                                    <div class="small text-muted mb-1">{{ encomenda.descricao_item|default:"Sem descrição" }}</div>
+                                                    <div class="small text-muted mb-1">{{ encomenda.descricao_item|default:"Sem descricao" }}</div>
                                                     {% if encomenda.status == "pendente" %}
                                                         <span class="badge bg-warning text-dark">Pendente</span>
                                                     {% endif %}
                                                 </div>
                                                 <div class="d-flex gap-2">
                                                     {% if encomenda.status == "pendente" %}
-                                                        <a href="{% url 'aceitar_solicitacao' encomenda.id %}" class="btn btn-success btn-sm"><i class="bi bi-check-circle"></i></a>
                                                         <a href="{% url 'detalhe_encomenda' encomenda.id %}" class="btn btn-outline-primary btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Ver detalhes da encomenda"><i class="bi bi-eye"></i></a>
+                                                        <a href="{% url 'aceitar_solicitacao' encomenda.id %}" class="btn btn-success btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Aceitar encomenda"><i class="bi bi-check-circle"></i></a>
                                                         <a href="{% url 'recusar_solicitacao' encomenda.id %}" class="btn btn-outline-danger btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"><i class="bi bi-x-circle"></i></a>
                                                     {% endif %}
                                                     {% if encomenda.status == "aceita" %}
@@ -382,7 +432,7 @@
                                     </button>
                                     <span class="small text-primary fw-semibold js-page-info"></span>
                                     <button type="button" class="btn btn-sm btn-outline-primary js-page-next">
-                                        Próxima <i class="bi bi-chevron-right"></i>
+                                        Proxima <i class="bi bi-chevron-right"></i>
                                     </button>
                                 </div>
                                 </div>
@@ -403,7 +453,7 @@
                     <div class="d-flex flex-wrap gap-2 justify-content-center w-100">
                         {% if carona.esta_concluida and carona.status == 'ativa' %}
                         <a href="{% url 'concluir_carona' carona.id %}" class="btn btn-outline-success">
-                            <i class="bi bi-check-circle"></i> Marcar como concluída
+                            <i class="bi bi-check-circle"></i> Marcar como concluida
                         </a>
                         {% endif %}
                         <a href="{% url 'editar_carona' carona.id %}" class="btn btn-outline-primary">
@@ -478,7 +528,7 @@
                 itens.forEach((item, idx) => {
                     item.classList.toggle("d-none", idx < start || idx >= end);
                 });
-                info.textContent = `Página ${page} de ${totalPages}`;
+                info.textContent = `Pagina ${page} de ${totalPages}`;
                 btnPrev.disabled = page <= 1;
                 btnNext.disabled = page >= totalPages;
             };
@@ -513,3 +563,4 @@
     }
 })();
 </script>
+

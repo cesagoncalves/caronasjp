@@ -46,7 +46,13 @@ function getCSRFToken() {
 }
 
 function getSolicitacoes() {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    } catch (e) {
+        console.warn("Falha ao ler solicitacoes do localStorage, limpando cache.", e);
+        localStorage.removeItem(STORAGE_KEY);
+        return [];
+    }
 }
 
 function saveSolicitacoes(lista) {

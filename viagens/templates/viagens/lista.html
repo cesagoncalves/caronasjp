@@ -30,6 +30,14 @@
 #fotoMotoristaAmpliada.zoom-2 {
     transform: scale(2);
 }
+
+.card-carona-disponivel {
+    font-size: 1rem;
+}
+
+.card-carona-disponivel .small {
+    font-size: 0.95rem;
+}
 </style>
 
 <div class="mb-4" id="ativos-agora-section" {% if not user.is_authenticated or destaques_ativos|length == 0 %}style="display:none;"{% endif %}>
@@ -154,7 +162,7 @@
 {% for carona in caronas %}
 <div class="col-12 col-md-6">
 
-<div class="card shadow-sm card-clickable h-100"
+<div class="card shadow-sm card-clickable h-100 card-carona-disponivel"
      data-modal-target="#modalCarona{{ carona.id }}"
      style="cursor:pointer;">
 
@@ -175,6 +183,14 @@
                 <div class="text-muted small">
                     {{ carona.data|friendly_date_time:carona.hora }}
                 </div>
+
+                {% if carona.aguardando_confirmacao > 0 %}
+                <div class="d-flex justify-content-center mt-1 w-100">
+                    <span class="badge bg-info-subtle text-info-emphasis">
+                        <i class="bi bi-hourglass-split me-1"></i>{{ carona.aguardando_confirmacao }} aguardando resposta
+                    </span>
+                </div>
+                {% endif %}
 
             </div>
 

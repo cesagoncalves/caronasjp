@@ -71,7 +71,7 @@
 
                     <p class="text-muted small mb-0">Solicitada em {{ e.data_solicitacao|date:"d/m/Y H:i" }}</p>
 
-                    {% if e.status == "pendente" %}
+                    {% if e.status == "pendente" and carona.status == "ativa" %}
                         <div class="d-flex gap-2 mt-3">
                             <a href="{% url 'aceitar_solicitacao' e.id %}" class="btn btn-success flex-fill">
                                 <i class="bi bi-check-circle"></i> Aceitar
@@ -81,7 +81,7 @@
                             </a>
                         </div>
                     {% endif %}
-                    {% if e.status == "aceita" %}
+                    {% if e.status == "aceita" and carona.status == "ativa" %}
                         <form method="post"
                               action="{% url 'cancelar_encomenda_motorista' e.id %}"
                               class="mt-3"
