@@ -187,25 +187,13 @@ Nenhuma viagem ativa com encomendas no momento.
 
 
 
-<div class="mb-3 text-center position-relative">
+    <div class="mb-3 text-center position-relative">
 
-    <h5 class="fw-bold mb-1">
-        Encomendas mais recentes
-    </h5>
+        <h5 class="fw-bold mb-1">
+            Encomendas mais recentes
+        </h5>
 
-    <!-- Desktop -->
-    <a href="{% url 'minhas_encomendas' %}?todas=1"
-       class="d-none d-md-inline small text-primary text-decoration-none fw-semibold position-absolute end-0 top-50 translate-middle-y">
-        Ver todas →
-    </a>
-
-    <!-- Mobile -->
-    <a href="{% url 'minhas_encomendas' %}?todas=1"
-       class="d-inline d-md-none small text-primary text-decoration-none fw-semibold">
-        Ver todas →
-    </a>
-
-</div>
+    </div>
 
 {% if encomendas_recentes and encomendas_recentes|length > 0 %}
 
@@ -250,6 +238,12 @@ class="text-decoration-none">
 
 </div>
 
+{% if e.carona.status == 'concluida' %}
+<span class="badge bg-primary">Entregue</span>
+{% else %}
+{% if e.carona.status == 'concluida' %}
+<span class="badge bg-primary">Entregue</span>
+{% else %}
 <span class="badge
 {% if e.status == 'pendente' %}bg-warning text-dark
 {% elif e.status == 'aceita' %}bg-success
@@ -258,6 +252,8 @@ class="text-decoration-none">
 {% endif %}">
 {{ e.get_status_display }}
 </span>
+{% endif %}
+{% endif %}
 
 </div>
 

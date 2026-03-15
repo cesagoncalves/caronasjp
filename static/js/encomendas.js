@@ -14,6 +14,14 @@ function statusLabel(status) {
     return status || "-";
 }
 
+function badgeInfoEncomenda(e) {
+    const caronaStatus = String(e.carona_status || "").toLowerCase();
+    if (caronaStatus === "concluida") {
+        return { label: "Entregue", klass: "bg-primary" };
+    }
+    return { label: statusLabel(e.status), klass: badgeClass(e.status) };
+}
+
 function podeCancelarEncomenda(s) {
     const caronaStatus = String(s.carona_status || "ativa").toLowerCase();
     if (caronaStatus !== "ativa") return false;
@@ -68,7 +76,11 @@ function renderEncomendasLocal() {
     const limiteRecentes = 6;
     const lista = getSolicitacoes()
         .filter(s => s.tipo === "encomenda")
-        .sort((a, b) => dataHoraCarona(a) - dataHoraCarona(b));
+        .sort((a, b) => {
+            const da = new Date(a.data_solicitacao || 0);
+            const db = new Date(b.data_solicitacao || 0);
+            return db - da;
+        });
 
     if (!lista.length) {
         container.innerHTML = `
@@ -101,7 +113,7 @@ function renderEncomendasLocal() {
                             <h5 class="mb-0">Para ${e.carona_destino || "-"}</h5>
                             <div class="small text-muted">Motorista: ${e.motorista_nome || "-"}</div>
                         </div>
-                        <span class="badge ${badgeClass(e.status)}">${statusLabel(e.status)}</span>
+                        <span class="badge ${badgeInfoEncomenda(e).klass}">${badgeInfoEncomenda(e).label}</span>
                     </div>
                     <p class="mb-1"><strong>Rota:</strong> ${(e.carona_origem || "-")} -> ${(e.carona_destino || "-")}</p>
                     <p class="mb-1"><strong>Descricao:</strong> ${e.descricao_item || "-"}</p>
@@ -177,7 +189,7 @@ function renderEncomendasLocal() {
                             <h6 class="mb-0">Para ${e.carona_destino || "-"}</h6>
                             <div class="text-muted small">${e.carona_origem || "-"} -> ${e.carona_destino || "-"}</div>
                         </div>
-                        <span class="badge ${badgeClass(e.status)}">${statusLabel(e.status)}</span>
+                        <span class="badge ${badgeInfoEncomenda(e).klass}">${badgeInfoEncomenda(e).label}</span>
                     </div>
                     <p class="mb-1"><strong>Descricao:</strong> ${e.descricao_item || "-"}</p>
                     <p class="text-muted small mb-1">Solicitada em ${e.data_solicitacao || "-"}</p>
@@ -194,13 +206,6 @@ function renderEncomendasLocal() {
     const verTodasLink = `
         <div class="mb-3 text-center position-relative">
             <h5 class="fw-bold mb-1">Encomendas mais recentes</h5>
-            ${lista.length > limiteRecentes ? `
-            <a href="?todas=1" class="d-none d-md-inline small text-primary text-decoration-none fw-semibold position-absolute end-0 top-50 translate-middle-y">
-                Ver todas →
-            </a>
-            <a href="?todas=1" class="d-inline d-md-none small text-primary text-decoration-none fw-semibold">
-                Ver todas →
-            </a>` : ""}
         </div>
     `;
 
@@ -257,7 +262,7 @@ function renderEncomendasCaronaLocal() {
                             <div class="fw-semibold">${e.carona_origem || "-"} -> ${e.carona_destino || "-"}</div>
                             <div class="text-muted small">Solicitada em ${e.data_solicitacao || "-"}</div>
                         </div>
-                        ${e.status !== "aceita" ? `<span class="badge ${badgeClass(e.status)}">${statusLabel(e.status)}</span>` : ""}
+                        ${(e.status !== "aceita" || String(e.carona_status || "").toLowerCase() === "concluida") ? `<span class="badge ${badgeInfoEncomenda(e).klass}">${badgeInfoEncomenda(e).label}</span>` : ""}
                     </div>
                     <p class="mb-2"><strong>Descricao:</strong> ${e.descricao_item || "-"}</p>
                     ${e.endereco_solicitante ? `<p class="mb-1 small text-muted"><i class="bi bi-geo-alt-fill me-1"></i>Coleta: ${e.endereco_solicitante}</p>` : ""}

@@ -8,6 +8,49 @@ data-page="historico-local"
 
 {% block content %}
 
+<style>
+.btn-filtro {
+    font-weight: 600;
+    border-width: 1px;
+}
+.btn-filtro--motorista {
+    color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+.btn-filtro--motorista:hover,
+.btn-filtro--motorista.is-active {
+    background: var(--bs-primary);
+    color: #fff;
+}
+.btn-filtro--passageiro {
+    color: var(--bs-success);
+    border-color: var(--bs-success);
+}
+.btn-filtro--passageiro:hover,
+.btn-filtro--passageiro.is-active {
+    background: var(--bs-success);
+    color: #fff;
+}
+.btn-filtro--encomenda {
+    color: #d39e00;
+    border-color: #d39e00;
+}
+.btn-filtro--encomenda:hover,
+.btn-filtro--encomenda.is-active {
+    background: #d39e00;
+    color: #1c1c1c;
+}
+.btn-filtro--todas {
+    color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+.btn-filtro--todas:hover,
+.btn-filtro--todas.is-active {
+    background: var(--bs-primary);
+    color: #fff;
+}
+</style>
+
 <h2 class="mb-4 text-center">
     <i class="bi bi-clock-history me-2"></i>
     Historico
@@ -18,10 +61,10 @@ data-page="historico-local"
 <div class="card shadow-sm mb-4">
     <div class="card-body text-center">
         <div class="btn-group flex-wrap">
-            <a href="?tipo=todas" class="btn {% if tipo == 'todas' %}btn-primary{% else %}btn-outline-primary{% endif %}">Todas</a>
-            <a href="?tipo=motorista" class="btn {% if tipo == 'motorista' %}btn-primary{% else %}btn-outline-primary{% endif %}">Motorista</a>
-            <a href="?tipo=passageiro" class="btn {% if tipo == 'passageiro' %}btn-primary{% else %}btn-outline-primary{% endif %}">Passageiro</a>
-            <a href="?tipo=encomenda" class="btn {% if tipo == 'encomenda' %}btn-primary{% else %}btn-outline-primary{% endif %}">Encomenda</a>
+            <a href="?tipo=todas" class="btn btn-filtro btn-filtro--todas {% if tipo == 'todas' %}is-active{% endif %}">Todas</a>
+            <a href="?tipo=motorista" class="btn btn-filtro btn-filtro--motorista {% if tipo == 'motorista' %}is-active{% endif %}">Motorista</a>
+            <a href="?tipo=passageiro" class="btn btn-filtro btn-filtro--passageiro {% if tipo == 'passageiro' %}is-active{% endif %}">Passageiro</a>
+            <a href="?tipo=encomenda" class="btn btn-filtro btn-filtro--encomenda {% if tipo == 'encomenda' %}is-active{% endif %}">Encomenda</a>
         </div>
     </div>
 </div>
@@ -44,22 +87,24 @@ data-page="historico-local"
                 {% endif %}
 
                 {% if item.categoria == 'encomenda' and item.foto_encomenda %}
-                    <img src="{{ item.foto_encomenda.url }}" class="img-fluid rounded border mb-2" style="max-height: 220px; object-fit: cover;">
+                    <img src="{{ item.foto_encomenda.url }}" class="img-fluid rounded border mb-2 d-block" style="max-height: 220px; object-fit: cover;">
                 {% endif %}
 
-                {% if item.categoria == 'encomenda' %}
-                    {% if item.papel == 'motorista' %}
-                        <span class="badge bg-primary"><i class="bi bi-truck me-1"></i> Voce entregou encomenda</span>
+                <div class="mt-2">
+                    {% if item.categoria == 'encomenda' %}
+                        {% if item.papel == 'motorista' %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-truck me-1"></i> Voce entregou encomenda</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-box-seam me-1"></i> Voce enviou encomenda</span>
+                        {% endif %}
                     {% else %}
-                        <span class="badge bg-secondary"><i class="bi bi-box-seam me-1"></i> Envio de encomenda(s)</span>
+                        {% if item.papel == 'motorista' %}
+                            <span class="badge bg-primary"><i class="bi bi-car-front-fill"></i> Voce foi motorista</span>
+                        {% else %}
+                            <span class="badge bg-success"><i class="bi bi-person-fill"></i> Voce foi passageiro</span>
+                        {% endif %}
                     {% endif %}
-                {% else %}
-                    {% if item.papel == 'motorista' %}
-                        <span class="badge bg-primary"><i class="bi bi-car-front-fill"></i> Voce foi motorista</span>
-                    {% else %}
-                        <span class="badge bg-secondary"><i class="bi bi-person-fill"></i> Voce foi passageiro</span>
-                    {% endif %}
-                {% endif %}
+                </div>
             </div>
         </div>
     {% endfor %}

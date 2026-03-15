@@ -158,18 +158,23 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.id) {
                 const select = document.getElementById('id_veiculo');
 
-                const option = document.createElement('option');
-                option.value = data.id;
-                option.textContent = data.label;
-                option.selected = true;
+                if (select) {
+                    const option = document.createElement('option');
+                    option.value = data.id;
+                    option.textContent = data.label;
+                    option.selected = true;
 
-                select.appendChild(option);
+                    select.appendChild(option);
+                }
 
                 const modalEl = document.getElementById('modalCriarVeiculo');
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 modal.hide();
 
                 form.reset();
+                if (!select) {
+                    window.location.reload();
+                }
             }
         });
     });

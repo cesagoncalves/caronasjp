@@ -142,10 +142,13 @@ def lista_caronas(request):
     origem = request.GET.get('origem')
     destino = request.GET.get('destino')
     data = request.GET.get('data')
+    hora = request.GET.get('hora')
     motorista = request.GET.get('motorista')
 
     if data:
         caronas = caronas.filter(data=data)
+    if hora:
+        caronas = caronas.filter(hora__gte=hora)
     if motorista:
         caronas = caronas.filter(
             Q(motorista__nome_completo__icontains=motorista) |
@@ -262,6 +265,7 @@ def lista_caronas(request):
         'origem': origem or "",
         'destino': destino or "",
         'data': data or "",
+        'hora': hora or "",
         'motorista': motorista or "",
         "destaques_ativos": destaques_ativos,
         "destaque_modais_extras": destaque_modais_extras,
@@ -851,7 +855,7 @@ def minhas_encomendas_passageiro(request):
         return render(request, "viagens/minhas_encomendas_passageiro.html", {
             "encomendas": encomendas,
             "viagens_ativas": viagens_ativas,
-            "encomendas_recentes": encomendas_qs[:limite_recentes],
+            "encomendas_recentes": encomendas_qs.order_by("-data_solicitacao")[:limite_recentes],
             "mostrar_todas": mostrar_todas,
             "page_obj": page_obj,
             "modo": "bd",
@@ -1089,7 +1093,7 @@ def meus_veiculos(request):
     return render(
         request,
         "viagens/meus_veiculos.html",
-        {"veiculos": veiculos}
+        {"veiculos": veiculos, "veiculo_form": VeiculoForm()}
     )
 
 @login_required
@@ -1422,7 +1426,7 @@ def minhas_encomendas(request):
     return render(request, "viagens/minhas_encomendas.html", {
         "encomendas": encomendas,
         "viagens_ativas": viagens_ativas,
-        "encomendas_recentes": encomendas_qs[:limite_recentes],
+        "encomendas_recentes": encomendas_qs.order_by("-data_solicitacao")[:limite_recentes],
         "mostrar_todas": mostrar_todas,
         "page_obj": page_obj,
     })

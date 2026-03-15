@@ -122,6 +122,10 @@ function atualizarNavbar() {
     atualizarBadge("badge-solicitacoes", "nav-minhas-solicitacoes", novasSolicitacoes);
     atualizarBadge("badge-viagens", "nav-minhas-viagens", contadorViagens);
     atualizarBadge("badge-encomendas", "nav-minhas-encomendas", novasEncomendas);
+
+    atualizarBadge("badge-solicitacoes-mobile", "nav-minhas-solicitacoes-mobile", novasSolicitacoes);
+    atualizarBadge("badge-viagens-mobile", "nav-minhas-viagens-mobile", contadorViagens);
+    atualizarBadge("badge-encomendas-mobile", "nav-minhas-encomendas-mobile", novasEncomendas);
 }
 
 function atualizarBadge(badgeId, linkId, qtd) {

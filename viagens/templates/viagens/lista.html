@@ -32,11 +32,15 @@
 }
 
 .card-carona-disponivel {
-    font-size: 1rem;
+    font-size: 1.35rem;
 }
 
 .card-carona-disponivel .small {
-    font-size: 0.95rem;
+    font-size: 1.15rem;
+}
+
+.card-carona-disponivel .badge {
+    font-size: 1rem;
 }
 </style>
 
@@ -115,6 +119,7 @@
 <div class="d-flex justify-content-between align-items-center mb-2">
     <h2 class="mb-0 text-center w-100">Filtrar Caronas</h2>
 </div>
+
 <button id="toggleFiltrosBtn" class="btn btn-outline-primary w-100 d-md-none mb-2"
         type="button"
         data-bs-toggle="collapse"
@@ -122,27 +127,27 @@
         aria-expanded="false"
         aria-controls="filtrosCollapse">
     <i class="bi bi-funnel me-1"></i> <span id="toggleFiltrosTexto">Mostrar filtros</span>
-    {% if origem or destino or data or motorista %}
+    {% if origem or destino or data or motorista or hora %}
         <span class="badge bg-primary ms-2">Ativos</span>
     {% endif %}
 </button>
 <div class="collapse d-md-block" id="filtrosCollapse">
 <form method="GET" class="card p-3 mb-4 shadow-sm">
-    <div class="mb-3 d-md-none">
+    <div class="mb-2">
         <a href="/" class="btn btn-outline-danger w-100">
             <i class="bi bi-trash"></i> Limpar filtros
         </a>
     </div>
     <div class="row gx-2 gy-2 align-items-end">
-        <div class="col-12 col-md-2">
+        <div class="col-12 col-md-3">
             <label class="form-label small text-muted mb-1">Origem</label>
             <input type="text" name="origem" placeholder="Cidade" class="form-control" value="{{ origem }}">
         </div>
-        <div class="col-12 col-md-2">
+        <div class="col-12 col-md-3">
             <label class="form-label small text-muted mb-1">Destino</label>
             <input type="text" name="destino" placeholder="Cidade" class="form-control" value="{{ destino }}">
         </div>
-        <div class="col-12 col-md-3">
+        <div class="col-12 col-md-2">
             <label class="form-label small text-muted mb-1">Motorista</label>
             <input type="text" name="motorista" placeholder="Nome do motorista" class="form-control" value="{{ motorista }}">
         </div>
@@ -150,14 +155,17 @@
             <label class="form-label small text-muted mb-1">Data</label>
             <input type="date" name="data" class="form-control" value="{{ data }}">
         </div>
-        <div class="col-12 col-md-3 text-md-end d-none d-md-block"><a href="/" class="btn btn-outline-danger w-100"><i class="bi bi-trash"></i> Limpar filtros</a></div>
+        <div class="col-12 col-md-2">
+            <label class="form-label small text-muted mb-1">Hora (a partir de)</label>
+            <input type="time" name="hora" class="form-control" value="{{ hora }}">
+        </div>
     </div>
     <div class="row mt-3"><div class="col-12"><button class="btn btn-primary w-100">Filtrar</button></div></div>
 </form>
 </div>
 
 <h2 class="mb-3 text-center">Caronas Disponiveis</h2>
-<a href="{% url 'criar_carona' %}" class="btn btn-success mb-3 w-100">Oferecer Carona</a>
+<a href="{% url 'criar_carona' %}" class="btn btn-success mb-4 w-100">Oferecer Carona</a>
 <div class="row g-2">
 {% for carona in caronas %}
 <div class="col-12 col-md-6">
@@ -275,7 +283,7 @@
 
 {% include "viagens/modals/modal_detalhe_carona.html" %}
 {% empty %}
-<p class="text-center">Nenhuma carona disponivel no momento.</p>
+<div class="alert alert-info text-center">Nao ha caronas no momento.</div>
 {% endfor %}
 </div>
 

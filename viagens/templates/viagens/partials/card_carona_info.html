@@ -1,4 +1,4 @@
-<!-- Informacoes resumidas da carona -->
+﻿<!-- Informacoes resumidas da carona -->
 {% load filters %}
 <h5 class="mb-3">
     <i class="bi bi-geo-alt-fill me-2 text-primary"></i>
@@ -40,11 +40,11 @@
     {% if carona.veiculo.marca or carona.veiculo.modelo or carona.veiculo.ano or carona.veiculo.cor %}
         <span class="text-muted">
             {% if carona.veiculo.marca or carona.veiculo.modelo %}
-                · {{ carona.veiculo.marca|default:"" }} {{ carona.veiculo.modelo|default:"" }}
+                - {{ carona.veiculo.marca|default:"" }} {{ carona.veiculo.modelo|default:"" }}
             {% endif %}
             {% if carona.veiculo.ano or carona.veiculo.cor %}
-                {% if carona.veiculo.marca or carona.veiculo.modelo %} · {% else %} · {% endif %}
-                {{ carona.veiculo.ano|default:"" }}{% if carona.veiculo.ano and carona.veiculo.cor %} · {% endif %}{{ carona.veiculo.cor|default:"" }}
+                {% if carona.veiculo.marca or carona.veiculo.modelo %} - {% else %} - {% endif %}
+                {{ carona.veiculo.ano|default:"" }}{% if carona.veiculo.ano and carona.veiculo.cor %} - {% endif %}{{ carona.veiculo.cor|default:"" }}
             {% endif %}
         </span>
     {% endif %}
@@ -78,3 +78,4 @@
     {% endif %}
 </div>
 {% endif %}
+

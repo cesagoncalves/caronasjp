@@ -18,9 +18,10 @@
                         {% include "viagens/partials/card_carona_info.html" %}
                         <div class="mb-2">
                             {% if carona.encomendas_para_entregar > 0 %}
-                                <span class="badge bg-info text-dark">
-                                    {{ carona.encomendas_para_entregar }} encomenda(s) para entregar
-                                </span>
+                                <div class="d-flex align-items-center gap-2 text-muted">
+                                    <i class="bi bi-box-seam text-primary"></i>
+                                    <span class="fw-semibold">{{ carona.encomendas_para_entregar }} encomenda(s)</span>
+                                </div>
                             {% endif %}
                         </div>
 
@@ -64,7 +65,7 @@
             {% endfor %}
         </div>
     {% else %}
-        <p class="text-muted mt-4">Você ainda não cadastrou nenhuma carona.</p>
+        <div class="alert alert-info text-center">Voce ainda nao tem caronas cadastradas.</div>
     {% endif %}
 </div>
 

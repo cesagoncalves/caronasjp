@@ -10,9 +10,7 @@ function renderSolicitacoesLocal() {
 
     if (lista.length === 0) {
         container.innerHTML = `
-            <div class="alert alert-info text-center">
-                Você ainda não fez nenhuma solicitação.
-            </div>`;
+            <div class="alert alert-info text-center">Voce ainda nao tem solicitacoes.</div>`;
         return;
     }
 

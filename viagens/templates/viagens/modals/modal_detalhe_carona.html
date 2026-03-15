@@ -135,8 +135,8 @@
             {% if carona.veiculo.marca or carona.veiculo.modelo or carona.veiculo.ano or carona.veiculo.cor %}
             <p class="text-muted mb-0 small">
                 {{ carona.veiculo.marca|default:"" }} {{ carona.veiculo.modelo|default:"" }}
-                {% if carona.veiculo.ano %} Â· {{ carona.veiculo.ano }}{% endif %}
-                {% if carona.veiculo.cor %} Â· {{ carona.veiculo.cor }}{% endif %}
+                {% if carona.veiculo.ano %} - {{ carona.veiculo.ano }}{% endif %}
+                {% if carona.veiculo.cor %} - {{ carona.veiculo.cor }}{% endif %}
             </p>
             {% endif %}
 

@@ -1,4 +1,4 @@
-<h5 class="mb-2">
+﻿<h5 class="mb-2">
     {% if veiculo.tipo == "carro" %}
         <i class="bi bi-car-front-fill me-2 text-primary"></i>
     {% elif veiculo.tipo == "moto" %}
@@ -18,8 +18,14 @@
         {{ veiculo.marca|default:"" }} {{ veiculo.modelo|default:"" }}
     {% endif %}
     {% if veiculo.ano or veiculo.cor %}
-        {% if veiculo.marca or veiculo.modelo %} · {% endif %}
-        {{ veiculo.ano|default:"" }}{% if veiculo.ano and veiculo.cor %} · {% endif %}{{ veiculo.cor|default:"" }}
+        {% if veiculo.marca or veiculo.modelo %} - {% endif %}
+        {{ veiculo.ano|default:"" }}{% if veiculo.ano and veiculo.cor %} - {% endif %}{{ veiculo.cor|default:"" }}
     {% endif %}
 </p>
+{% else %}
+<p class="mb-0 text-muted">
+    <i class="bi bi-info-circle me-2"></i>
+    Detalhes nao informados
+</p>
 {% endif %}
+

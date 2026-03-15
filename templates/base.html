@@ -1,4 +1,4 @@
-{% load static %}
+﻿{% load static %}
 {% csrf_token %}
 
 
@@ -52,7 +52,42 @@
         object-fit: cover;
     }
     #menuUsuarioMobile {
-        --bs-offcanvas-width: 50vw;
+        --bs-offcanvas-width: 78vw;
+    }
+    #menuVisitanteMobile {
+        --bs-offcanvas-width: 78vw;
+    }
+    .offcanvas-guest {
+        background: linear-gradient(160deg, #f8fbff 0%, #eef5ff 100%);
+    }
+    .offcanvas-guest .list-group-item {
+        background: transparent;
+        border-color: rgba(13, 110, 253, 0.08);
+        font-weight: 600;
+    }
+    .offcanvas-guest .list-group-item:hover {
+        background: rgba(13, 110, 253, 0.08);
+    }
+    .offcanvas-guest .guest-cta .btn {
+        border-radius: 999px;
+        font-weight: 700;
+    }
+
+    .navbar .dropdown-menu {
+        border-radius: 14px;
+        box-shadow: 0 12px 30px rgba(17, 24, 39, 0.12);
+        border: 1px solid rgba(13, 110, 253, 0.08);
+        padding: 8px 0;
+    }
+    .navbar .dropdown-item {
+        padding: 10px 14px;
+        border-radius: 10px;
+        margin: 2px 8px;
+        font-weight: 600;
+    }
+    .navbar .dropdown-item:hover,
+    .navbar .dropdown-item:focus {
+        background: rgba(13, 110, 253, 0.08);
     }
     .mobile-submenu {
         margin-left: 14px;
@@ -253,7 +288,7 @@
         color: #fff;
     }
 
-    /* Hide by default – JS shows only for success */
+    /* Hide by default â€“ JS shows only for success */
     #btnMinhasCaronas { display: none; }
 
         .pulse-badge {
@@ -289,7 +324,7 @@
             <img src="{% static 'img/caronasjp.png' %}" alt="Caronas JP" class="navbar-brand-logo">
         </a>
 
-        <!-- BOTÃO MOBILE -->
+        <!-- BOTÃƒO MOBILE -->
         {% if user.is_authenticated %}
         <div class="d-flex d-lg-none align-items-center ms-auto gap-2">
             <div class="dropdown">
@@ -338,17 +373,21 @@
             </button>
         </div>
         {% else %}
-        <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div class="d-flex d-lg-none align-items-center ms-auto gap-2">
+            <a class="btn btn-outline-primary btn-md px-3" href="{% url 'login' %}">Entrar</a>
+            <a class="btn btn-primary btn-md px-3" href="{% url 'signup' %}">Cadastrar</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuVisitanteMobile">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
         {% endif %}
 
-        <div class="collapse navbar-collapse {% if user.is_authenticated %}d-lg-flex{% endif %}" id="navbarContent">
+        <div class="collapse navbar-collapse {% if user.is_authenticated %}d-lg-flex{% else %}d-none d-lg-flex{% endif %}" id="navbarContent">
 
             <!-- ESQUERDA -->
             <ul class="navbar-nav me-auto">
 
-                <!-- ITEM: CARONAS VISÍVEL PARA TODOS -->
+                <!-- ITEM: CARONAS VISÃVEL PARA TODOS -->
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'lista_caronas' %}">
                         Buscar Caronas
@@ -357,7 +396,7 @@
 
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'historico_viagens' %}">
-                        Histórico
+                        HistÃ³rico
                     </a>
                 </li>
 
@@ -404,7 +443,7 @@
                             {% if qtd_solicitacoes_novas > 0 %}fw-bold text-warning{% endif %}"
                             href="{% url 'minhas_solicitacoes' %}">
 
-                                Minhas Solicitações
+                                Minhas SolicitaÃ§Ãµes
 
                                 {% if qtd_solicitacoes_novas > 0 %}
                                     <span class="badge bg-danger ms-2">
@@ -473,7 +512,7 @@
 
                         <li>
                             <a class="dropdown-item" href="{% url 'meus_veiculos' %}">
-                                Meus Veículos
+                                Meus VeÃ­culos
                             </a>
                         </li>
 
@@ -497,7 +536,7 @@
                                 {% if qtd_solicitacoes_pendentes > 0 %}fw-bold text-warning{% endif %}"
                                 href="{% url 'gerenciar_solicitacoes' %}">
 
-                                Solicitações Recebidas
+                                SolicitaÃ§Ãµes Recebidas
 
                                 {% if qtd_solicitacoes_pendentes > 0 %}
                                     <span class="badge bg-danger ms-2">
@@ -512,7 +551,7 @@
 
                 {% else %}
 
-                <!-- VISITANTE – PASSAGEIRO COMO LINKS SOLTOS -->
+                <!-- VISITANTE â€“ PASSAGEIRO COMO LINKS SOLTOS -->
                 <li class="nav-item">
                     <a class="nav-link position-relative"
                     id="nav-minhas-viagens"
@@ -531,7 +570,7 @@
                 <li class="nav-item">
                     <a class="nav-link position-relative" id="nav-minhas-solicitacoes"
                     href="{% url 'minhas_solicitacoes' %}">
-                        Minhas Solicitações
+                        Minhas SolicitaÃ§Ãµes
                         <span id="badge-solicitacoes"
                             class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill d-none">
                             0
@@ -577,7 +616,7 @@
                 aria-labelledby="dropdownNotificacoes">
 
                 <li class="notificacoes-header">
-                    Notificações
+                    NotificaÃ§Ãµes
                 </li>
 
                 <div class="notificacoes-lista">
@@ -625,15 +664,12 @@
                     </li>
 
                 {% else %}
-
-                    <li class="nav-item me-2">
+                    <li class="nav-item me-2 d-none d-lg-block">
                         <a class="btn btn-outline-primary" href="{% url 'login' %}">Entrar</a>
                     </li>
-
-                    <li class="nav-item">
+                    <li class="nav-item d-none d-lg-block">
                         <a class="btn btn-primary" href="{% url 'signup' %}">Cadastrar</a>
                     </li>
-
                 {% endif %}
             </ul>
         </div>
@@ -641,19 +677,23 @@
 </nav>
 
 {% if user.is_authenticated %}
-<div class="offcanvas offcanvas-end" tabindex="-1" id="menuUsuarioMobile" aria-labelledby="menuUsuarioMobileLabel">
+<div class="offcanvas offcanvas-end offcanvas-guest" tabindex="-1" id="menuUsuarioMobile" aria-labelledby="menuUsuarioMobileLabel">
     <div class="offcanvas-header border-bottom">
         <h5 class="offcanvas-title" id="menuUsuarioMobileLabel">Menu</h5>
         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body p-0">
         <div class="list-group list-group-flush">
-            <a class="list-group-item list-group-item-action" href="{% url 'lista_caronas' %}">Buscar Caronas</a>
-            <a class="list-group-item list-group-item-action" href="{% url 'historico_viagens' %}">Historico</a>
+            <a class="list-group-item list-group-item-action" href="{% url 'lista_caronas' %}">
+                <i class="bi bi-search me-2 text-primary"></i> Buscar Caronas
+            </a>
+            <a class="list-group-item list-group-item-action" href="{% url 'historico_viagens' %}">
+                <i class="bi bi-clock-history me-2 text-primary"></i> Historico
+            </a>
 
             <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                     type="button" data-bs-toggle="collapse" data-bs-target="#menuPassageiroMobile" aria-expanded="false">
-                Passageiro
+                <span><i class="bi bi-person-fill me-2 text-success"></i> Passageiro</span>
                 <i class="bi bi-chevron-down small"></i>
             </button>
             <div class="collapse mobile-submenu" id="menuPassageiroMobile">
@@ -664,24 +704,59 @@
 
             <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                     type="button" data-bs-toggle="collapse" data-bs-target="#menuMotoristaMobile" aria-expanded="false">
-                Motorista
+                <span><i class="bi bi-car-front-fill me-2 text-primary"></i> Motorista</span>
                 <i class="bi bi-chevron-down small"></i>
             </button>
             <div class="collapse mobile-submenu" id="menuMotoristaMobile">
                 <a class="list-group-item list-group-item-action border-0" href="{% url 'criar_carona' %}">Oferecer Carona</a>
                 <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_caronas' %}">Minhas Caronas</a>
                 <a class="list-group-item list-group-item-action border-0" href="{% url 'meus_veiculos' %}">Meus Veiculos</a>
-                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_encomendas' %}">Encomendas Motorista</a>
+                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_encomendas' %}">Minhas Encomendas</a>
                 <a class="list-group-item list-group-item-action border-0" href="{% url 'gerenciar_solicitacoes' %}">Solicitacoes Recebidas</a>
             </div>
 
-            <a class="list-group-item list-group-item-action" href="{% url 'perfil' %}">Meu Perfil</a>
-            <div class="list-group-item">
-                <form action="{% url 'logout' %}" method="post" class="d-grid">
-                    {% csrf_token %}
-                    <button class="btn btn-danger">Sair</button>
-                </form>
-            </div>
+            <a class="list-group-item list-group-item-action" href="{% url 'perfil' %}">
+                <i class="bi bi-person-circle me-2 text-primary"></i> Meu Perfil
+            </a>
+        </div>
+        <div class="p-3 guest-cta d-grid gap-2">
+            <a class="btn btn-outline-primary" href="{% url 'perfil' %}">Meu Perfil</a>
+            <form action="{% url 'logout' %}" method="post" class="d-grid">
+                {% csrf_token %}
+                <button class="btn btn-danger">Sair</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if not user.is_authenticated %}
+<div class="offcanvas offcanvas-end offcanvas-guest" tabindex="-1" id="menuVisitanteMobile" aria-labelledby="menuVisitanteMobileLabel">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="menuVisitanteMobileLabel">Menu</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item list-group-item-action" href="{% url 'lista_caronas' %}">
+                <i class="bi bi-search me-2 text-primary"></i> Buscar Caronas
+            </a>
+            <a class="list-group-item list-group-item-action" href="{% url 'historico_viagens' %}">
+                <i class="bi bi-clock-history me-2 text-primary"></i> Historico
+            </a>
+            <a class="list-group-item list-group-item-action" href="{% url 'minhas_viagens' %}">
+                <i class="bi bi-calendar-event me-2 text-primary"></i> Minhas Viagens
+            </a>
+            <a class="list-group-item list-group-item-action" href="{% url 'minhas_solicitacoes' %}">
+                <i class="bi bi-inbox me-2 text-primary"></i> Minhas Solicitacoes
+            </a>
+            <a class="list-group-item list-group-item-action" href="{% url 'minhas_encomendas_passageiro' %}">
+                <i class="bi bi-box-seam me-2 text-primary"></i> Minhas Encomendas
+            </a>
+        </div>
+        <div class="p-3 guest-cta d-grid gap-2">
+            <a class="btn btn-outline-primary" href="{% url 'login' %}">Entrar</a>
+            <a class="btn btn-primary" href="{% url 'signup' %}">Cadastrar</a>
         </div>
     </div>
 </div>
@@ -780,7 +855,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }).then(() => {
                     document.querySelectorAll(".notification-badge").forEach((badge) => badge.remove());
                     document.querySelectorAll(".notificacoes-lista").forEach((lista) => {
-                        lista.innerHTML = '<li class="notificacao-item text-muted">Sem notificacoes</li>';
+                        lista.innerHTML = '<li class="notificacao-item text-muted text-center">Sem notificacoes</li>';
                     });
                 });
             });
@@ -853,3 +928,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
+

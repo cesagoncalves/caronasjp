@@ -1,8 +1,12 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 {% block content %}
 
 <div class="container mt-4">
-    <h2 class="mb-4">Meus Veículos</h2>
+    <h2 class="mb-3">Meus Veículos</h2>
+    <div class="text-center mb-4">       
+        <button class="btn btn-success px-4" data-bs-toggle="modal" data-bs-target="#modalCriarVeiculo">
+            <i class="bi bi-plus-lg me-1"></i> Adicionar um veículo</button>    
+    </div>
 
     {% if veiculos %}
         <div class="row">
@@ -26,7 +30,7 @@
 
                             <a href="{% url 'excluir_veiculo' veiculo.id %}"
                                class="btn btn-danger w-100 py-2 fs-6"
-                               onclick="return confirm('Tem certeza que deseja excluir este veículo?')">
+                               onclick="return confirm('Tem certeza que deseja excluir este veÃ­culo?')">
                                 <i class="bi bi-trash3-fill"></i> Excluir
                             </a>
 
@@ -40,9 +44,11 @@
 
             {% endfor %}
         </div>
+        {% include "viagens/modals/modal_criar_veiculo.html" %}
     {% else %}
-        <p class="text-muted mt-4">Você ainda não cadastrou nenhum veículo.</p>
+        <p class="text-muted mt-4">Voce ainda nao cadastrou nenhum veiculo.</p>
     {% endif %}
 </div>
 
 {% endblock %}
+
