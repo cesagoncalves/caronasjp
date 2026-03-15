@@ -2,6 +2,7 @@ services:
   - type: web
     name: caronas-site
     env: python
+    pythonVersion: 3.12.3
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
     startCommand: gunicorn caronas_site.wsgi:application
     envVars:
@@ -19,6 +20,10 @@ services:
         fromDatabase:
           name: caronas-db
           property: connectionString
+      - key: MIGRATE_ON_STARTUP
+        value: "true"
+      - key: PYTHONUNBUFFERED
+        value: "1"
 
 databases:
   - name: caronas-db
