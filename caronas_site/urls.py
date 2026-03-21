@@ -13,6 +13,9 @@ urlpatterns = [
 
     # Rotas do seu app de usuários
     path('', include('usuarios.urls')),
+
+    # Rotas do django-allauth (login social)
+    path('accounts/', include('allauth.urls')),
 ]
 
 if settings.DEBUG:

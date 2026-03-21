@@ -1,6 +1,10 @@
 DJANGO==5.2.8
+django-allauth==65.15.0
 gunicorn==23.0.0
 whitenoise==6.7.0
 dj-database-url==2.2.0
 psycopg[binary]==3.2.13
 Pillow==10.4.0
+requests==2.32.3
+PyJWT==2.9.0
+cryptography==43.0.3
