@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="card card-soft shadow-lg p-4" style="width: 100%; max-width: 560px;">
+        <h3 class="text-center mb-2">Complete seu perfil</h3>
+        <p class="text-muted text-center mb-4">
+            Precisamos de alguns dados para finalizar seu cadastro.
+        </p>
+
+        <form method="post" class="vstack gap-3">
+            {% csrf_token %}
+
+            <div>
+                <label class="form-label">Email</label>
+                {{ form.email }}
+            </div>
+
+            <div>
+                <label class="form-label">Nome completo</label>
+                {{ form.nome_completo }}
+            </div>
+
+            <div>
+                <label class="form-label">Telefone</label>
+                {{ form.telefone }}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                Salvar e continuar
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

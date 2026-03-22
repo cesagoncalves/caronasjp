@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'viagens',
+    'viagens.apps.ViagensConfig',
     'usuarios',
     'allauth',
     'allauth.account',
@@ -79,6 +79,7 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_ADAPTER = "usuarios.adapters.CustomSocialAccountAdapter"
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
@@ -102,6 +103,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'usuarios.middleware.CompleteProfileMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -119,6 +121,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                "usuarios.context_processors.push_context",
                 "caronas_site.context_processors.modal_messages",
                 'viagens.context_processors.notificacoes',
                 "viagens.notificacoes_gerais.notificacoes_gerais",
@@ -189,6 +192,10 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY", "")
+VAPID_SUBJECT = os.getenv("VAPID_SUBJECT", "mailto:no-reply@caronasjp.local")
 
 LOGGING = {
     "version": 1,

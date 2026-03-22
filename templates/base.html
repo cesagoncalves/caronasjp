@@ -28,6 +28,27 @@
         font-weight: 700 !important;
         letter-spacing: -0.01em;
     }
+    .card-soft {
+        border: 1px solid rgba(13, 110, 253, 0.08);
+        border-radius: 18px;
+        background: #ffffff;
+        box-shadow: 0 14px 30px rgba(17, 24, 39, 0.08);
+    }
+    .card-soft .btn {
+        border-radius: 999px;
+        font-weight: 700;
+    }
+    .push-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(13, 110, 253, 0.12);
+        color: #0d6efd;
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
     h1, h2,
     .modal-title {
         text-align: center;
@@ -819,6 +840,35 @@
 {% endif %}
 
 
+<div class="modal fade" id="pushPromptModal" tabindex="-1" aria-hidden="true"
+     data-public-key="{{ PUSH_PUBLIC_KEY }}"
+     data-subscribe-url="{% url 'push_subscribe' %}"
+     data-skip-url="{% url 'push_skip' %}"
+     data-show="{{ PUSH_SHOW_PROMPT|yesno:'1,0' }}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-soft p-3">
+            <div class="modal-body text-center">
+                <div class="push-pill mb-3">
+                    <i class="bi bi-bell-fill"></i> Notificacoes
+                </div>
+                <h5 class="mb-2">Quer receber alertas no celular e no computador?</h5>
+                <p class="text-muted mb-4">
+                    Enviamos avisos quando houver respostas e atualizacoes das suas caronas.
+                </p>
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary" data-action="enable">
+                        Ativar notificacoes
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-action="later">
+                        Agora nao
+                    </button>
+                </div>
+                <div class="text-muted small mt-3" data-role="status"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const dropdownPairs = [
@@ -925,6 +975,7 @@ document.addEventListener("DOMContentLoaded", () => {
 <script src="{% static 'js/storage.js' %}"></script>
 {% block extra_js %}{% endblock %}
 <script src="{% static 'js/notificacoes.js' %}"></script>
+<script src="{% static 'js/push.js' %}"></script>
 
 </body>
 </html>

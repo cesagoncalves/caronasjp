@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponseBadRequest ,HttpResponse
 from django.db.models import Sum, Count, Q, Max
 from .models import Carona, Solicitacao, Veiculo, Notificacao
+from usuarios.models import PushSubscription
 from .forms import CaronaForm, SolicitacaoForm, EncomendaForm, VeiculoForm
 from datetime import datetime, timedelta
 from django.contrib import messages
@@ -325,6 +326,8 @@ def criar_carona(request):
                 )
             else:
                 messages.success(request, "Carona criada com sucesso.")
+            if not PushSubscription.objects.filter(user=request.user).exists():
+                request.session["ask_push_permission"] = True
             return redirect("lista_caronas")
 
     else:
@@ -553,6 +556,8 @@ def solicitar_vaga(request, carona_id):
                 request,
                 "Solicitação enviada com sucesso! Aguarde o motorista aceitar 🚗✨"
             )
+            if not PushSubscription.objects.filter(user=request.user).exists():
+                request.session["ask_push_permission"] = True
             return redirect("lista_caronas")
 
     else:
@@ -643,6 +648,8 @@ def solicitar_encomenda(request, carona_id):
                     request,
                     "Solicitacao de encomenda enviada com sucesso! Aguarde o motorista confirmar."
                 )
+            if not PushSubscription.objects.filter(user=request.user).exists():
+                request.session["ask_push_permission"] = True
             return redirect("lista_caronas")
     else:
         if request.user.is_authenticated:

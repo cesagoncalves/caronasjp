@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="card card-soft shadow-lg p-4" style="width: 100%; max-width: 520px;">
+        <h3 class="text-center mb-2">Continuar com {{ provider.name }}</h3>
+        <p class="text-muted text-center mb-4">
+            Vamos te redirecionar para confirmar o login.
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary w-100 mb-2">
+                Continuar
+            </button>
+        </form>
+
+        <a href="{% url 'login' %}" class="btn btn-outline-secondary w-100">
+            Voltar
+        </a>
+    </div>
+</div>
+{% endblock %}

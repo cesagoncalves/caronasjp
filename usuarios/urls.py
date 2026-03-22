@@ -18,6 +18,10 @@ urlpatterns = [
     ), name="logout"),
 
     path("signup/", views.signup, name="signup"),
+    path("completar-perfil/", views.completar_perfil, name="completar_perfil"),
+    path("push/subscribe/", views.push_subscribe, name="push_subscribe"),
+    path("push/unsubscribe/", views.push_unsubscribe, name="push_unsubscribe"),
+    path("push/skip/", views.push_skip, name="push_skip"),
 
     
     path(
