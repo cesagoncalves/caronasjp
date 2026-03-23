@@ -13,7 +13,7 @@
             {% for field in form %}
                 <div>
                     <label class="form-label">{{ field.label }}</label>
-                    {{ field.as_widget(attrs={'class': 'form-control'}) }}
+                    {{ field }}
                     {% if field.errors %}
                         <div class="text-danger small mt-1">{{ field.errors }}</div>
                     {% endif %}

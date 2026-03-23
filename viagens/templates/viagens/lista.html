@@ -282,7 +282,8 @@
                          data-src="{{ carona.motorista.foto.url }}"
                          data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
                          width="40" height="40"
-                         style="object-fit:cover;">
+                         style="object-fit:cover;"
+                         onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
                 {% else %}
                     <img src="{% static 'img/avatar_padrao.jpg' %}"
                          class="rounded-circle shadow-sm js-foto-motorista"

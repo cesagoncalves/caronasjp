@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load socialaccount %}
 
 
 {% block content %}
@@ -79,6 +80,16 @@
                 <i class="bi bi-check-circle-fill me-1"></i>
                 Criar Conta
             </button>
+
+            <div class="text-center text-muted small my-2">ou</div>
+
+            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger w-100 mb-2">
+                <i class="bi bi-google me-1"></i> Continuar com Google
+            </a>
+
+            <a href="{% provider_login_url 'facebook' %}" class="btn btn-outline-primary w-100 mb-3">
+                <i class="bi bi-facebook me-1"></i> Continuar com Facebook
+            </a>
 
             <a href="{% url 'login' %}" class="btn btn-outline-secondary w-100">
                 Já tenho uma conta

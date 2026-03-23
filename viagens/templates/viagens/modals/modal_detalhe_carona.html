@@ -155,7 +155,8 @@
                      data-src="{{ carona.motorista.foto.url }}"
                      data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
                      width="64" height="64"
-                     style="object-fit: cover; cursor: pointer;">
+                     style="object-fit: cover; cursor: pointer;"
+                     onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
             {% else %}
                 <img src="{% static 'img/avatar_padrao.jpg' %}"
                      class="rounded-circle js-foto-motorista mb-1"
@@ -259,7 +260,8 @@
                                                                      data-src="{{ solicitacao.solicitante.foto.url }}"
                                                                      data-nome="{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}"
                                                                      width="48" height="48"
-                                                                     style="object-fit: cover; cursor: pointer;">
+                                                                     style="object-fit: cover; cursor: pointer;"
+                                                                     onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
                                                             {% else %}
                                                                 <img src="{% static 'img/avatar_padrao.jpg' %}"
                                                                      class="rounded-circle js-foto-motorista"
@@ -323,7 +325,8 @@
                                                                  data-src="{{ solicitacao.solicitante.foto.url }}"
                                                                  data-nome="{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}"
                                                                  width="48" height="48"
-                                                                 style="object-fit: cover; cursor: pointer;">
+                                                                 style="object-fit: cover; cursor: pointer;"
+                                                                 onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
                                                         {% else %}
                                                             <img src="{% static 'img/avatar_padrao.jpg' %}"
                                                                  class="rounded-circle js-foto-motorista"

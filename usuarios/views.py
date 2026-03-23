@@ -95,7 +95,7 @@ def signup(request):
         form = UsuarioCreationForm(request.POST, request.FILES)
         if form.is_valid():
             usuario = form.save()
-            login(request, usuario)
+            login(request, usuario, backend="django.contrib.auth.backends.ModelBackend")
             messages.success(request, "Conta criada com sucesso! Bem-vindo 😄")
             return redirect("lista_caronas")
     else:

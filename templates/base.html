@@ -399,7 +399,8 @@
 
             <button class="mobile-avatar-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuUsuarioMobile" aria-controls="menuUsuarioMobile">
                 {% if user.foto %}
-                    <img src="{{ user.foto.url }}" class="rounded-circle shadow-sm" width="38" height="38" alt="Perfil">
+                    <img src="{{ user.foto.url }}" class="rounded-circle shadow-sm" width="38" height="38" alt="Perfil"
+                         onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
                 {% else %}
                     <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle shadow-sm" width="38" height="38" alt="Perfil">
                 {% endif %}
