@@ -466,14 +466,14 @@
                 {% else %}
                     <div class="d-flex flex-wrap gap-2 justify-content-center w-100">
                         {% if carona.vagas_restantes > 0 %}
-                            <a href="{% url 'solicitar_vaga' carona.id %}" class="btn btn-success">
+                            <a href="{% url 'solicitar_vaga' carona.id %}" class="btn btn-success btn-footer-eq">
                                 <i class="bi bi-check-circle"></i> Solicitar vaga
                             </a>
                         {% else %}
                             <span class="badge bg-danger fs-6 px-3 py-2">Lotada</span>
                         {% endif %}
 
-                        <a href="{% url 'solicitar_encomenda' carona.id %}" class="btn btn-outline-primary">
+                        <a href="{% url 'solicitar_encomenda' carona.id %}" class="btn btn-outline-primary btn-footer-eq">
                             <i class="bi bi-box-seam"></i> Enviar encomenda
                         </a>
                     </div>

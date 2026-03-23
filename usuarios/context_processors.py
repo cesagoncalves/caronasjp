@@ -8,7 +8,10 @@ def push_context(request):
     public_key = settings.VAPID_PUBLIC_KEY or ""
 
     if request.user.is_authenticated:
-        has_sub = PushSubscription.objects.filter(user=request.user).exists()
+        try:
+            has_sub = PushSubscription.objects.filter(user=request.user).exists()
+        except Exception:
+            has_sub = True
         ask_flag = request.session.get("ask_push_permission", False)
         show_prompt = ask_flag and not has_sub
 

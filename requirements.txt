@@ -9,3 +9,5 @@ requests==2.32.3
 PyJWT==2.9.0
 cryptography==43.0.3
 pywebpush==2.3.0
+cloudinary==1.41.0
+django-cloudinary-storage==0.3.0

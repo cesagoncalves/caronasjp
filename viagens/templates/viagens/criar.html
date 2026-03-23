@@ -152,6 +152,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const listaRepeticao = document.getElementById("lista-repeticao");
     let dataAntesRepetir = inputData ? inputData.value : "";
     if (!tipoValor || !campoValor || !inputValor) return;
+    if (inputData) {
+        const hoje = new Date();
+        const hojeIso = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString().slice(0, 10);
+        inputData.min = hojeIso;
+    }
 
     function atualizarCampoValor() {
         const mostrar = tipoValor.value === "dinheiro";

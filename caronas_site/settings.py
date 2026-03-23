@@ -57,6 +57,10 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.facebook',
 ]
 
+if os.getenv("CLOUDINARY_URL"):
+    INSTALLED_APPS += ["cloudinary", "cloudinary_storage"]
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
 AUTH_USER_MODEL = 'usuarios.CustomUser'
 
 LOGIN_URL = 'login'

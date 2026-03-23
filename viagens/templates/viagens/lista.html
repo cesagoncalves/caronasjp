@@ -42,6 +42,27 @@
 .card-carona-disponivel .badge {
     font-size: 1rem;
 }
+@media (max-width: 575.98px) {
+    .card-carona-disponivel .card-body > .d-flex {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    .card-carona-disponivel .card-body > .d-flex > .d-flex.align-items-center.gap-2 {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .card-carona-disponivel .card-body > .d-flex > .d-flex.align-items-center.gap-2 .text-end {
+        text-align: left !important;
+    }
+    .card-carona-disponivel .card-body > .d-flex > .d-flex.align-items-center.gap-2 .text-muted {
+        justify-content: flex-start !important;
+    }
+    .card-carona-disponivel .card-body img.rounded-circle {
+        width: 36px;
+        height: 36px;
+    }
+}
 </style>
 
 <div class="mb-4" id="ativos-agora-section" {% if not user.is_authenticated or destaques_ativos|length == 0 %}style="display:none;"{% endif %}>
@@ -193,7 +214,7 @@
                 </div>
 
                 {% if carona.aguardando_confirmacao > 0 %}
-                <div class="d-flex justify-content-center mt-1 w-100">
+                <div class="d-flex justify-content-start mt-2 w-100">
                     <span class="badge bg-info-subtle text-info-emphasis">
                         <i class="bi bi-hourglass-split me-1"></i>{{ carona.aguardando_confirmacao }} aguardando resposta
                     </span>
