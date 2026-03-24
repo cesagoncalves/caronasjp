@@ -1,19 +1,32 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
 {% load socialaccount %}
 
-
 {% block content %}
+<style>
+.login-form .form-label {
+    display: block;
+    margin-bottom: 0.35rem;
+}
+.login-form input[type="text"],
+.login-form input[type="email"],
+.login-form input[type="password"] {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+}
+</style>
 <div class="container d-flex justify-content-center align-items-center" style="min-height: 70vh;">
     <div class="card shadow-lg p-4" style="width: 100%; max-width: 420px;">
         <h3 class="text-center mb-3">Entrar</h3>
 
-        <form method="POST">
+        <form method="POST" class="login-form">
             {% csrf_token %}
 
             {% if form.errors %}
                 <div class="alert alert-danger">
-                    Usuário ou senha incorretos. Tente novamente.
+                    Usuario ou senha incorretos. Tente novamente.
                 </div>
             {% endif %}
 
@@ -45,8 +58,6 @@
                 <i class="bi bi-box-arrow-in-right me-1"></i> Entrar
             </button>
 
-
-
             <a href="{% url 'signup' %}" class="btn btn-outline-secondary w-100">
                 Criar uma conta
             </a>
@@ -54,5 +65,3 @@
     </div>
 </div>
 {% endblock %}
-
-

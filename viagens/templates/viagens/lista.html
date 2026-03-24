@@ -42,35 +42,36 @@
 .card-carona-disponivel .badge {
     font-size: 1rem;
 }
+.card-carona-disponivel .carona-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 140px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+}
+.card-carona-disponivel .carona-middle {
+    text-align: center;
+}
+.card-carona-disponivel .aguardando-slot {
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 6px;
+}
+.card-carona-disponivel .carona-right {
+    justify-content: flex-end;
+}
+.navbar {
+    margin-top: 0 !important;
+}
 @media (max-width: 575.98px) {
-    .card-carona-disponivel .card-body > .d-flex {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-    .card-carona-disponivel .carona-right {
-        width: 100%;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        order: 2;
-        align-items: flex-start;
-    }
-    .card-carona-disponivel .carona-left {
-        order: 1;
-        width: 100%;
-    }
-    .card-carona-disponivel .carona-right .text-end {
-        text-align: left !important;
-    }
-    .card-carona-disponivel .carona-right .text-muted {
-        justify-content: flex-start !important;
+    .card-carona-disponivel .carona-grid {
+        grid-template-columns: minmax(0, 1fr) 110px minmax(0, 1fr);
+        gap: 10px;
     }
     .card-carona-disponivel .card-body img.rounded-circle {
         width: 36px;
         height: 36px;
-    }
-    .card-carona-disponivel .carona-right img.rounded-circle {
-        margin-left: auto;
     }
 }
 </style>
@@ -207,21 +208,25 @@
 
     <div class="card-body py-2 px-3">
 
-        <div class="d-flex align-items-center gap-3">
+        <div class="carona-grid">
 
             <!-- ESQUERDA -->
-            <div class="flex-grow-1 carona-left">
-
+            <div class="carona-left">
                 <div class="fw-semibold small">
-                    <i class="bi bi-geo-alt text-success"></i>
-                    {{ carona.origem }}
-                    <i class="bi bi-arrow-right mx-1"></i>
-                    {{ carona.destino }}
+                    <i class="bi bi-geo-alt text-danger"></i>
+                    Destino: {{ carona.destino }}
                 </div>
-
+                <div class="text-muted small">
+                    <i class="bi bi-geo-alt text-success"></i>
+                    Origem: {{ carona.origem }}
+                </div>
                 <div class="text-muted small">
                     {{ carona.data|friendly_date_time:carona.hora }}
                 </div>
+            </div>
+
+            <!-- MEIO -->
+            <div class="carona-middle">
                 <div class="mt-1">
                     {% if carona.tipo_valor == "gratuita" %}
                         <span class="badge bg-success">Gratuita</span>
@@ -231,70 +236,56 @@
                         </span>
                     {% endif %}
                 </div>
-
-                {% if carona.aguardando_confirmacao > 0 %}
-                <div class="d-flex justify-content-start mt-2 w-100">
+                <div class="aguardando-slot">
+                    {% if carona.aguardando_confirmacao > 0 %}
                     <span class="badge bg-info-subtle text-info-emphasis">
                         <i class="bi bi-hourglass-split me-1"></i>{{ carona.aguardando_confirmacao }} aguardando resposta
                     </span>
+                    {% endif %}
                 </div>
-                {% endif %}
-
             </div>
 
             <!-- DIREITA -->
             <div class="d-flex align-items-center gap-2 carona-right">
-
                 <div class="text-end small">
+                    <div class="fw-semibold">
+                        {% if carona.motorista == request.user %}
+                            <span class="badge bg-primary">Você</span>
+                        {% else %}
+                            {{ carona.motorista.nome_curto }}
+                        {% endif %}
+                    </div>
 
-    <div class="fw-semibold">
+                    <div class="text-muted d-flex align-items-center gap-2 justify-content-end flex-wrap">
+                        {% if carona.veiculo %}
+                            {% if carona.veiculo.tipo == "carro" %}
+                                <i class="bi bi-car-front-fill"></i>
+                            {% elif carona.veiculo.tipo == "moto" %}
+                                <i class="bi bi-bicycle"></i>
+                            {% elif carona.veiculo.tipo == "van" %}
+                                <i class="bi bi-truck-front-fill"></i>
+                            {% elif carona.veiculo.tipo == "onibus" %}
+                                <i class="bi bi-bus-front-fill"></i>
+                            {% else %}
+                                <i class="bi bi-car-front"></i>
+                            {% endif %}
 
-        {% if carona.motorista == request.user %}
-            <span class="badge bg-primary">Você</span>
-        {% else %}
-            {{ carona.motorista.nome_curto }}
-        {% endif %}
+                            {{ carona.veiculo_card }}
+                        {% endif %}
 
-    </div>
+                        {% if carona.vagas_restantes > 0 %}
+                            <span class="badge bg-warning text-dark ms-1">
+                                <i class="bi bi-person-fill"></i>
+                                {{ carona.vagas_restantes }} vaga{% if carona.vagas_restantes > 1 %}s{% endif %}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger ms-1">
+                                Lotada
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
 
-    <div class="text-muted d-flex align-items-center gap-2 justify-content-end">
-
-        {% if carona.veiculo %}
-
-            {% if carona.veiculo.tipo == "carro" %}
-                <i class="bi bi-car-front-fill"></i>
-            {% elif carona.veiculo.tipo == "moto" %}
-                <i class="bi bi-bicycle"></i>
-            {% elif carona.veiculo.tipo == "van" %}
-                <i class="bi bi-truck-front-fill"></i>
-            {% elif carona.veiculo.tipo == "onibus" %}
-                <i class="bi bi-bus-front-fill"></i>
-            {% else %}
-                <i class="bi bi-car-front"></i>
-            {% endif %}
-
-            {{ carona.veiculo_card }}
-
-        {% endif %}
-
-        {% if carona.vagas_restantes > 0 %}
-
-            <span class="badge bg-warning text-dark ms-1">
-                <i class="bi bi-person-fill"></i>
-                {{ carona.vagas_restantes }} vaga{% if carona.vagas_restantes > 1 %}s{% endif %}
-            </span>
-
-        {% else %}
-
-            <span class="badge bg-danger ms-1">
-                Lotada
-            </span>
-
-        {% endif %}
-
-    </div>
-
-</div>
                 {% if carona.motorista.foto %}
                     <img src="{{ carona.motorista.foto.url }}"
                          class="rounded-circle shadow-sm js-foto-motorista"
@@ -311,7 +302,6 @@
                          width="40" height="40"
                          style="object-fit:cover;">
                 {% endif %}
-
             </div>
 
         </div>

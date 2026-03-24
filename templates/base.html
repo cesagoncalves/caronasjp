@@ -463,7 +463,7 @@
 
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'historico_viagens' %}">
-                        HistÃ³rico
+                        Histórico
                     </a>
                 </li>
 
@@ -510,7 +510,7 @@
                             {% if qtd_solicitacoes_novas > 0 %}fw-bold text-warning{% endif %}"
                             href="{% url 'minhas_solicitacoes' %}">
 
-                                Minhas SolicitaÃ§Ãµes
+                                Minhas Solicitações
 
                                 {% if qtd_solicitacoes_novas > 0 %}
                                     <span class="badge bg-danger ms-2">
@@ -637,7 +637,7 @@
                 <li class="nav-item">
                     <a class="nav-link position-relative" id="nav-minhas-solicitacoes"
                     href="{% url 'minhas_solicitacoes' %}">
-                        Minhas SolicitaÃ§Ãµes
+                        Minhas Solicitações
                         <span id="badge-solicitacoes"
                             class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill d-none">
                             0
@@ -764,7 +764,7 @@
                 <i class="bi bi-search me-2 text-primary"></i> Buscar Caronas
             </a>
             <a class="list-group-item list-group-item-action" href="{% url 'historico_viagens' %}">
-                <i class="bi bi-clock-history me-2 text-primary"></i> Historico
+                <i class="bi bi-clock-history me-2 text-primary"></i> Histórico
             </a>
 
             <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
@@ -774,7 +774,7 @@
             </button>
             <div class="collapse mobile-submenu" id="menuPassageiroMobile">
                 <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_viagens' %}">Minhas Viagens</a>
-                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_solicitacoes' %}">Minhas Solicitacoes</a>
+                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_solicitacoes' %}">Minhas Solicitacões</a>
                 <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_encomendas_passageiro' %}">Minhas Encomendas</a>
             </div>
 
@@ -786,9 +786,9 @@
             <div class="collapse mobile-submenu" id="menuMotoristaMobile">
                 <a class="list-group-item list-group-item-action border-0" href="{% url 'criar_carona' %}">Oferecer Carona</a>
                 <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_caronas' %}">Minhas Caronas</a>
-                <a class="list-group-item list-group-item-action border-0" href="{% url 'meus_veiculos' %}">Meus Veiculos</a>
+                <a class="list-group-item list-group-item-action border-0" href="{% url 'meus_veiculos' %}">Meus Veículos</a>
                 <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_encomendas' %}">Minhas Encomendas</a>
-                <a class="list-group-item list-group-item-action border-0" href="{% url 'gerenciar_solicitacoes' %}">Solicitacoes Recebidas</a>
+                <a class="list-group-item list-group-item-action border-0" href="{% url 'gerenciar_solicitacoes' %}">Solicitacões Recebidas</a>
             </div>
 
             <a class="list-group-item list-group-item-action" href="{% url 'perfil' %}">
@@ -818,13 +818,13 @@
                 <i class="bi bi-search me-2 text-primary"></i> Buscar Caronas
             </a>
             <a class="list-group-item list-group-item-action" href="{% url 'historico_viagens' %}">
-                <i class="bi bi-clock-history me-2 text-primary"></i> Historico
+                <i class="bi bi-clock-history me-2 text-primary"></i> Histórico
             </a>
             <a class="list-group-item list-group-item-action" href="{% url 'minhas_viagens' %}">
                 <i class="bi bi-calendar-event me-2 text-primary"></i> Minhas Viagens
             </a>
             <a class="list-group-item list-group-item-action" href="{% url 'minhas_solicitacoes' %}">
-                <i class="bi bi-inbox me-2 text-primary"></i> Minhas Solicitacoes
+                <i class="bi bi-inbox me-2 text-primary"></i> Minhas Solicitacões
             </a>
             <a class="list-group-item list-group-item-action" href="{% url 'minhas_encomendas_passageiro' %}">
                 <i class="bi bi-box-seam me-2 text-primary"></i> Minhas Encomendas
