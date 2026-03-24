@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
 {% load filters %}
 
@@ -250,7 +250,7 @@
     <div class="fw-semibold">
 
         {% if carona.motorista == request.user %}
-            <span class="badge bg-primary">Voc�</span>
+            <span class="badge bg-primary">Você</span>
         {% else %}
             {{ carona.motorista.nome_curto }}
         {% endif %}
@@ -528,4 +528,5 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 </script>
 {% endblock %}
+
 
