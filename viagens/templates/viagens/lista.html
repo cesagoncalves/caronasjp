@@ -50,10 +50,12 @@
     }
     .card-carona-disponivel .carona-right {
         width: 100%;
-        justify-content: space-between;
+        justify-content: flex-start;
         flex-wrap: wrap;
         order: 2;
         align-items: flex-start;
+        flex-direction: column;
+        gap: 0.35rem;
     }
     .card-carona-disponivel .carona-left {
         order: 1;
@@ -61,6 +63,11 @@
     }
     .card-carona-disponivel .carona-right .text-end {
         text-align: left !important;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
     }
     .card-carona-disponivel .carona-right .text-muted {
         justify-content: flex-start !important;
@@ -71,6 +78,7 @@
     }
     .card-carona-disponivel .carona-right img.rounded-circle {
         margin-left: auto;
+        order: 2;
     }
 }
 </style>

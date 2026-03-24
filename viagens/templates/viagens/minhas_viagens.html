@@ -9,6 +9,11 @@ data-page="viagens-local"
 
 
 {% block content %}
+{% if not user.is_authenticated %}
+<div class="alert alert-warning border-0 shadow-sm rounded-4 text-center small mb-3">
+    Crie uma conta para nao correr o risco de perder seus dados.
+</div>
+{% endif %}
 
 
 <div class="container mt-4">
