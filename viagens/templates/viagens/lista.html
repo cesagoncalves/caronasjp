@@ -50,12 +50,10 @@
     }
     .card-carona-disponivel .carona-right {
         width: 100%;
-        justify-content: flex-start;
+        justify-content: space-between;
         flex-wrap: wrap;
         order: 2;
         align-items: flex-start;
-        flex-direction: column;
-        gap: 0.35rem;
     }
     .card-carona-disponivel .carona-left {
         order: 1;
@@ -63,11 +61,6 @@
     }
     .card-carona-disponivel .carona-right .text-end {
         text-align: left !important;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.5rem;
     }
     .card-carona-disponivel .carona-right .text-muted {
         justify-content: flex-start !important;
@@ -78,7 +71,6 @@
     }
     .card-carona-disponivel .carona-right img.rounded-circle {
         margin-left: auto;
-        order: 2;
     }
 }
 </style>
@@ -230,6 +222,15 @@
                 <div class="text-muted small">
                     {{ carona.data|friendly_date_time:carona.hora }}
                 </div>
+                <div class="mt-1">
+                    {% if carona.tipo_valor == "gratuita" %}
+                        <span class="badge bg-success">Gratuita</span>
+                    {% else %}
+                        <span class="fw-semibold text-success">
+                            <i class="bi bi-cash-coin me-1"></i>{{ carona.valor_exibicao }}
+                        </span>
+                    {% endif %}
+                </div>
 
                 {% if carona.aguardando_confirmacao > 0 %}
                 <div class="d-flex justify-content-start mt-2 w-100">
@@ -249,7 +250,7 @@
     <div class="fw-semibold">
 
         {% if carona.motorista == request.user %}
-            <span class="badge bg-primary">VocÃª</span>
+            <span class="badge bg-primary">Você</span>
         {% else %}
             {{ carona.motorista.nome_curto }}
         {% endif %}
@@ -527,3 +528,4 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 </script>
 {% endblock %}
+

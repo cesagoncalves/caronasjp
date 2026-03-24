@@ -743,12 +743,14 @@
     </div>
 </nav>
 
+{% if request.resolver_match and request.resolver_match.url_name == 'lista_caronas' %}
 <div class="container mb-3">
     <div class="alert alert-warning border-0 shadow-sm rounded-4 mb-0 text-center small">
         <i class="bi bi-exclamation-triangle-fill me-1"></i>
         O site e apenas um intermediador, atencao com quem viaja.
     </div>
 </div>
+{% endif %}
 
 {% if user.is_authenticated %}
 <div class="offcanvas offcanvas-end offcanvas-guest" tabindex="-1" id="menuUsuarioMobile" aria-labelledby="menuUsuarioMobileLabel">

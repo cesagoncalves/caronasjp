@@ -27,61 +27,22 @@
                 </div>
             {% endif %}
 
+            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger w-100 mb-2">
+                <i class="bi bi-google me-1"></i> Continuar com Google
+            </a>
+
+            <a href="{% provider_login_url 'facebook' %}" class="btn btn-outline-primary w-100 mb-3">
+                <i class="bi bi-facebook me-1"></i> Continuar com Facebook
+            </a>
+
+            <div class="text-center text-muted small my-2">ou</div>
+
             <div class="mb-3">
                 <label class="form-label">Nome</label>
                 {{ form.nome_completo }}
                 {% if form.nome_completo.errors %}
                     <div class="text-danger small mt-1">{{ form.nome_completo.errors|join:", " }}</div>
                 {% endif %}
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                {{ form.email }}
-                {% if form.email.errors %}
-                    <div class="text-danger small mt-1">{{ form.email.errors|join:", " }}</div>
-                {% endif %}
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Telefone</label>
-                {{ form.telefone }}
-                {% if form.telefone.errors %}
-                    <div class="text-danger small mt-1">{{ form.telefone.errors|join:", " }}</div>
-                {% endif %}
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Foto de Perfil (opcional)</label>
-                {{ form.foto }}
-                {% if form.foto.errors %}
-                    <div class="text-danger small mt-1">{{ form.foto.errors|join:", " }}</div>
-                {% endif %}
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Senha</label>
-                    {{ form.password1 }}
-                    {% if form.password1.errors %}
-                        <div class="text-danger small mt-1">{{ form.password1.errors|join:", " }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Confirmar Senha</label>
-                    {{ form.password2 }}
-                    {% if form.password2.errors %}
-                        <div class="text-danger small mt-1">{{ form.password2.errors|join:", " }}</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-success w-100 mb-3">
-                <i class="bi bi-check-circle-fill me-1"></i>
-                Criar Conta
-            </button>
-
-            <div class="text-center text-muted small my-2">ou</div>
 
             <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger w-100 mb-2">
                 <i class="bi bi-google me-1"></i> Continuar com Google
@@ -91,6 +52,106 @@
                 <i class="bi bi-facebook me-1"></i> Continuar com Facebook
             </a>
 
+            <div class="text-center text-muted small my-2">ou</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <div class="text-danger small mt-1">{{ form.email.errors|join:", " }}</div>
+                {% endif %}
+
+            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger w-100 mb-2">
+                <i class="bi bi-google me-1"></i> Continuar com Google
+            </a>
+
+            <a href="{% provider_login_url 'facebook' %}" class="btn btn-outline-primary w-100 mb-3">
+                <i class="bi bi-facebook me-1"></i> Continuar com Facebook
+            </a>
+
+            <div class="text-center text-muted small my-2">ou</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Telefone</label>
+                {{ form.telefone }}
+                {% if form.telefone.errors %}
+                    <div class="text-danger small mt-1">{{ form.telefone.errors|join:", " }}</div>
+                {% endif %}
+
+            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger w-100 mb-2">
+                <i class="bi bi-google me-1"></i> Continuar com Google
+            </a>
+
+            <a href="{% provider_login_url 'facebook' %}" class="btn btn-outline-primary w-100 mb-3">
+                <i class="bi bi-facebook me-1"></i> Continuar com Facebook
+            </a>
+
+            <div class="text-center text-muted small my-2">ou</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Foto de Perfil (opcional)</label>
+                {{ form.foto }}
+                {% if form.foto.errors %}
+                    <div class="text-danger small mt-1">{{ form.foto.errors|join:", " }}</div>
+                {% endif %}
+
+            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger w-100 mb-2">
+                <i class="bi bi-google me-1"></i> Continuar com Google
+            </a>
+
+            <a href="{% provider_login_url 'facebook' %}" class="btn btn-outline-primary w-100 mb-3">
+                <i class="bi bi-facebook me-1"></i> Continuar com Facebook
+            </a>
+
+            <div class="text-center text-muted small my-2">ou</div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Senha</label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                        <div class="text-danger small mt-1">{{ form.password1.errors|join:", " }}</div>
+                    {% endif %}
+
+            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger w-100 mb-2">
+                <i class="bi bi-google me-1"></i> Continuar com Google
+            </a>
+
+            <a href="{% provider_login_url 'facebook' %}" class="btn btn-outline-primary w-100 mb-3">
+                <i class="bi bi-facebook me-1"></i> Continuar com Facebook
+            </a>
+
+            <div class="text-center text-muted small my-2">ou</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Confirmar Senha</label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                        <div class="text-danger small mt-1">{{ form.password2.errors|join:", " }}</div>
+                    {% endif %}
+
+            <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger w-100 mb-2">
+                <i class="bi bi-google me-1"></i> Continuar com Google
+            </a>
+
+            <a href="{% provider_login_url 'facebook' %}" class="btn btn-outline-primary w-100 mb-3">
+                <i class="bi bi-facebook me-1"></i> Continuar com Facebook
+            </a>
+
+            <div class="text-center text-muted small my-2">ou</div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 mb-3">
+                <i class="bi bi-check-circle-fill me-1"></i>
+                Criar Conta
+            </button>
+
+
             <a href="{% url 'login' %}" class="btn btn-outline-secondary w-100">
                 Já tenho uma conta
             </a>
@@ -99,3 +160,4 @@
     </div>
 </div>
 {% endblock %}
+
