@@ -163,14 +163,16 @@
     @media (max-width: 575.98px) {
         .notificacoes-dropdown {
             width: min(92vw, 360px);
-            right: 8px !important;
+            position: fixed !important;
+            top: 72px !important;
+            right: 10px !important;
             left: auto !important;
-            transform: translate3d(0, 0, 0) !important;
+            transform: none !important;
         }
         .notificacoes-dropdown[data-bs-popper] {
-            right: 8px !important;
+            right: 10px !important;
             left: auto !important;
-            transform: translate3d(0, 0, 0) !important;
+            transform: none !important;
         }
     }
     .push-toast {
