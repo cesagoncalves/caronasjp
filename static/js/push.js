@@ -121,4 +121,33 @@ function setupPushPrompt() {
 document.addEventListener("DOMContentLoaded", async () => {
     await registerServiceWorker();
     setupPushPrompt();
+
+    const toast = document.getElementById("pushToast");
+    const toastTitle = document.getElementById("pushToastTitle");
+    const toastBody = document.getElementById("pushToastBody");
+    const toastClose = document.getElementById("pushToastClose");
+    let toastTimer = null;
+
+    function showToast(title, body) {
+        if (!toast || !toastTitle || !toastBody) return;
+        if (!window.matchMedia("(max-width: 575.98px)").matches) return;
+        toastTitle.textContent = title || "Nova notificacao";
+        toastBody.textContent = body || "";
+        toast.classList.add("show");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 4500);
+    }
+
+    if (toastClose) {
+        toastClose.addEventListener("click", () => {
+            toast.classList.remove("show");
+        });
+    }
+
+    if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.addEventListener("message", (event) => {
+            if (!event.data || event.data.type !== "push") return;
+            showToast(event.data.title, event.data.body);
+        });
+    }
 });

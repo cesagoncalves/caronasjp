@@ -162,10 +162,40 @@
     }
     @media (max-width: 575.98px) {
         .notificacoes-dropdown {
-            width: 92vw;
-            max-width: 360px;
-            right: 0 !important;
+            width: min(92vw, 360px);
+            right: 8px !important;
             left: auto !important;
+            transform: translate3d(0, 0, 0) !important;
+        }
+        .notificacoes-dropdown[data-bs-popper] {
+            right: 8px !important;
+            left: auto !important;
+            transform: translate3d(0, 0, 0) !important;
+        }
+    }
+    .push-toast {
+        position: fixed;
+        left: 50%;
+        bottom: 20px;
+        transform: translateX(-50%);
+        z-index: 1080;
+        width: min(92vw, 360px);
+        display: none;
+    }
+    .push-toast.show {
+        display: block;
+    }
+    @media (min-width: 768px) {
+        .push-toast {
+            width: 360px;
+            bottom: 24px;
+        }
+    }
+    @media (max-width: 575.98px) {
+        .push-toast {
+            top: 50%;
+            bottom: auto;
+            transform: translate(-50%, -50%);
         }
     }
 
@@ -878,6 +908,20 @@
                 </div>
                 <div class="text-muted small mt-3" data-role="status"></div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="push-toast" id="pushToast">
+    <div class="card card-soft shadow-lg p-3">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <div>
+                <div class="fw-semibold" id="pushToastTitle">Nova notificacao</div>
+                <div class="text-muted small" id="pushToastBody"></div>
+            </div>
+            <button type="button" class="btn btn-sm btn-light" id="pushToastClose">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
     </div>
 </div>

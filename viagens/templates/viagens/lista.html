@@ -48,14 +48,15 @@
         align-items: flex-start;
         gap: 0.5rem;
     }
-    .card-carona-disponivel .card-body > .d-flex > .d-flex.align-items-center.gap-2 {
+    .card-carona-disponivel .carona-right {
         width: 100%;
         justify-content: space-between;
+        flex-wrap: wrap;
     }
-    .card-carona-disponivel .card-body > .d-flex > .d-flex.align-items-center.gap-2 .text-end {
+    .card-carona-disponivel .carona-right .text-end {
         text-align: left !important;
     }
-    .card-carona-disponivel .card-body > .d-flex > .d-flex.align-items-center.gap-2 .text-muted {
+    .card-carona-disponivel .carona-right .text-muted {
         justify-content: flex-start !important;
     }
     .card-carona-disponivel .card-body img.rounded-circle {
@@ -200,7 +201,7 @@
         <div class="d-flex align-items-center gap-3">
 
             <!-- ESQUERDA -->
-            <div class="flex-grow-1">
+            <div class="flex-grow-1 carona-left">
 
                 <div class="fw-semibold small">
                     <i class="bi bi-geo-alt text-success"></i>
@@ -224,7 +225,7 @@
             </div>
 
             <!-- DIREITA -->
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 carona-right">
 
                 <div class="text-end small">
 
