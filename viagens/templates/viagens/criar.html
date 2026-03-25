@@ -150,11 +150,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const chkRepetir = document.getElementById("id_repetir_viagem");
     const painelRepeticao = document.getElementById("painel-repeticao");
     const listaRepeticao = document.getElementById("lista-repeticao");
+    const selecionadasIniciais = new Set([
+        {% for d in datas_repeticao_post %}
+        "{{ d }}",
+        {% endfor %}
+    ]);
     let dataAntesRepetir = inputData ? inputData.value : "";
+    let jaInicializouRepeticao = false;
+    const hoje = new Date();
+    const hojeIso = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString().slice(0, 10);
     if (!tipoValor || !campoValor || !inputValor) return;
     if (inputData) {
-        const hoje = new Date();
-        const hojeIso = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString().slice(0, 10);
         inputData.min = hojeIso;
     }
 
@@ -169,11 +175,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function formatarDataLabel(dataIso) {
         const d = new Date(`${dataIso}T00:00:00`);
-        return d.toLocaleDateString("pt-BR", {
+        const texto = d.toLocaleDateString("pt-BR", {
             weekday: "short",
             day: "2-digit",
             month: "2-digit",
         });
+        if (dataIso === hojeIso) return `Hoje (${texto})`;
+        return texto;
     }
 
     function montarDiasRepeticao() {
@@ -184,36 +192,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!ativo) {
             inputData.readOnly = false;
+            inputData.classList.remove("bg-light");
             inputData.removeAttribute("max");
             if (dataAntesRepetir) inputData.value = dataAntesRepetir;
             return;
         }
 
         if (!dataAntesRepetir) dataAntesRepetir = inputData.value;
-        inputData.readOnly = false;
+        inputData.value = hojeIso;
+        inputData.readOnly = true;
+        inputData.classList.add("bg-light");
         inputData.removeAttribute("max");
 
         listaRepeticao.innerHTML = "";
-        const baseIso = inputData.value;
+        const baseIso = hojeIso;
         if (!baseIso) return;
         const base = new Date(`${baseIso}T00:00:00`);
         if (Number.isNaN(base.getTime())) return;
 
-        for (let i = 1; i <= 6; i++) {
+        for (let i = 0; i <= 6; i++) {
             const dia = new Date(base);
             dia.setDate(base.getDate() + i);
             const iso = dia.toISOString().slice(0, 10);
+            const checked = selecionadasIniciais.has(iso) || (!jaInicializouRepeticao && i === 0);
 
             const row = document.createElement("label");
             row.className = "d-flex align-items-center justify-content-between border rounded-3 px-3 py-2 bg-white";
             row.innerHTML = `
                 <div class="form-check m-0">
-                    <input class="form-check-input" type="checkbox" name="datas_repeticao" value="${iso}" id="rep_${iso}">
+                    <input class="form-check-input" type="checkbox" name="datas_repeticao" value="${iso}" id="rep_${iso}" ${checked ? "checked" : ""}>
                     <span class="form-check-label ms-2">${formatarDataLabel(iso)}</span>
                 </div>
             `;
             listaRepeticao.appendChild(row);
         }
+        jaInicializouRepeticao = true;
     }
 
     if (chkRepetir) {

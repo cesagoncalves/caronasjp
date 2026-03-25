@@ -94,8 +94,12 @@
 
     const origemKey = "carona_endereco_origem";
     const destinoKey = "carona_endereco_destino";
+    const nomeKey = "solicitante_nome";
+    const telefoneKey = "solicitante_telefone";
     const campoOrigem = document.getElementById("id_endereco_solicitante");
     const campoDestino = document.getElementById("id_endereco_destino_solicitante");
+    const campoNome = document.getElementById("id_nome_solicitante");
+    const campoTelefone = document.getElementById("id_telefone_solicitante");
 
     if (campoOrigem && localStorage.getItem(origemKey)) {
         campoOrigem.value = localStorage.getItem(origemKey);
@@ -103,12 +107,27 @@
     if (campoDestino && localStorage.getItem(destinoKey)) {
         campoDestino.value = localStorage.getItem(destinoKey);
     }
+    if (campoNome && localStorage.getItem(nomeKey)) {
+        campoNome.value = localStorage.getItem(nomeKey);
+    }
+    if (campoTelefone && localStorage.getItem(telefoneKey)) {
+        campoTelefone.value = localStorage.getItem(telefoneKey);
+    }
+
+    if (campoNome) {
+        campoNome.addEventListener("input", () => localStorage.setItem(nomeKey, campoNome.value || ""));
+    }
+    if (campoTelefone) {
+        campoTelefone.addEventListener("input", () => localStorage.setItem(telefoneKey, campoTelefone.value || ""));
+    }
 
     const form = document.querySelector("form");
     if (form) {
         form.addEventListener("submit", () => {
             if (campoOrigem) localStorage.setItem(origemKey, campoOrigem.value || "");
             if (campoDestino) localStorage.setItem(destinoKey, campoDestino.value || "");
+            if (campoNome) localStorage.setItem(nomeKey, campoNome.value || "");
+            if (campoTelefone) localStorage.setItem(telefoneKey, campoTelefone.value || "");
         });
     }
 })();

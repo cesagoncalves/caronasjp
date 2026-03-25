@@ -46,7 +46,11 @@
         </div>
         {% include "viagens/modals/modal_criar_veiculo.html" %}
     {% else %}
-        <p class="text-muted mt-4">Você ainda não cadastrou nenhum veículo.</p>
+        <div class="d-flex justify-content-center mt-4">
+            <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle px-3 py-2">
+                Voce nao cadastrou nenhum veiculo ainda.
+            </span>
+        </div>
     {% endif %}
 </div>
 

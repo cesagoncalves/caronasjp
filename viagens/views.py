@@ -25,8 +25,8 @@ def _destino_notificacao(notificacao):
     tipo_solicitacao = solicitacao.tipo if solicitacao else None
 
     if notificacao.tipo == "solicitacao_recebida":
-        if carona and tipo_solicitacao == "encomenda":
-            return redirect("encomendas_carona", carona_id=carona.id)
+        if solicitacao and tipo_solicitacao == "encomenda":
+            return redirect("detalhe_encomenda", encomenda_id=solicitacao.id)
         return redirect("gerenciar_solicitacoes")
 
     if notificacao.tipo == "solicitacao_recusada":
@@ -341,20 +341,25 @@ def lista_caronas(request):
 
 @login_required
 def criar_carona(request):
+    datas_repeticao_post = []
     if request.method == "POST":
         carona_form = CaronaForm(request.POST, user=request.user)
         veiculo_form = VeiculoForm()
+        datas_repeticao_post = request.POST.getlist("datas_repeticao")
 
         if carona_form.is_valid():
             carona_base = carona_form.save(commit=False)
             repetir_viagem = request.POST.get("repetir_viagem") == "on"
+            if repetir_viagem:
+                carona_base.data = timezone.localdate()
             carona_base.motorista = request.user
             carona_base.save()
 
-            datas_repeticao = request.POST.getlist("datas_repeticao")
+            datas_repeticao = datas_repeticao_post
             criadas_repeticao = 0
+            manter_carona_base = True
 
-            if repetir_viagem and datas_repeticao:
+            if repetir_viagem:
                 data_base = carona_base.data
                 limite = data_base + timedelta(days=6)
 
@@ -365,10 +370,15 @@ def criar_carona(request):
                     except (TypeError, ValueError):
                         continue
 
-                    if data_base < data_rep <= limite:
+                    if data_base <= data_rep <= limite:
                         datas_validas.add(data_rep)
 
+                if datas_repeticao:
+                    manter_carona_base = data_base in datas_validas
+
                 for data_rep in sorted(datas_validas):
+                    if data_rep == data_base:
+                        continue
                     Carona.objects.create(
                         origem=carona_base.origem,
                         destino=carona_base.destino,
@@ -383,11 +393,17 @@ def criar_carona(request):
                     )
                     criadas_repeticao += 1
 
+                if not manter_carona_base:
+                    carona_base.delete()
+
             if criadas_repeticao > 0:
+                total_viagens = criadas_repeticao + (1 if manter_carona_base else 0)
                 messages.success(
                     request,
-                    f"Carona criada com repeticao! {criadas_repeticao + 1} viagens salvas."
+                    f"Carona criada com repeticao! {total_viagens} viagens salvas."
                 )
+            elif repetir_viagem and not manter_carona_base:
+                messages.warning(request, "Nenhuma data foi selecionada para repetir a viagem.")
             else:
                 messages.success(request, "Carona criada com sucesso.")
             if (
@@ -407,6 +423,7 @@ def criar_carona(request):
         {
             "form": carona_form,
             "veiculo_form": veiculo_form,
+            "datas_repeticao_post": datas_repeticao_post,
         }
     )
 

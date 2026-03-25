@@ -80,6 +80,11 @@
 .card-carona-disponivel .valor-linha {
     margin-top: 6px;
 }
+.card-carona-disponivel .valor-combinar {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #6c757d;
+}
 @media (max-width: 575.98px) {
     .card-carona-disponivel .carona-grid {
         grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
@@ -149,7 +154,7 @@
                         {% endif %}
 
                         {% if 'motorista' in d.tipos and d.carona.pendencias_motorista > 0 %}
-                            <span class="badge bg-info-subtle text-info-emphasis">{{ d.carona.pendencias_motorista }} pendencia(s)</span>
+                            <span class="badge bg-warning text-dark">{{ d.carona.pendencias_motorista }} pendencia(s)</span>
                         {% endif %}
                     </div>
 
@@ -231,17 +236,23 @@
             <div class="carona-left">
                 <div class="fw-semibold small">
                     <i class="bi bi-geo-alt text-success"></i>
-                    {{ carona.origem }} <i class="bi bi-arrow-right mx-1"></i> {{ carona.destino }}
+                    {{ carona.origem }} <i class="bi bi-arrow-right-circle-fill text-primary mx-1"></i> {{ carona.destino }}
                 </div>
                 <div class="text-muted small">
-                    {{ carona.data|friendly_date_time:carona.hora }}
+                    <span class="me-1">📅</span>{{ carona.data|friendly_date }}
+                    <span class="mx-1">·</span>
+                    <span class="me-1">🕒</span>{{ carona.hora|time:"H:i" }}
                 </div>
                 <div class="valor-linha">
                     {% if carona.tipo_valor == "gratuita" %}
                         <span class="badge bg-success">Gratuita</span>
-                    {% else %}
+                    {% elif carona.tipo_valor == "dinheiro" %}
                         <span class="fw-semibold text-success">
                             <i class="bi bi-cash-coin me-1"></i>{{ carona.valor_exibicao }}
+                        </span>
+                    {% else %}
+                        <span class="valor-combinar">
+                            {{ carona.valor_exibicao }}
                         </span>
                     {% endif %}
                 </div>
@@ -310,7 +321,7 @@
         </div>
         <div class="aguardando-slot">
             {% if carona.aguardando_confirmacao > 0 %}
-            <span class="badge bg-info-subtle text-info-emphasis">
+            <span class="badge bg-warning text-dark">
                 <i class="bi bi-hourglass-split me-1"></i>{{ carona.aguardando_confirmacao }} aguardando resposta
             </span>
             {% endif %}
@@ -333,7 +344,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow rounded-4">
             <div class="modal-body text-center p-3">
-                <img id="fotoMotoristaAmpliada" src="" class="img-fluid rounded-3" alt="Foto do motorista">
+                <img id="fotoMotoristaAmpliada" src="" class="img-fluid rounded-3 img-zoom-preview" alt="Foto do motorista">
                 <p id="nomeMotoristaFoto" class="mt-2 mb-0 fw-semibold"></p>
             </div>
         </div>
@@ -455,10 +466,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         const btnEncomendas = bloco.querySelector(".js-participacao-local-encomendas-btn");
         const temPassageiro = itens.some(s => s.tipo === "carona" && String(s.status).toLowerCase() === "aceita");
         const temEncomenda = itens.some(s => s.tipo === "encomenda" && String(s.status).toLowerCase() === "aceita");
+        const temPendente = itens.some(s => String(s.status).toLowerCase() === "pendente");
 
         let html = "";
         if (temPassageiro) html += `<span class="badge bg-success">Passageiro</span>`;
         if (temEncomenda) html += `<span class="badge bg-info text-dark">Envio de encomenda(s)</span>`;
+        if (temPendente) html += `<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Aguardando resposta</span>`;
 
         if (html) {
             badges.innerHTML = html;

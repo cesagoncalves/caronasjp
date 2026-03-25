@@ -81,8 +81,12 @@
 
     const coletaKey = "encomenda_endereco_coleta";
     const entregaKey = "encomenda_endereco_entrega";
+    const nomeKey = "solicitante_nome";
+    const telefoneKey = "solicitante_telefone";
     const campoColeta = document.getElementById("id_endereco_solicitante");
     const campoEntrega = document.getElementById("id_endereco_destino_solicitante");
+    const campoNome = document.getElementById("id_nome_solicitante");
+    const campoTelefone = document.getElementById("id_telefone_solicitante");
 
     if (campoColeta && localStorage.getItem(coletaKey)) {
         campoColeta.value = localStorage.getItem(coletaKey);
@@ -90,12 +94,27 @@
     if (campoEntrega && localStorage.getItem(entregaKey)) {
         campoEntrega.value = localStorage.getItem(entregaKey);
     }
+    if (campoNome && localStorage.getItem(nomeKey)) {
+        campoNome.value = localStorage.getItem(nomeKey);
+    }
+    if (campoTelefone && localStorage.getItem(telefoneKey)) {
+        campoTelefone.value = localStorage.getItem(telefoneKey);
+    }
+
+    if (campoNome) {
+        campoNome.addEventListener("input", () => localStorage.setItem(nomeKey, campoNome.value || ""));
+    }
+    if (campoTelefone) {
+        campoTelefone.addEventListener("input", () => localStorage.setItem(telefoneKey, campoTelefone.value || ""));
+    }
 
     const form = document.querySelector("form");
     if (form) {
         form.addEventListener("submit", () => {
             if (campoColeta) localStorage.setItem(coletaKey, campoColeta.value || "");
             if (campoEntrega) localStorage.setItem(entregaKey, campoEntrega.value || "");
+            if (campoNome) localStorage.setItem(nomeKey, campoNome.value || "");
+            if (campoTelefone) localStorage.setItem(telefoneKey, campoTelefone.value || "");
         });
     }
 })();

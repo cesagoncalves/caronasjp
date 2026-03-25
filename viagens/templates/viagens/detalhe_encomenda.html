@@ -54,6 +54,17 @@
             {% endif %}
 
             <p class="text-muted small mt-3 mb-0">Solicitada em {{ encomenda.data_solicitacao|date:"d/m/Y H:i" }}</p>
+
+            {% if request.user == encomenda.carona.motorista and encomenda.status == "pendente" and encomenda.carona.status == "ativa" %}
+            <div class="mt-4 d-flex gap-2">
+                <a href="{% url 'aceitar_solicitacao' encomenda.id %}" class="btn btn-success flex-fill">
+                    <i class="bi bi-check-circle me-1"></i>Aceitar
+                </a>
+                <a href="{% url 'recusar_solicitacao' encomenda.id %}" class="btn btn-outline-danger flex-fill">
+                    <i class="bi bi-x-circle me-1"></i>Recusar
+                </a>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
