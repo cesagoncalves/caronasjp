@@ -48,7 +48,7 @@
 }
 .card-carona-disponivel .carona-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
     gap: 12px;
     align-items: start;
 }
@@ -67,13 +67,23 @@
     justify-content: flex-end;
     min-width: 0;
 }
+.card-carona-disponivel .motorista-meta {
+    min-width: 0;
+}
+.card-carona-disponivel .motorista-veiculo {
+    margin-top: 3px;
+    white-space: nowrap;
+}
+.card-carona-disponivel .motorista-vagas {
+    margin-top: 6px;
+}
 .card-carona-disponivel .valor-linha {
     margin-top: 6px;
 }
 @media (max-width: 575.98px) {
     .card-carona-disponivel .carona-grid {
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 10px;
+        grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+        gap: 8px;
     }
     .card-carona-disponivel .card-body img.rounded-circle {
         width: 36px;
@@ -238,17 +248,16 @@
             </div>
 
             <!-- DIREITA -->
-            <div class="d-flex align-items-center gap-2 carona-right">
-                <div class="text-end small">
-                    <div class="fw-semibold">
+            <div class="d-flex align-items-start gap-2 carona-right">
+                <div class="text-end small motorista-meta">
+                    <div class="fw-semibold text-truncate">
                         {% if carona.motorista == request.user %}
                             <span class="badge bg-primary">Você</span>
                         {% else %}
                             {{ carona.motorista.nome_curto }}
                         {% endif %}
                     </div>
-
-                    <div class="text-muted d-flex align-items-center gap-2 justify-content-end flex-wrap">
+                    <div class="text-muted d-flex align-items-center gap-1 justify-content-end motorista-veiculo">
                         {% if carona.veiculo %}
                             {% if carona.veiculo.tipo == "carro" %}
                                 <i class="bi bi-car-front-fill"></i>
@@ -264,14 +273,16 @@
 
                             {{ carona.veiculo_card }}
                         {% endif %}
+                    </div>
 
+                    <div class="motorista-vagas">
                         {% if carona.vagas_restantes > 0 %}
-                            <span class="badge bg-warning text-dark ms-1">
+                            <span class="badge bg-warning text-dark">
                                 <i class="bi bi-person-fill"></i>
                                 {{ carona.vagas_restantes }} vaga{% if carona.vagas_restantes > 1 %}s{% endif %}
                             </span>
                         {% else %}
-                            <span class="badge bg-danger ms-1">
+                            <span class="badge bg-danger">
                                 Lotada
                             </span>
                         {% endif %}

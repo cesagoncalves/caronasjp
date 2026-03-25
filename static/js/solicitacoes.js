@@ -1,14 +1,39 @@
-console.log("📄 solicitacoes.js carregado");
+console.log("solicitacoes.js carregado");
+
+function labelStatus(status) {
+    const valor = String(status || "").toLowerCase();
+    if (valor === "pendente") return "Pendente";
+    if (valor === "aceita") return "Aceita";
+    if (valor === "recusada") return "Recusada";
+    if (valor === "cancelada") return "Cancelada";
+    return status || "Status";
+}
+
+function classeStatus(status) {
+    const valor = String(status || "").toLowerCase();
+    if (valor === "pendente") return "bg-warning text-dark";
+    if (valor === "aceita") return "bg-success";
+    return "bg-danger";
+}
+
+function formatarDataBr(valor) {
+    if (!valor) return "";
+    const txt = String(valor);
+    const m = txt.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+    const d = new Date(txt);
+    return Number.isNaN(d.getTime()) ? txt : d.toLocaleDateString("pt-BR");
+}
 
 function renderSolicitacoesLocal() {
     const lista = getSolicitacoes()
-        .filter(s => s.tipo !== "encomenda")
+        .filter((s) => s.tipo !== "encomenda")
         .sort((a, b) => new Date(b.data_solicitacao) - new Date(a.data_solicitacao));
-    const container = document.getElementById("lista-solicitacoes");
 
+    const container = document.getElementById("lista-solicitacoes");
     if (!container) return;
 
-    if (lista.length === 0) {
+    if (!lista.length) {
         container.innerHTML = `
             <div class="alert alert-info text-center">Voce ainda nao tem solicitacoes.</div>`;
         return;
@@ -16,34 +41,42 @@ function renderSolicitacoesLocal() {
 
     container.innerHTML = "";
 
-    lista.forEach(s => {
-        const badgeClass =
-            s.status === "pendente" ? "bg-warning text-dark" :
-            s.status === "aceita"   ? "bg-success" :
-                                      "bg-danger";
+    lista.forEach((s) => {
+        const badgeClass = classeStatus(s.status);
+        const statusLabel = labelStatus(s.status);
+        const dataHora = `${formatarDataBr(s.carona_data)}${s.carona_hora ? ` as ${s.carona_hora}` : ""}`;
 
         container.innerHTML += `
-            <div class="card border-0 shadow-sm rounded-3 mb-3">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-2">
-                        <h5>Carona para <strong>${s.carona_destino}</strong></h5>
-                        <span class="badge ${badgeClass}">${s.status}</span>
+            <div class="card card-solicitacao mb-3">
+                <div class="card-body p-3">
+                    <div class="solicitacao-head">
+                        <div>
+                            <div class="solicitacao-rota">
+                                ${s.carona_origem || "-"} <i class="bi bi-arrow-right mx-1"></i> ${s.carona_destino || "-"}
+                            </div>
+                            <p class="solicitacao-meta">${dataHora}</p>
+                        </div>
+                        <span class="badge ${badgeClass}">${statusLabel}</span>
                     </div>
-                    <p class="mb-1"><strong>Quantidade:</strong> ${s.quantidade}</p>
-                    <p class="mb-1"><strong>Motorista:</strong> ${s.motorista_nome}</p>
-                    ${s.status === "pendente" ? `
-                    <button class="btn btn-sm btn-outline-danger mt-2"
-                        onclick="cancelarSolicitacaoPublica(${s.id}, '${s.token_cancelamento}')">
-                        Cancelar solicitação
-                    </button>
-                ` : ""}
+
+                    <div class="small mb-1"><strong>Motorista:</strong> ${s.motorista_nome || "-"}</div>
+                    <div class="small mb-2"><strong>Quantidade:</strong> ${s.quantidade || 0}</div>
+
+                    <div class="d-flex justify-content-end pt-1">
+                        ${String(s.status).toLowerCase() === "pendente" ? `
+                            <button class="btn btn-danger btn-sm"
+                                onclick="cancelarSolicitacaoPublica(${s.id}, '${s.token_cancelamento}')">
+                                Cancelar solicitacao
+                            </button>
+                        ` : ""}
+                    </div>
                 </div>
             </div>`;
     });
 }
 
 async function cancelarSolicitacaoPublica(id, token) {
-    if (!confirm("Tem certeza que deseja cancelar esta solicitação?")) return;
+    if (!confirm("Tem certeza que deseja cancelar esta solicitacao?")) return;
 
     try {
         const resp = await fetch(`/cancelar-solicitacao-publica/${id}/`, {
@@ -53,25 +86,22 @@ async function cancelarSolicitacaoPublica(id, token) {
                 "Content-Type": "application/x-www-form-urlencoded",
             },
             body: new URLSearchParams({
-                token: token
-            })
+                token: token,
+            }),
         });
 
         if (!resp.ok) {
-            alert("Erro ao cancelar a solicitação.");
+            alert("Erro ao cancelar a solicitacao.");
             return;
         }
 
-        // remove do localStorage
-        const lista = getSolicitacoes().filter(s => String(s.id) !== String(id));
+        const lista = getSolicitacoes().filter((s) => String(s.id) !== String(id));
         saveSolicitacoes(lista);
 
-        // re-renderiza
         renderSolicitacoesLocal();
         atualizarNavbar();
-
     } catch (e) {
-        console.error("Erro ao cancelar solicitação", e);
+        console.error("Erro ao cancelar solicitacao", e);
     }
 }
 
@@ -79,7 +109,7 @@ function marcarSolicitacoesComoVistas() {
     const lista = getSolicitacoes();
     let alterou = false;
 
-    lista.forEach(s => {
+    lista.forEach((s) => {
         if (s.tipo !== "encomenda" && s.status !== "pendente" && !s.visto_solicitacao) {
             s.visto_solicitacao = true;
             alterou = true;
@@ -94,8 +124,6 @@ function marcarSolicitacoesComoVistas() {
 
 document.addEventListener("DOMContentLoaded", marcarSolicitacoesComoVistas);
 
-
-
 document.addEventListener("DOMContentLoaded", async () => {
     if (document.body.dataset.page !== "solicitacoes-local") return;
 
@@ -103,17 +131,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     await hidratarCaronas();
     renderSolicitacoesLocal();
 
-const lista = getSolicitacoes().map(s => {
-    if (s.tipo !== "encomenda" && s.status !== "pendente") {
-        return { ...s, visto_solicitacao: true };
-    }
-    return s;
+    const lista = getSolicitacoes().map((s) => {
+        if (s.tipo !== "encomenda" && s.status !== "pendente") {
+            return { ...s, visto_solicitacao: true };
+        }
+        return s;
+    });
+
+    saveSolicitacoes(lista);
+    atualizarNavbar();
 });
-
-saveSolicitacoes(lista);
-atualizarNavbar();
-
-});
-
-
-

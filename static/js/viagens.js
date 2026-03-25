@@ -1,6 +1,21 @@
 console.log("viagens.js carregado");
 
 function renderViagensLocal() {
+    const escAttr = (valor) =>
+        String(valor ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/</g, "&lt;");
+
+    const formatarDataBr = (valor) => {
+        if (!valor) return "";
+        const txt = String(valor);
+        const m = txt.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+        const d = new Date(txt);
+        return Number.isNaN(d.getTime()) ? txt : d.toLocaleDateString("pt-BR");
+    };
+
     const dataHoraCarona = (s) => {
         const data = s.carona_data || "";
         const hora = (s.carona_hora || "00:00").slice(0, 5);
@@ -27,7 +42,13 @@ function renderViagensLocal() {
 
     lista.forEach((v) => {
         container.innerHTML += `
-            <div class="card card-viagem mb-3">
+            <div class="card card-viagem card-viagem-clickable mb-3"
+                 data-bs-toggle="modal"
+                 data-bs-target="#modalViagemLocal"
+                 data-rota="${escAttr(`${v.carona_origem} -> ${v.carona_destino}`)}"
+                 data-data-hora="${escAttr(`${formatarDataBr(v.carona_data)} as ${v.carona_hora}`)}"
+                 data-motorista="${escAttr(v.motorista_nome)}"
+                 data-quantidade="${escAttr(`${v.quantidade} vaga(s)`)}">
                 <div class="card-body p-3">
                     <div class="viagem-header">
                         <div>
@@ -112,4 +133,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     marcarViagensComoVistas();
     await hidratarCaronas();
     renderViagensLocal();
+
+    const modalEl = document.getElementById("modalViagemLocal");
+    if (modalEl) {
+        modalEl.addEventListener("show.bs.modal", (event) => {
+            const card = event.relatedTarget;
+            if (!card) return;
+            modalEl.querySelector('[data-local-viagem="rota"]').textContent = card.getAttribute("data-rota") || "-";
+            modalEl.querySelector('[data-local-viagem="data_hora"]').textContent = card.getAttribute("data-data-hora") || "-";
+            modalEl.querySelector('[data-local-viagem="motorista"]').textContent = card.getAttribute("data-motorista") || "-";
+            modalEl.querySelector('[data-local-viagem="quantidade"]').textContent = card.getAttribute("data-quantidade") || "-";
+        });
+    }
 });
