@@ -147,6 +147,14 @@
     #fotoNavbarAmpliada.zoom-2 {
         transform: scale(2);
     }
+    #imagemZoomAmpliada {
+        transition: transform .2s ease;
+        transform-origin: center center;
+        touch-action: manipulation;
+    }
+    #imagemZoomAmpliada.zoom-2 {
+        transform: scale(2);
+    }
 
     @media (min-width: 768px) {
         .notification-bell {
@@ -231,6 +239,11 @@
         cursor: pointer;
         background-color: #fff;
         transition: background-color 0.2s ease, transform 0.1s ease;;
+    }
+    .notificacao-item-link {
+        display: block;
+        color: inherit;
+        text-decoration: none;
     }
 
     .notificacao-item:last-child {
@@ -384,7 +397,7 @@
 
 <body class="bg-light" {% block body_data %}{% endblock %}>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom mt-2 mb-4">
+<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom mt-0 mb-4">
     <div class="container">
 
         <!-- LOGO -->
@@ -418,12 +431,21 @@
                     <div class="notificacoes-lista">
                         {% for n in notificacoes_recentes %}
                             <li class="notificacao-item {% if not n.lida %}nao-lida{% endif %}">
-                                {{ n.mensagem }}
+                                <a href="{% url 'abrir_notificacao' n.id %}" class="notificacao-item-link">
+                                    {{ n.mensagem }}
+                                </a>
                             </li>
                         {% endfor %}
                     </div>
 
                     <li><hr class="dropdown-divider"></li>
+                    {% if PUSH_CAN_ENABLE %}
+                    <li class="px-2 pb-2">
+                        <button id="btnPermitirNotificacoesMobile" type="button" class="btn btn-primary btn-sm w-100">
+                            Permitir notificacoes
+                        </button>
+                    </li>
+                    {% endif %}
                     <li class="px-2 pb-2">
                         <button id="btnLimparNotificacoesMobile" type="button" class="btn btn-outline-danger btn-sm w-100">
                             Limpar notificacoes
@@ -579,7 +601,7 @@
 
                         <li>
                             <a class="dropdown-item" href="{% url 'meus_veiculos' %}">
-                                Meus VeÃ­culos
+                                Meus Veículos
                             </a>
                         </li>
 
@@ -603,7 +625,7 @@
                                 {% if qtd_solicitacoes_pendentes > 0 %}fw-bold text-warning{% endif %}"
                                 href="{% url 'gerenciar_solicitacoes' %}">
 
-                                SolicitaÃ§Ãµes Recebidas
+                                Solicitações Recebidas
 
                                 {% if qtd_solicitacoes_pendentes > 0 %}
                                     <span class="badge bg-danger ms-2">
@@ -689,12 +711,21 @@
                 <div class="notificacoes-lista">
                     {% for n in notificacoes_recentes %}
                         <li class="notificacao-item {% if not n.lida %}nao-lida{% endif %}">
-                            {{ n.mensagem }}
+                            <a href="{% url 'abrir_notificacao' n.id %}" class="notificacao-item-link">
+                                {{ n.mensagem }}
+                            </a>
                         </li>
                     {% endfor %}
                 </div>
 
                 <li><hr class="dropdown-divider"></li>
+                {% if PUSH_CAN_ENABLE %}
+                <li class="px-2 pb-2">
+                    <button id="btnPermitirNotificacoes" type="button" class="btn btn-primary btn-sm w-100">
+                        Permitir notificacoes
+                    </button>
+                </li>
+                {% endif %}
                 <li class="px-2 pb-2">
                     <button id="btnLimparNotificacoes" type="button" class="btn btn-outline-danger btn-sm w-100">
                         Limpar notificacoes
@@ -851,6 +882,17 @@
 </div>
 {% endif %}
 
+<div class="modal fade" id="modalImagemZoom" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-body text-center p-3">
+                <img id="imagemZoomAmpliada" src="" class="img-fluid rounded-3" alt="Imagem ampliada">
+                <p id="tituloImagemZoom" class="mt-2 mb-0 fw-semibold"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <div class="container mb-5">
     {% block content %}{% endblock %}
@@ -941,13 +983,22 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const dropdownPairs = [
-        { dropdownId: "dropdownNotificacoes", btnId: "btnLimparNotificacoes" },
-        { dropdownId: "dropdownNotificacoesMobile", btnId: "btnLimparNotificacoesMobile" },
+        {
+            dropdownId: "dropdownNotificacoes",
+            btnId: "btnLimparNotificacoes",
+            enableBtnId: "btnPermitirNotificacoes",
+        },
+        {
+            dropdownId: "dropdownNotificacoesMobile",
+            btnId: "btnLimparNotificacoesMobile",
+            enableBtnId: "btnPermitirNotificacoesMobile",
+        },
     ];
 
     dropdownPairs.forEach((pair) => {
         const dropdown = document.getElementById(pair.dropdownId);
         const btnLimpar = document.getElementById(pair.btnId);
+        const btnEnable = document.getElementById(pair.enableBtnId);
         if (!dropdown) return;
 
         dropdown.addEventListener("shown.bs.dropdown", () => {
@@ -979,6 +1030,53 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             });
         }
+
+        if (btnEnable) {
+            btnEnable.addEventListener("click", async () => {
+                if (typeof window.caronasPushEnable !== "function") return;
+                btnEnable.disabled = true;
+                const ok = await window.caronasPushEnable();
+                if (ok) {
+                    btnEnable.classList.remove("btn-primary");
+                    btnEnable.classList.add("btn-success");
+                    btnEnable.textContent = "Notificacoes ativadas";
+                } else {
+                    btnEnable.disabled = false;
+                }
+            });
+        }
+    });
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const modalEl = document.getElementById("modalImagemZoom");
+    const imgAmpliada = document.getElementById("imagemZoomAmpliada");
+    const titulo = document.getElementById("tituloImagemZoom");
+    const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+    if (!modal || !imgAmpliada || !titulo) return;
+
+    document.querySelectorAll(".js-foto-zoom").forEach((img) => {
+        ["mousedown", "touchstart"].forEach((evtName) => {
+            img.addEventListener(evtName, (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+            });
+        });
+
+        img.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            imgAmpliada.src = img.dataset.src || img.src;
+            imgAmpliada.classList.remove("zoom-2");
+            titulo.textContent = img.dataset.nome || img.alt || "Imagem";
+            modal.show();
+        });
+    });
+
+    imgAmpliada.addEventListener("click", () => {
+        imgAmpliada.classList.toggle("zoom-2");
     });
 });
 </script>

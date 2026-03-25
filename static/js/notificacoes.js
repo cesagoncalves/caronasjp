@@ -32,6 +32,11 @@ async function sincronizarSolicitacoes() {
             const remoto = backend.find(b => String(b.id) === String(local.id));
             if (!remoto) return;
 
+            if (local.carona_status !== remoto.carona_status) {
+                local.carona_status = remoto.carona_status;
+                alterou = true;
+            }
+
             if (local.status !== remoto.status) {
                 const statusAnterior = local.status;
                 local.status = remoto.status;

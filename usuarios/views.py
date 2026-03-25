@@ -99,6 +99,7 @@ def signup(request):
             solicitacoes_ids = parse_solicitacao_ids(
                 request.POST.get("solicitacoes_ids_migracao", "")
             )
+            total_solicitacoes_dispositivo = len(solicitacoes_ids)
 
             usuario = form.save()
             login(request, usuario, backend="django.contrib.auth.backends.ModelBackend")
@@ -113,7 +114,12 @@ def signup(request):
                 request.session["clear_local_solicitacoes"] = True
                 messages.info(
                     request,
-                    f"Importamos {migradas} solicitacao(oes) deste dispositivo para sua conta.",
+                    (
+                        f"Importamos {migradas} de {total_solicitacoes_dispositivo} solicitacao(oes) "
+                        "deste dispositivo para sua conta."
+                        if total_solicitacoes_dispositivo
+                        else f"Importamos {migradas} solicitacao(oes) deste dispositivo para sua conta."
+                    ),
                 )
 
             messages.success(request, "Conta criada com sucesso! Bem-vindo.")
@@ -140,6 +146,7 @@ def completar_perfil(request):
             solicitacoes_ids = parse_solicitacao_ids(
                 request.POST.get("solicitacoes_ids_migracao", "")
             )
+            total_solicitacoes_dispositivo = len(solicitacoes_ids)
             migradas = vincular_solicitacoes_dispositivo(
                 usuario,
                 migrar=migrar_dados,
@@ -150,7 +157,12 @@ def completar_perfil(request):
                 request.session["clear_local_solicitacoes"] = True
                 messages.info(
                     request,
-                    f"Importamos {migradas} solicitacao(oes) deste dispositivo para sua conta.",
+                    (
+                        f"Importamos {migradas} de {total_solicitacoes_dispositivo} solicitacao(oes) "
+                        "deste dispositivo para sua conta."
+                        if total_solicitacoes_dispositivo
+                        else f"Importamos {migradas} solicitacao(oes) deste dispositivo para sua conta."
+                    ),
                 )
 
             messages.success(request, "Perfil atualizado com sucesso!")
@@ -187,6 +199,7 @@ def push_subscribe(request):
     )
 
     request.session["ask_push_permission"] = False
+    request.session["push_prompt_opt_out"] = False
 
     return JsonResponse({"ok": True})
 
@@ -209,6 +222,7 @@ def push_unsubscribe(request):
 @require_POST
 def push_skip(request):
     request.session["ask_push_permission"] = False
+    request.session["push_prompt_opt_out"] = True
     return JsonResponse({"ok": True})
 
 

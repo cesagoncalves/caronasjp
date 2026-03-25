@@ -88,7 +88,11 @@
                     <div>{{ s.descricao_item }}</div>
 
                     {% if s.foto_encomenda %}
-                        <img src="{{ s.foto_encomenda.url }}" class="img-fluid rounded mt-3 border" style="max-height: 220px; object-fit: cover;">
+                        <img src="{{ s.foto_encomenda.url }}"
+                             class="img-fluid rounded mt-3 border js-foto-zoom"
+                             style="max-height: 220px; object-fit: cover; cursor: zoom-in;"
+                             alt="Foto da encomenda"
+                             data-nome="Foto da encomenda">
                     {% endif %}
                 </div>
             {% endif %}

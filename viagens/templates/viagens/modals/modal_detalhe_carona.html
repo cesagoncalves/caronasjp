@@ -17,7 +17,7 @@
             <!-- BODY -->
             <div class="modal-body p-4">
                 {% if user.is_authenticated and user != carona.motorista %}
-                {% if carona.minha_solicitacao_ativa or carona.minhas_encomendas_ativas_count|default:0 > 0 %}
+                {% if carona.minha_solicitacao_ativa or carona.minha_participacao_pendente or carona.minhas_encomendas_ativas_count|default:0 > 0 %}
                 <div class="border rounded-3 p-3 bg-light mb-3 text-center">
                     <h6 class="fw-semibold mb-2">
                         <i class="bi bi-person-check me-2"></i> Sua participacao nesta viagem
@@ -27,8 +27,13 @@
                         {% if carona.minha_solicitacao_ativa %}
                             <span class="badge bg-success">Passageiro</span>
                         {% endif %}
-                        {% if carona.minhas_encomendas_ativas_count|default:0 > 0 %}
+                        {% if carona.minhas_encomendas_aceitas_count|default:0 > 0 %}
                             <span class="badge bg-info text-dark">Envio de encomenda(s)</span>
+                        {% endif %}
+                        {% if carona.minha_participacao_pendente %}
+                            <span class="badge bg-info-subtle text-info-emphasis">
+                                <i class="bi bi-hourglass-split me-1"></i>Aguardando resposta
+                            </span>
                         {% endif %}
                     </div>
                     {% if carona.minhas_encomendas_ativas_count|default:0 > 0 %}

@@ -53,8 +53,6 @@ def vincular_solicitacoes_dispositivo(
     qs = Solicitacao.objects.filter(
         uuid_local=uuid_limpo,
         solicitante__isnull=True,
-        status__in=["pendente", "aceita"],
-        carona__status="ativa",
     )
 
     if solicitacao_ids:

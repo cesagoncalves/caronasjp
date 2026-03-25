@@ -6,8 +6,6 @@
 data-page="viagens-local"
 {% endblock %}
 
-
-
 {% block content %}
 {% if not user.is_authenticated %}
 <div class="alert alert-warning border-0 shadow-sm rounded-4 text-center small mb-3">
@@ -15,65 +13,76 @@ data-page="viagens-local"
 </div>
 {% endif %}
 
-
 <div class="container mt-4">
+    <style>
+    .card-viagem {
+        border: 1px solid rgba(13, 110, 253, 0.08);
+        border-radius: 16px;
+        box-shadow: 0 10px 22px rgba(17, 24, 39, 0.07);
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .card-viagem:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 28px rgba(17, 24, 39, 0.1);
+    }
+    .viagem-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    .viagem-rota {
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    .viagem-meta {
+        color: #6c757d;
+        font-size: .92rem;
+        margin-bottom: 0;
+    }
+    </style>
 
     <h2 class="mb-4 fw-bold">Minhas Viagens</h2>
-
 
     {% if modo == 'bd' %}
         {% if viagens %}
             <div class="row g-3">
-
                 {% for v in viagens %}
                 <div class="col-12">
-                    <div class="card border-0 shadow-sm rounded-3">
-                        <div class="card-body">
+                    <div class="card card-viagem">
+                        <div class="card-body p-3">
+                            <div class="viagem-header">
+                                <div>
+                                    <div class="viagem-rota">
+                                        {{ v.carona.origem }} <i class="bi bi-arrow-right mx-1"></i> {{ v.carona.destino }}
+                                    </div>
+                                    <p class="viagem-meta">{{ v.carona.data|friendly_date_time:v.carona.hora }}</p>
+                                </div>
+                                <span class="badge bg-success">Ativa</span>
+                            </div>
 
-                            <h5 class="card-title">
-                                Viagem para <strong>{{ v.carona.destino }}</strong>
-                            </h5>
-
-                            <p class="mb-1">
-                                <strong>Saída:</strong>
-                                {{ v.carona.data|friendly_date_time:v.carona.hora }}
-                            </p>
-
-                            <p class="mb-1">
-                                <strong>Local:</strong> {{ v.carona.origem }}
-                            </p>
-
-                            <p class="mb-1">
+                            <div class="small mb-2">
                                 <strong>Motorista:</strong> {{ v.carona.motorista.nome_curto }}
-                            </p>
-
-                            <p class="mb-2">
-                                <strong>Quantidade que você pediu:</strong> {{ v.quantidade }}
-                            </p>
-
-                            <hr>
-
-                            <a href="" class="btn btn-primary btn-sm">
-                                Ver detalhes da carona
-                            </a>
+                            </div>
+                            <div class="small mb-3">
+                                <strong>Quantidade:</strong> {{ v.quantidade }} vaga{{ v.quantidade|pluralize }}
+                            </div>
 
                             <form method="post" action="{% url 'cancelar_solicitacao' v.id %}" onsubmit="return confirm('Cancelar sua participacao nesta viagem?');">
                                 {% csrf_token %}
-                                <button class="btn btn-outline-danger btn-sm">
+                                <button class="btn btn-outline-danger btn-sm w-100">
                                     <i class="bi bi-x-circle"></i> Cancelar viagem
                                 </button>
                             </form>
-
                         </div>
                     </div>
                 </div>
                 {% endfor %}
-
             </div>
-
         {% else %}
             <div class="alert alert-info text-center">
-                Você ainda não tem viagens aceitas.
+                Voce ainda nao tem viagens aceitas.
             </div>
         {% endif %}
     {% endif %}
@@ -81,9 +90,7 @@ data-page="viagens-local"
     {% if modo == 'local' %}
         <div id="lista-viagens"></div>
     {% endif %}
-
 </div>
-
 {% endblock %}
 
 {% block extra_js %}

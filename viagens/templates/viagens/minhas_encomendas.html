@@ -71,8 +71,10 @@ class="text-decoration-none">
 
 {% if e.foto_encomenda %}
 <img src="{{ e.foto_encomenda.url }}"
-class="img-fluid rounded border mb-1"
-style="max-height:220px;object-fit:cover;">
+class="img-fluid rounded border mb-1 js-foto-zoom"
+style="max-height:220px;object-fit:cover;cursor:zoom-in;"
+alt="Foto da encomenda"
+data-nome="Foto da encomenda">
 {% endif %}
 
 {% if e.observacoes %}
@@ -150,7 +152,7 @@ class="text-decoration-none text-reset d-block h-100">
 <div class="d-flex gap-1 mb-2">
 
 {% if c.encomendas_pendentes > 0 %}
-<span class="badge bg-warning text-dark">
+<span class="badge bg-info-subtle text-info-emphasis">
 {{ c.encomendas_pendentes }} pendente(s)
 </span>
 {% endif %}

@@ -60,9 +60,9 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         const lista = lerSolicitacoes();
-        const ids = lista
+        const ids = [...new Set(lista
             .map((s) => Number(s && s.id))
-            .filter((id) => Number.isInteger(id) && id > 0);
+            .filter((id) => Number.isInteger(id) && id > 0))];
         const uuidLocal = localStorage.getItem("uuid_local") || "";
 
         const box = document.getElementById("migracaoBox");

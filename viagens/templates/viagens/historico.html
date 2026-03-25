@@ -92,7 +92,11 @@ data-page="historico-local"
                 {% endif %}
 
                 {% if item.categoria == 'encomenda' and item.foto_encomenda %}
-                    <img src="{{ item.foto_encomenda.url }}" class="img-fluid rounded border mb-2 d-block" style="max-height: 220px; object-fit: cover;">
+                    <img src="{{ item.foto_encomenda.url }}"
+                         class="img-fluid rounded border mb-2 d-block js-foto-zoom"
+                         style="max-height: 220px; object-fit: cover; cursor: zoom-in;"
+                         alt="Foto da encomenda"
+                         data-nome="Foto da encomenda">
                 {% endif %}
 
                 <div class="mt-2">
@@ -120,6 +124,15 @@ data-page="historico-local"
 {% endif %}
 
 {% else %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body text-center">
+        <div class="btn-group flex-wrap" id="filtros-historico-local">
+            <button type="button" class="btn btn-filtro btn-filtro--todas is-active" data-tipo="todas">Todas</button>
+            <button type="button" class="btn btn-filtro btn-filtro--passageiro" data-tipo="passageiro">Passageiro</button>
+            <button type="button" class="btn btn-filtro btn-filtro--encomenda" data-tipo="encomenda">Encomenda</button>
+        </div>
+    </div>
+</div>
 <div id="lista-historico"></div>
 {% endif %}
 

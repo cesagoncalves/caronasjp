@@ -34,4 +34,5 @@ urlpatterns = [
     path("solicitacao/<int:pk>/cancelar-encomenda-motorista/", views.cancelar_encomenda_motorista, name="cancelar_encomenda_motorista"),
     path("notificacoes/marcar-lidas/", views.marcar_notificacoes_como_lidas, name="marcar_notificacoes_como_lidas"),
     path("notificacoes/limpar/", views.limpar_notificacoes, name="limpar_notificacoes"),
+    path("notificacoes/abrir/<int:notificacao_id>/", views.abrir_notificacao, name="abrir_notificacao"),
 ]

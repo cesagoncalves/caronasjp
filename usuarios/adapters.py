@@ -7,6 +7,45 @@ from .migracao_dispositivo import parse_solicitacao_ids, vincular_solicitacoes_d
 
 
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
+    def _resolver_avatar_url(self, sociallogin):
+        account = sociallogin.account
+        extra = account.extra_data or {}
+        provider = (account.provider or "").lower()
+
+        if provider == "facebook":
+            picture = extra.get("picture")
+            if isinstance(picture, dict):
+                data = picture.get("data") or {}
+                url = data.get("url")
+                if url:
+                    return url
+            if isinstance(picture, str) and picture:
+                return picture
+            if account.uid:
+                return f"https://graph.facebook.com/{account.uid}/picture?type=large"
+
+        if provider == "google":
+            picture = extra.get("picture")
+            if isinstance(picture, str) and picture:
+                return picture
+
+        return account.get_avatar_url()
+
+    def _baixar_avatar(self, avatar_url):
+        if not avatar_url:
+            return None, None
+
+        headers = {
+            "User-Agent": "Mozilla/5.0 (compatible; CaronasJP/1.0)",
+            "Accept": "image/*,*/*;q=0.8",
+        }
+        response = requests.get(avatar_url, timeout=10, headers=headers, allow_redirects=True)
+        response.raise_for_status()
+        content_type = (response.headers.get("content-type") or "").lower()
+        if not content_type.startswith("image/"):
+            return None, None
+        return response.content, content_type
+
     def populate_user(self, request, sociallogin, data):
         user = super().populate_user(request, sociallogin, data)
 
@@ -53,17 +92,17 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
                 request.session["clear_local_solicitacoes"] = True
 
         if not user.foto:
-            avatar_url = sociallogin.account.get_avatar_url()
+            avatar_url = self._resolver_avatar_url(sociallogin)
             if avatar_url:
                 try:
-                    response = requests.get(avatar_url, timeout=8)
-                    response.raise_for_status()
-                    content_type = response.headers.get("content-type", "")
+                    conteudo, content_type = self._baixar_avatar(avatar_url)
+                    if not conteudo:
+                        return user
                     ext = ".jpg"
                     if "png" in content_type:
                         ext = ".png"
                     filename = f"social_{user.pk}{ext}"
-                    user.foto.save(filename, ContentFile(response.content), save=True)
+                    user.foto.save(filename, ContentFile(conteudo), save=True)
                 except Exception:
                     pass
 

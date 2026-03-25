@@ -181,8 +181,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const ativo = chkRepetir.checked;
         painelRepeticao.classList.toggle("d-none", !ativo);
-        const hoje = new Date();
-        const hojeIso = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString().slice(0, 10);
 
         if (!ativo) {
             inputData.readOnly = false;
@@ -192,24 +190,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (!dataAntesRepetir) dataAntesRepetir = inputData.value;
-        inputData.value = hojeIso;
-        inputData.readOnly = true;
-        inputData.min = hojeIso;
-        inputData.max = hojeIso;
+        inputData.readOnly = false;
+        inputData.removeAttribute("max");
 
         listaRepeticao.innerHTML = "";
-        const base = new Date(`${hojeIso}T00:00:00`);
-        for (let i = 0; i <= 6; i++) {
+        const baseIso = inputData.value;
+        if (!baseIso) return;
+        const base = new Date(`${baseIso}T00:00:00`);
+        if (Number.isNaN(base.getTime())) return;
+
+        for (let i = 1; i <= 6; i++) {
             const dia = new Date(base);
             dia.setDate(base.getDate() + i);
             const iso = dia.toISOString().slice(0, 10);
-            const hojeTravado = i === 0;
 
             const row = document.createElement("label");
             row.className = "d-flex align-items-center justify-content-between border rounded-3 px-3 py-2 bg-white";
             row.innerHTML = `
                 <div class="form-check m-0">
-                    <input class="form-check-input" type="checkbox" name="datas_repeticao" value="${iso}" id="rep_${iso}" ${hojeTravado ? "checked disabled" : ""}>
+                    <input class="form-check-input" type="checkbox" name="datas_repeticao" value="${iso}" id="rep_${iso}">
                     <span class="form-check-label ms-2">${formatarDataLabel(iso)}</span>
                 </div>
             `;

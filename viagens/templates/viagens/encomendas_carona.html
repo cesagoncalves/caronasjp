@@ -62,7 +62,11 @@
                     <p class="mb-2"><strong>Descrição:</strong> {{ e.descricao_item }}</p>
 
                     {% if e.foto_encomenda %}
-                        <img src="{{ e.foto_encomenda.url }}" class="img-fluid rounded border mb-2" style="max-height: 260px; object-fit: cover;">
+                        <img src="{{ e.foto_encomenda.url }}"
+                             class="img-fluid rounded border mb-2 js-foto-zoom"
+                             style="max-height: 260px; object-fit: cover; cursor: zoom-in;"
+                             alt="Foto da encomenda"
+                             data-nome="Foto da encomenda">
                     {% endif %}
 
                     {% if e.observacoes %}

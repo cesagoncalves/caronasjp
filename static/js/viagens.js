@@ -1,4 +1,4 @@
-console.log("🚗 viagens.js carregado");
+console.log("viagens.js carregado");
 
 function renderViagensLocal() {
     const dataHoraCarona = (s) => {
@@ -8,15 +8,14 @@ function renderViagensLocal() {
     };
 
     const lista = getSolicitacoes()
-        .filter(s =>
+        .filter((s) =>
             String(s.status).toLowerCase() === "aceita" &&
             String(s.carona_status).toLowerCase() === "ativa"
         )
-        .sort((a, b) =>
-            dataHoraCarona(a) - dataHoraCarona(b)
-        );
+        .sort((a, b) => dataHoraCarona(a) - dataHoraCarona(b));
 
     const container = document.getElementById("lista-viagens");
+    if (!container) return;
     container.innerHTML = "";
 
     if (!lista.length) {
@@ -26,27 +25,33 @@ function renderViagensLocal() {
         return;
     }
 
-    lista.forEach(v => {
+    lista.forEach((v) => {
         container.innerHTML += `
-            <div class="card border-0 shadow-sm rounded-3 mb-3">
-                <div class="card-body">
-                    <h5>Viagem para <strong>${v.carona_destino}</strong></h5>
-                    <p><strong>Saída:</strong> ${v.carona_data} às ${v.carona_hora}</p>
-                    <p><strong>Local:</strong> ${v.carona_origem}</p>
-                    <p><strong>Motorista:</strong> ${v.motorista_nome}</p>
-                    <p><strong>Quantidade:</strong> ${v.quantidade}</p>
-                    <button 
-                        class="btn btn-outline-danger btn-sm w-100"
+            <div class="card card-viagem mb-3">
+                <div class="card-body p-3">
+                    <div class="viagem-header">
+                        <div>
+                            <div class="viagem-rota">
+                                ${v.carona_origem} <i class="bi bi-arrow-right mx-1"></i> ${v.carona_destino}
+                            </div>
+                            <p class="viagem-meta">${v.carona_data} as ${v.carona_hora}</p>
+                        </div>
+                        <span class="badge bg-success">Ativa</span>
+                    </div>
+                    <div class="small mb-2"><strong>Motorista:</strong> ${v.motorista_nome}</div>
+                    <div class="small mb-3"><strong>Quantidade:</strong> ${v.quantidade} vaga(s)</div>
+                    <button class="btn btn-outline-danger btn-sm w-100"
                         onclick="cancelarViagemLocal(${v.id}, '${v.token_cancelamento}')">
                         <i class="bi bi-x-circle"></i> Cancelar viagem
                     </button>
                 </div>
-            </div>`;
+            </div>
+        `;
     });
 }
 
 async function cancelarViagemLocal(id, token) {
-    if (!confirm("Tem certeza que deseja cancelar sua participação nesta viagem?")) {
+    if (!confirm("Tem certeza que deseja cancelar sua participacao nesta viagem?")) {
         return;
     }
 
@@ -57,7 +62,7 @@ async function cancelarViagemLocal(id, token) {
                 "X-CSRFToken": getCSRFToken(),
                 "Content-Type": "application/x-www-form-urlencoded",
             },
-            body: new URLSearchParams({ token })
+            body: new URLSearchParams({ token }),
         });
 
         if (!resp.ok) {
@@ -65,7 +70,7 @@ async function cancelarViagemLocal(id, token) {
             return;
         }
 
-        const lista = getSolicitacoes().map(s =>
+        const lista = getSolicitacoes().map((s) =>
             String(s.id) === String(id)
                 ? { ...s, status: "cancelada", visto_viagem: true }
                 : s
@@ -74,7 +79,6 @@ async function cancelarViagemLocal(id, token) {
         saveSolicitacoes(lista);
         renderViagensLocal();
         atualizarNavbar();
-
     } catch (e) {
         console.error("Erro ao cancelar viagem", e);
         alert("Erro inesperado ao cancelar a viagem.");
@@ -85,7 +89,7 @@ function marcarViagensComoVistas() {
     const lista = getSolicitacoes();
     let alterou = false;
 
-    lista.forEach(s => {
+    lista.forEach((s) => {
         if (!s.visto_viagem) {
             s.visto_viagem = true;
             s.viagem_atualizada = false;
@@ -97,17 +101,15 @@ function marcarViagensComoVistas() {
     if (alterou) {
         saveSolicitacoes(lista);
         atualizarNavbar();
-        console.log("👀 Viagens marcadas como vistas");
+        console.log("Viagens marcadas como vistas");
     }
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (document.body.dataset.page !== "viagens-local") return;
 
-    console.log("📄 Página Minhas Viagens");
-
     await sincronizarSolicitacoes();
-    marcarViagensComoVistas();       
+    marcarViagensComoVistas();
     await hidratarCaronas();
     renderViagensLocal();
 });

@@ -42,28 +42,37 @@
 .card-carona-disponivel .badge {
     font-size: 1rem;
 }
+.card-carona-disponivel .carona-layout {
+    position: relative;
+    padding-bottom: 34px;
+}
 .card-carona-disponivel .carona-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 140px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 12px;
-    align-items: center;
-}
-.card-carona-disponivel .carona-middle {
-    text-align: center;
+    align-items: start;
 }
 .card-carona-disponivel .aguardando-slot {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: 100%;
     min-height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 6px;
 }
 .card-carona-disponivel .carona-right {
     justify-content: flex-end;
+    min-width: 0;
+}
+.card-carona-disponivel .valor-linha {
+    margin-top: 6px;
 }
 @media (max-width: 575.98px) {
     .card-carona-disponivel .carona-grid {
-        grid-template-columns: minmax(0, 1fr) 110px minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) auto;
         gap: 10px;
     }
     .card-carona-disponivel .card-body img.rounded-circle {
@@ -130,7 +139,7 @@
                         {% endif %}
 
                         {% if 'motorista' in d.tipos and d.carona.pendencias_motorista > 0 %}
-                            <span class="badge bg-warning text-dark pulse-alert">{{ d.carona.pendencias_motorista }} pendencia(s)</span>
+                            <span class="badge bg-info-subtle text-info-emphasis">{{ d.carona.pendencias_motorista }} pendencia(s)</span>
                         {% endif %}
                     </div>
 
@@ -205,39 +214,25 @@
 
     <div class="card-body py-2 px-3">
 
+        <div class="carona-layout">
         <div class="carona-grid">
 
             <!-- ESQUERDA -->
             <div class="carona-left">
                 <div class="fw-semibold small">
-                    <i class="bi bi-geo-alt text-danger"></i>
-                    Destino: {{ carona.destino }}
-                </div>
-                <div class="text-muted small">
                     <i class="bi bi-geo-alt text-success"></i>
-                    Origem: {{ carona.origem }}
+                    {{ carona.origem }} <i class="bi bi-arrow-right mx-1"></i> {{ carona.destino }}
                 </div>
                 <div class="text-muted small">
                     {{ carona.data|friendly_date_time:carona.hora }}
                 </div>
-            </div>
-
-            <!-- MEIO -->
-            <div class="carona-middle">
-                <div class="mt-1">
+                <div class="valor-linha">
                     {% if carona.tipo_valor == "gratuita" %}
                         <span class="badge bg-success">Gratuita</span>
                     {% else %}
                         <span class="fw-semibold text-success">
                             <i class="bi bi-cash-coin me-1"></i>{{ carona.valor_exibicao }}
                         </span>
-                    {% endif %}
-                </div>
-                <div class="aguardando-slot">
-                    {% if carona.aguardando_confirmacao > 0 %}
-                    <span class="badge bg-info-subtle text-info-emphasis">
-                        <i class="bi bi-hourglass-split me-1"></i>{{ carona.aguardando_confirmacao }} aguardando resposta
-                    </span>
                     {% endif %}
                 </div>
             </div>
@@ -301,6 +296,14 @@
                 {% endif %}
             </div>
 
+        </div>
+        <div class="aguardando-slot">
+            {% if carona.aguardando_confirmacao > 0 %}
+            <span class="badge bg-info-subtle text-info-emphasis">
+                <i class="bi bi-hourglass-split me-1"></i>{{ carona.aguardando_confirmacao }} aguardando resposta
+            </span>
+            {% endif %}
+        </div>
         </div>
 
     </div>
@@ -383,6 +386,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 destino: s.carona_destino || "-",
                 data: s.carona_data || "",
                 hora: s.carona_hora || "",
+                carona_status: s.carona_status || "",
                 tipos: new Set(),
                 quantidade: null,
                 encomendas: 0,
@@ -403,7 +407,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (dt > item.data_ref) item.data_ref = dt;
     });
 
-    const cards = Object.values(mapa).filter(i => i.tipos.size > 0).sort((a,b) => b.data_ref - a.data_ref);
+    const cards = Object.values(mapa)
+        .filter(i => {
+            if (i.tipos.size === 0) return false;
+            const statusCarona = String(i.carona_status || "").toLowerCase();
+            return statusCarona === "ativa";
+        })
+        .sort((a,b) => b.data_ref - a.data_ref);
     if (cards.length) {
         section.style.display = "";
         count.textContent = `${cards.length} ativo(s)`;

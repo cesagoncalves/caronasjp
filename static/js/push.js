@@ -48,6 +48,47 @@ async function sendSubscription(subscription, url) {
     return res.ok;
 }
 
+async function enablePushFlow(publicKey, subscribeUrl, statusEl) {
+    if (!publicKey || !subscribeUrl || !("Notification" in window)) return false;
+
+    if (Notification.permission === "denied") {
+        if (statusEl) {
+            statusEl.textContent = "Permissao negada. Ative nas configuracoes do navegador.";
+        }
+        return false;
+    }
+
+    if (statusEl) statusEl.textContent = "Preparando notificacoes...";
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+        if (statusEl) {
+            statusEl.textContent = "Permissao negada. Voce pode ativar depois no navegador.";
+        }
+        return false;
+    }
+
+    const registration = await registerServiceWorker();
+    if (!registration) {
+        if (statusEl) statusEl.textContent = "Nao foi possivel registrar o service worker.";
+        return false;
+    }
+
+    const sub = await subscribeToPush(registration, publicKey);
+    if (!sub) {
+        if (statusEl) statusEl.textContent = "Falha ao criar assinatura.";
+        return false;
+    }
+
+    const ok = await sendSubscription(sub, subscribeUrl);
+    if (!ok) {
+        if (statusEl) statusEl.textContent = "Falha ao salvar assinatura.";
+        return false;
+    }
+
+    if (statusEl) statusEl.textContent = "Notificacoes ativadas!";
+    return true;
+}
+
 function setupPushPrompt() {
     const modalEl = document.getElementById("pushPromptModal");
     if (!modalEl) return;
@@ -77,31 +118,9 @@ function setupPushPrompt() {
     const statusEl = modalEl.querySelector("[data-role='status']");
 
     btnEnable.addEventListener("click", async () => {
-        statusEl.textContent = "Preparando notificacoes...";
-        const permission = await Notification.requestPermission();
-        if (permission !== "granted") {
-            statusEl.textContent = "Permissao negada. Voce pode ativar depois no navegador.";
-            return;
-        }
-
-        const registration = await registerServiceWorker();
-        if (!registration) {
-            statusEl.textContent = "Nao foi possivel registrar o service worker.";
-            return;
-        }
-
-        const sub = await subscribeToPush(registration, publicKey);
-        if (!sub) {
-            statusEl.textContent = "Falha ao criar assinatura.";
-            return;
-        }
-
-        const ok = await sendSubscription(sub, subscribeUrl);
+        const ok = await enablePushFlow(publicKey, subscribeUrl, statusEl);
         if (ok) {
-            statusEl.textContent = "Notificacoes ativadas!";
             setTimeout(() => modal.hide(), 900);
-        } else {
-            statusEl.textContent = "Falha ao salvar assinatura.";
         }
     });
 
@@ -118,9 +137,22 @@ function setupPushPrompt() {
     });
 }
 
+function setupPushEnableButtons() {
+    const modalEl = document.getElementById("pushPromptModal");
+    if (!modalEl) return;
+    const publicKey = modalEl.getAttribute("data-public-key") || "";
+    const subscribeUrl = modalEl.getAttribute("data-subscribe-url") || "";
+    if (!publicKey || !subscribeUrl) return;
+
+    window.caronasPushEnable = async () => {
+        return enablePushFlow(publicKey, subscribeUrl, null);
+    };
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     await registerServiceWorker();
     setupPushPrompt();
+    setupPushEnableButtons();
 
     const toast = document.getElementById("pushToast");
     const toastTitle = document.getElementById("pushToastTitle");

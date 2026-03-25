@@ -8,16 +8,26 @@
     <style>
         .cta-title { font-size: 1.35rem; }
         .cta-text { font-size: 0.98rem; }
+        .cta-card { width: 100%; max-width: 520px; }
         @media (max-width: 575.98px) {
-            .cta-title { font-size: 1.6rem; }
-            .cta-text { font-size: 1.05rem; }
+            .cta-title { font-size: 1.85rem; }
+            .cta-text { font-size: 1.15rem; }
+            .cta-card {
+                max-width: none;
+                border-radius: 18px;
+            }
+            .cta-card .btn {
+                padding-top: 0.8rem;
+                padding-bottom: 0.8rem;
+                font-size: 1.05rem;
+            }
         }
     </style>
 </head>
 <body class="bg-light">
 
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-    <div class="card shadow-lg p-4" style="width: 100%; max-width: 520px;">
+<div class="container d-flex justify-content-center align-items-center py-4" style="min-height: 100dvh;">
+    <div class="card shadow-lg p-4 p-sm-4 p-3 cta-card">
         <h4 class="text-center mb-2 cta-title">Crie uma conta para receber notificacoes</h4>
         <p class="text-muted text-center mb-4 cta-text">
             Usuarios sem uma conta nao recebem notificacoes, recarregue a pagina com frequencia ou crie uma conta agora.

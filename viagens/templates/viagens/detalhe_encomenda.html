@@ -46,7 +46,11 @@
             {% endif %}
 
             {% if encomenda.foto_encomenda %}
-                <img src="{{ encomenda.foto_encomenda.url }}" class="img-fluid rounded border mt-2" style="max-height: 320px; object-fit: cover;" alt="Foto da encomenda">
+                <img src="{{ encomenda.foto_encomenda.url }}"
+                     class="img-fluid rounded border mt-2 js-foto-zoom"
+                     style="max-height: 320px; object-fit: cover; cursor: zoom-in;"
+                     alt="Foto da encomenda"
+                     data-nome="Foto da encomenda">
             {% endif %}
 
             <p class="text-muted small mt-3 mb-0">Solicitada em {{ encomenda.data_solicitacao|date:"d/m/Y H:i" }}</p>

@@ -19,6 +19,49 @@ import json
 from django.utils import timezone
 
 
+def _destino_notificacao(notificacao):
+    solicitacao = notificacao.solicitacao
+    carona = notificacao.carona or (solicitacao.carona if solicitacao else None)
+    tipo_solicitacao = solicitacao.tipo if solicitacao else None
+
+    if notificacao.tipo == "solicitacao_recebida":
+        if carona and tipo_solicitacao == "encomenda":
+            return redirect("encomendas_carona", carona_id=carona.id)
+        return redirect("gerenciar_solicitacoes")
+
+    if notificacao.tipo == "solicitacao_recusada":
+        if tipo_solicitacao == "encomenda":
+            return redirect("minhas_encomendas_passageiro")
+        return redirect("minhas_solicitacoes")
+
+    if notificacao.tipo in ["viagem_aceita", "viagem_cancelada"]:
+        if tipo_solicitacao == "encomenda":
+            return redirect("minhas_encomendas_passageiro")
+        return redirect("minhas_viagens")
+
+    if notificacao.tipo == "viagem_atualizada":
+        return redirect("minhas_viagens")
+
+    if notificacao.tipo == "viagem_concluida":
+        return redirect("historico_viagens")
+
+    if notificacao.tipo == "passageiro_cancelou":
+        if tipo_solicitacao == "encomenda":
+            return redirect("minhas_encomendas")
+        return redirect("minhas_caronas")
+
+    return redirect("lista_caronas")
+
+
+@login_required
+def abrir_notificacao(request, notificacao_id):
+    notificacao = get_object_or_404(Notificacao, id=notificacao_id, usuario=request.user)
+    if not notificacao.lida:
+        notificacao.lida = True
+        notificacao.save(update_fields=["lida"])
+    return _destino_notificacao(notificacao)
+
+
 
 def lista_caronas(request):
     def normalizar_texto(valor):
@@ -108,16 +151,39 @@ def lista_caronas(request):
                 tipo="carona",
                 status="aceita",
             ).first()
+            carona.minha_solicitacao_pendente = carona.solicitacoes.filter(
+                solicitante=request.user,
+                tipo="carona",
+                status="pendente",
+            ).first()
+            carona.minhas_encomendas_aceitas_count = carona.solicitacoes.filter(
+                solicitante=request.user,
+                tipo="encomenda",
+                status="aceita",
+            ).count()
+            carona.minhas_encomendas_pendentes_count = carona.solicitacoes.filter(
+                solicitante=request.user,
+                tipo="encomenda",
+                status="pendente",
+            ).count()
             carona.minhas_encomendas_ativas = carona.solicitacoes.filter(
                 solicitante=request.user,
                 tipo="encomenda",
                 status__in=["pendente", "aceita"],
             ).order_by("-data_solicitacao")
             carona.minhas_encomendas_ativas_count = carona.minhas_encomendas_ativas.count()
+            carona.minha_participacao_pendente = bool(
+                carona.minha_solicitacao_pendente
+                or carona.minhas_encomendas_pendentes_count > 0
+            )
         else:
             carona.minha_solicitacao_ativa = None
+            carona.minha_solicitacao_pendente = None
             carona.minhas_encomendas_ativas = []
+            carona.minhas_encomendas_aceitas_count = 0
+            carona.minhas_encomendas_pendentes_count = 0
             carona.minhas_encomendas_ativas_count = 0
+            carona.minha_participacao_pendente = False
         return carona
 
     # somente caronas ativas e que ainda não partiram
@@ -282,8 +348,6 @@ def criar_carona(request):
         if carona_form.is_valid():
             carona_base = carona_form.save(commit=False)
             repetir_viagem = request.POST.get("repetir_viagem") == "on"
-            if repetir_viagem:
-                carona_base.data = timezone.localdate()
             carona_base.motorista = request.user
             carona_base.save()
 
@@ -326,7 +390,10 @@ def criar_carona(request):
                 )
             else:
                 messages.success(request, "Carona criada com sucesso.")
-            if not PushSubscription.objects.filter(user=request.user).exists():
+            if (
+                not PushSubscription.objects.filter(user=request.user).exists()
+                and not request.session.get("push_prompt_opt_out", False)
+            ):
                 request.session["ask_push_permission"] = True
             return redirect("lista_caronas")
 
@@ -556,7 +623,10 @@ def solicitar_vaga(request, carona_id):
                 request,
                 "Solicitação enviada com sucesso! Aguarde o motorista aceitar 🚗✨"
             )
-            if not PushSubscription.objects.filter(user=request.user).exists():
+            if (
+                not PushSubscription.objects.filter(user=request.user).exists()
+                and not request.session.get("push_prompt_opt_out", False)
+            ):
                 request.session["ask_push_permission"] = True
             return redirect("lista_caronas")
 
@@ -648,7 +718,10 @@ def solicitar_encomenda(request, carona_id):
                     request,
                     "Solicitacao de encomenda enviada com sucesso! Aguarde o motorista confirmar."
                 )
-            if not PushSubscription.objects.filter(user=request.user).exists():
+            if (
+                not PushSubscription.objects.filter(user=request.user).exists()
+                and not request.session.get("push_prompt_opt_out", False)
+            ):
                 request.session["ask_push_permission"] = True
             return redirect("lista_caronas")
     else:
@@ -729,6 +802,13 @@ def aceitar_solicitacao(request, solicitacao_id):
 
 @login_required
 def gerenciar_solicitacoes(request):
+    Notificacao.objects.filter(
+        usuario=request.user,
+        tipo="solicitacao_recebida",
+        lida=False,
+        solicitacao__tipo="carona",
+    ).update(lida=True)
+
     solicitacoes = Solicitacao.objects.filter(
         carona__motorista=request.user,
         status='pendente'
@@ -883,7 +963,7 @@ def minhas_encomendas_carona_passageiro(request, carona_id):
             carona=carona,
             solicitante=request.user,
             tipo="encomenda",
-            status="aceita",
+            status__in=["pendente", "aceita"],
         )
         .select_related("solicitante", "carona", "carona__motorista")
         .order_by("carona__data", "carona__hora", "-data_solicitacao")
@@ -1342,6 +1422,14 @@ def minhas_caronas_view(request):
 @login_required
 def encomendas_carona(request, carona_id):
     carona = get_object_or_404(Carona, id=carona_id, motorista=request.user)
+    Notificacao.objects.filter(
+        usuario=request.user,
+        tipo="solicitacao_recebida",
+        lida=False,
+        solicitacao__tipo="encomenda",
+        carona=carona,
+    ).update(lida=True)
+
     mostrar_todas = request.GET.get("todas") == "1"
 
     encomendas = Solicitacao.objects.filter(

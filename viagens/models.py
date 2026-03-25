@@ -295,11 +295,11 @@ class Veiculo(models.Model):
             extras.append(self.cor)
 
         if detalhes and extras:
-            return f"{tipo} - {detalhes} ({' Â· '.join(extras)})"
+            return f"{tipo} - {detalhes} ({' - '.join(extras)})"
         if detalhes:
             return f"{tipo} - {detalhes}"
         if extras:
-            return f"{tipo} ({' Â· '.join(extras)})"
+            return f"{tipo} ({' - '.join(extras)})"
         return tipo
 
 from django.db import models
