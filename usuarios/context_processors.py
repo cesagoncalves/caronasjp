@@ -6,6 +6,7 @@ from usuarios.models import PushSubscription
 def push_context(request):
     show_prompt = False
     public_key = settings.VAPID_PUBLIC_KEY or ""
+    clear_local_solicitacoes = bool(request.session.pop("clear_local_solicitacoes", False))
 
     if request.user.is_authenticated:
         try:
@@ -18,4 +19,5 @@ def push_context(request):
     return {
         "PUSH_SHOW_PROMPT": show_prompt,
         "PUSH_PUBLIC_KEY": public_key,
+        "CLEAR_LOCAL_SOLICITACOES": clear_local_solicitacoes,
     }

@@ -747,7 +747,7 @@
 <div class="container mb-3">
     <div class="alert alert-warning border-0 shadow-sm rounded-4 mb-0 text-center small">
         <i class="bi bi-exclamation-triangle-fill me-1"></i>
-        O site e apenas um intermediador, atencao com quem viaja.
+        O site é apenas um intermediador, atenção com quem viaja.
     </div>
 </div>
 {% endif %}
@@ -1045,6 +1045,16 @@ document.addEventListener("DOMContentLoaded", () => {
 {% block extra_js %}{% endblock %}
 <script src="{% static 'js/notificacoes.js' %}"></script>
 <script src="{% static 'js/push.js' %}"></script>
+{% if CLEAR_LOCAL_SOLICITACOES %}
+<script>
+(function () {
+    try {
+        localStorage.removeItem("solicitacoes_passageiro");
+    } catch (e) {}
+    document.cookie = "migracao_dispositivo=; path=/; max-age=0";
+})();
+</script>
+{% endif %}
 
 </body>
 </html>

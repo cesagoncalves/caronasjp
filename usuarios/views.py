@@ -9,6 +9,7 @@ from django.db import transaction
 from django.http import JsonResponse
 
 from .forms import UsuarioProfileForm, UsuarioPasswordForm, UsuarioCreationForm, UsuarioCompleteProfileForm
+from .migracao_dispositivo import parse_solicitacao_ids, vincular_solicitacoes_dispositivo
 from .models import PushSubscription
 from viagens.models import Carona, Solicitacao, Notificacao
 
@@ -89,14 +90,33 @@ def perfil_view(request):
     return render(request, "usuarios/perfil.html", {"form": form})
 
 
-
 def signup(request):
     if request.method == "POST":
         form = UsuarioCreationForm(request.POST, request.FILES)
         if form.is_valid():
+            migrar_dados = request.POST.get("migrar_dados_dispositivo") == "1"
+            uuid_local = request.POST.get("uuid_local_migracao", "")
+            solicitacoes_ids = parse_solicitacao_ids(
+                request.POST.get("solicitacoes_ids_migracao", "")
+            )
+
             usuario = form.save()
             login(request, usuario, backend="django.contrib.auth.backends.ModelBackend")
-            messages.success(request, "Conta criada com sucesso! Bem-vindo 😄")
+
+            migradas = vincular_solicitacoes_dispositivo(
+                usuario,
+                migrar=migrar_dados,
+                uuid_local=uuid_local,
+                solicitacao_ids=solicitacoes_ids,
+            )
+            if migradas > 0:
+                request.session["clear_local_solicitacoes"] = True
+                messages.info(
+                    request,
+                    f"Importamos {migradas} solicitacao(oes) deste dispositivo para sua conta.",
+                )
+
+            messages.success(request, "Conta criada com sucesso! Bem-vindo.")
             return redirect("lista_caronas")
     else:
         form = UsuarioCreationForm()
@@ -114,6 +134,25 @@ def completar_perfil(request):
         form = UsuarioCompleteProfileForm(request.POST, instance=usuario)
         if form.is_valid():
             form.save()
+
+            migrar_dados = request.POST.get("migrar_dados_dispositivo") == "1"
+            uuid_local = request.POST.get("uuid_local_migracao", "")
+            solicitacoes_ids = parse_solicitacao_ids(
+                request.POST.get("solicitacoes_ids_migracao", "")
+            )
+            migradas = vincular_solicitacoes_dispositivo(
+                usuario,
+                migrar=migrar_dados,
+                uuid_local=uuid_local,
+                solicitacao_ids=solicitacoes_ids,
+            )
+            if migradas > 0:
+                request.session["clear_local_solicitacoes"] = True
+                messages.info(
+                    request,
+                    f"Importamos {migradas} solicitacao(oes) deste dispositivo para sua conta.",
+                )
+
             messages.success(request, "Perfil atualizado com sucesso!")
             return redirect("lista_caronas")
     else:

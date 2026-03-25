@@ -31,14 +31,14 @@
                 {{ encomenda.carona.data|friendly_date_time:encomenda.carona.hora }}
             </div>
 
-            <p class="mb-2"><strong>Descricao do item:</strong> {{ encomenda.descricao_item|default:"-" }}</p>
+            <p class="mb-2"><strong>Descrição do item:</strong> {{ encomenda.descricao_item|default:"-" }}</p>
 
             {% if encomenda.endereco_solicitante %}
-                <p class="mb-2"><strong>Endereco de coleta:</strong> {{ encomenda.endereco_solicitante }}</p>
+                <p class="mb-2"><strong>Endereço de coleta:</strong> {{ encomenda.endereco_solicitante }}</p>
             {% endif %}
 
             {% if encomenda.endereco_destino_solicitante %}
-                <p class="mb-2"><strong>Endereco de entrega:</strong> {{ encomenda.endereco_destino_solicitante }}</p>
+                <p class="mb-2"><strong>Endereço de entrega:</strong> {{ encomenda.endereco_destino_solicitante }}</p>
             {% endif %}
 
             {% if encomenda.observacoes %}

@@ -10,6 +10,9 @@
 
         <form method="post" class="vstack gap-3">
             {% csrf_token %}
+            <input type="hidden" name="migrar_dados_dispositivo" id="migrar_dados_dispositivo" value="0">
+            <input type="hidden" name="uuid_local_migracao" id="uuid_local_migracao" value="">
+            <input type="hidden" name="solicitacoes_ids_migracao" id="solicitacoes_ids_migracao" value="">
 
             <div>
                 <label class="form-label">Email</label>
@@ -26,10 +29,66 @@
                 {{ form.telefone }}
             </div>
 
+            <div class="alert alert-light border d-none mb-0" id="migracaoBox">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="1" id="migracaoCheck">
+                    <label class="form-check-label fw-semibold" for="migracaoCheck">
+                        Importar solicitacoes feitas neste dispositivo para esta conta
+                    </label>
+                </div>
+                <div class="small text-muted mt-2" id="migracaoResumo"></div>
+            </div>
+
             <button type="submit" class="btn btn-primary w-100">
                 Salvar e continuar
             </button>
         </form>
     </div>
 </div>
+<script>
+(function () {
+    const STORAGE_KEY = "solicitacoes_passageiro";
+
+    function lerSolicitacoes() {
+        try {
+            const lista = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+            return Array.isArray(lista) ? lista : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const lista = lerSolicitacoes();
+        const ids = lista
+            .map((s) => Number(s && s.id))
+            .filter((id) => Number.isInteger(id) && id > 0);
+        const uuidLocal = localStorage.getItem("uuid_local") || "";
+
+        const box = document.getElementById("migracaoBox");
+        const check = document.getElementById("migracaoCheck");
+        const resumo = document.getElementById("migracaoResumo");
+        const inputFlag = document.getElementById("migrar_dados_dispositivo");
+        const inputUuid = document.getElementById("uuid_local_migracao");
+        const inputIds = document.getElementById("solicitacoes_ids_migracao");
+        if (!box || !check || !resumo || !inputFlag || !inputUuid || !inputIds) return;
+
+        const temDados = ids.length > 0 && !!uuidLocal;
+        if (!temDados) return;
+
+        box.classList.remove("d-none");
+        resumo.textContent = `${ids.length} solicitacao(oes) pronta(s) para importacao.`;
+
+        const syncInputs = () => {
+            const ativo = check.checked;
+            inputFlag.value = ativo ? "1" : "0";
+            inputUuid.value = ativo ? uuidLocal : "";
+            inputIds.value = ativo ? ids.join(",") : "";
+        };
+
+        check.addEventListener("change", syncInputs);
+        syncInputs();
+    });
+})();
+</script>
 {% endblock %}

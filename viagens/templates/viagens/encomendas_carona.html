@@ -59,14 +59,14 @@
                         {% endif %}
                     </div>
 
-                    <p class="mb-2"><strong>Descricao:</strong> {{ e.descricao_item }}</p>
+                    <p class="mb-2"><strong>Descrição:</strong> {{ e.descricao_item }}</p>
 
                     {% if e.foto_encomenda %}
                         <img src="{{ e.foto_encomenda.url }}" class="img-fluid rounded border mb-2" style="max-height: 260px; object-fit: cover;">
                     {% endif %}
 
                     {% if e.observacoes %}
-                        <p class="mb-2"><strong>Observacoes:</strong> {{ e.observacoes }}</p>
+                        <p class="mb-2"><strong>Observações:</strong> {{ e.observacoes }}</p>
                     {% endif %}
 
                     <p class="text-muted small mb-0">Solicitada em {{ e.data_solicitacao|date:"d/m/Y H:i" }}</p>
