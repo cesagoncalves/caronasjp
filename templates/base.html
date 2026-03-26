@@ -23,8 +23,12 @@
         margin: 0;
         padding: 0;
     }
+    html {
+        scrollbar-gutter: stable;
+    }
     body {
         padding-top: var(--navbar-offset) !important;
+        overflow-y: scroll;
     }
     .navbar {
         margin-top: 0 !important;
@@ -928,7 +932,7 @@
 </div>
 
 
-<div class="container mb-5">
+<div class="container mb-5 pt-3">
     {% block content %}{% endblock %}
 </div>
 

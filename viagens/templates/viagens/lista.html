@@ -86,13 +86,12 @@
     color: #6c757d;
 }
 .filtro-tipo-grid {
-    display: flex;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(88px, 1fr));
     gap: 8px;
-    flex-wrap: wrap;
 }
 .filtro-tipo-grid .btn {
-    min-width: 92px;
+    width: 100%;
 }
 @media (max-width: 575.98px) {
     .card-carona-disponivel .carona-grid {
@@ -104,7 +103,10 @@
         height: 36px;
     }
     .filtro-tipo-grid .btn {
-        min-width: 78px;
+        min-width: 0;
+    }
+    .filtro-tipo-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 </style>
@@ -192,7 +194,7 @@
         aria-expanded="false"
         aria-controls="filtrosCollapse">
     <i class="bi bi-funnel me-1"></i> <span id="toggleFiltrosTexto">Mostrar filtros</span>
-    {% if origem or destino or data or motorista or hora %}
+    {% if origem or destino or data or motorista or hora or tipos_selecionados %}
         <span class="badge bg-primary ms-2">Ativos</span>
     {% endif %}
 </button>
@@ -226,7 +228,6 @@
         </div>
     </div>
     <div class="mt-3 pt-3 border-top">
-        <label class="form-label small text-muted mb-2 d-block text-center">Tipos de veiculo</label>
         <div class="filtro-tipo-grid">
             <input class="btn-check" type="checkbox" name="tipos" value="carro" id="filtro_tipo_carro" {% if "carro" in tipos_selecionados %}checked{% endif %}>
             <label class="btn btn-outline-primary text-center" for="filtro_tipo_carro">
@@ -252,7 +253,6 @@
                 <small>Onibus</small>
             </label>
         </div>
-        <div class="text-muted small text-center mt-2">Sem selecao = mostrar todos</div>
     </div>
     <div class="row mt-3"><div class="col-12"><button class="btn btn-primary w-100">Filtrar</button></div></div>
 </form>
@@ -260,6 +260,9 @@
 
 <h2 class="mb-3 text-center">Caronas Disponiveis</h2>
 <a href="{% url 'criar_carona' %}" class="btn btn-success mb-4 w-100">Oferecer Carona</a>
+{% if resumo_filtros %}
+<p class="text-center text-muted mb-3">{{ resumo_filtros }}</p>
+{% endif %}
 <div class="row g-2">
 {% for carona in caronas %}
 <div class="col-12 col-md-6">

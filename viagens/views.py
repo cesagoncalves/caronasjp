@@ -64,6 +64,15 @@ def abrir_notificacao(request, notificacao_id):
 
 
 def lista_caronas(request):
+    def _juntar_itens_humanos(itens):
+        if not itens:
+            return ""
+        if len(itens) == 1:
+            return itens[0]
+        if len(itens) == 2:
+            return f"{itens[0]} e {itens[1]}"
+        return f"{', '.join(itens[:-1])} e {itens[-1]}"
+
     def normalizar_texto(valor):
         base = (valor or "").strip().lower()
         if not base:
@@ -233,6 +242,38 @@ def lista_caronas(request):
             and (not destino or match_cidade(destino, c.destino))
         ]
 
+    partes_resumo = []
+    if origem:
+        partes_resumo.append(f"saindo de {origem}")
+    if destino:
+        partes_resumo.append(f"indo para {destino}")
+    if motorista:
+        partes_resumo.append(f"com motorista {motorista}")
+    if data:
+        data_ref = data
+        if data_ref == timezone.localdate().isoformat():
+            partes_resumo.append("hoje")
+        else:
+            try:
+                partes_resumo.append(datetime.strptime(data_ref, "%Y-%m-%d").strftime("em %d/%m/%Y"))
+            except ValueError:
+                partes_resumo.append(f"em {data_ref}")
+    if hora:
+        partes_resumo.append(f"a partir de {hora}")
+    if tipos_validos:
+        labels_tipos = {
+            "carro": "carro",
+            "moto": "moto",
+            "van": "van",
+            "onibus": "onibus",
+        }
+        nomes = [labels_tipos[t] for t in tipos_validos]
+        partes_resumo.append(f"tipo {_juntar_itens_humanos(nomes)}")
+
+    resumo_filtros = ""
+    if partes_resumo:
+        resumo_filtros = "Buscando por viagens " + ", ".join(partes_resumo) + "."
+
     for carona in caronas:
         preencher_dados_carona(carona)
 
@@ -339,6 +380,7 @@ def lista_caronas(request):
         'hora': hora or "",
         'motorista': motorista or "",
         "tipos_selecionados": tipos_validos,
+        "resumo_filtros": resumo_filtros,
         "destaques_ativos": destaques_ativos,
         "destaque_modais_extras": destaque_modais_extras,
     })
