@@ -14,7 +14,7 @@
             </div>
 
             <div class="card-body p-4">
-                <form method="POST" novalidate>
+                <form method="POST" novalidate data-unsaved-guard="1">
                     {% csrf_token %}
 
                     <!-- Origem -->

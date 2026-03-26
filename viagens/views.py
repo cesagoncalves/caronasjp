@@ -211,6 +211,8 @@ def lista_caronas(request):
     data = request.GET.get('data')
     hora = request.GET.get('hora')
     motorista = request.GET.get('motorista')
+    tipos = request.GET.getlist("tipos")
+    tipos_validos = [t for t in tipos if t in {"carro", "moto", "van", "onibus"}]
 
     if data:
         caronas = caronas.filter(data=data)
@@ -221,6 +223,8 @@ def lista_caronas(request):
             Q(motorista__nome_completo__icontains=motorista) |
             Q(motorista__email__icontains=motorista)
         )
+    if tipos_validos:
+        caronas = caronas.filter(veiculo__tipo__in=tipos_validos)
 
     if origem or destino:
         caronas = [
@@ -334,6 +338,7 @@ def lista_caronas(request):
         'data': data or "",
         'hora': hora or "",
         'motorista': motorista or "",
+        "tipos_selecionados": tipos_validos,
         "destaques_ativos": destaques_ativos,
         "destaque_modais_extras": destaque_modais_extras,
     })

@@ -16,6 +16,7 @@
     <style>
     :root {
         --font-titulos: "Sora", "Segoe UI", sans-serif;
+        --navbar-offset: 78px;
     }
     html,
     body {
@@ -23,14 +24,28 @@
         padding: 0;
     }
     body {
-        padding-top: 0 !important;
+        padding-top: var(--navbar-offset) !important;
     }
     .navbar {
         margin-top: 0 !important;
-        position: sticky;
+        margin-bottom: 0 !important;
+        position: fixed;
         top: 0;
+        left: 0;
+        right: 0;
         z-index: 1030;
         background-color: #f8f9fa;
+    }
+    .navbar .container {
+        min-height: 62px;
+    }
+    @media (max-width: 991.98px) {
+        :root {
+            --navbar-offset: 72px;
+        }
+        .navbar .container {
+            min-height: 56px;
+        }
     }
     h1, h2, h3, h4, h5, h6,
     .modal-title,
@@ -416,7 +431,7 @@
 
 <body class="bg-light" {% block body_data %}{% endblock %}>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom mt-0 mb-4">
+<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom mt-0">
     <div class="container">
 
         <!-- LOGO -->
@@ -824,7 +839,7 @@
             </button>
             <div class="collapse mobile-submenu" id="menuPassageiroMobile">
                 <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_viagens' %}">Minhas Viagens</a>
-                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_solicitacoes' %}">Minhas Solicitacões</a>
+                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_solicitacoes' %}">Minhas Solicitações</a>
                 <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_encomendas_passageiro' %}">Minhas Encomendas</a>
             </div>
 
@@ -874,7 +889,7 @@
                 <i class="bi bi-calendar-event me-2 text-primary"></i> Minhas Viagens
             </a>
             <a class="list-group-item list-group-item-action" href="{% url 'minhas_solicitacoes' %}">
-                <i class="bi bi-inbox me-2 text-primary"></i> Minhas Solicitacões
+                <i class="bi bi-inbox me-2 text-primary"></i> Minhas Solicitações
             </a>
             <a class="list-group-item list-group-item-action" href="{% url 'minhas_encomendas_passageiro' %}">
                 <i class="bi bi-box-seam me-2 text-primary"></i> Minhas Encomendas
@@ -1162,6 +1177,57 @@ document.addEventListener("DOMContentLoaded", () => {
 {% block extra_js %}{% endblock %}
 <script src="{% static 'js/notificacoes.js' %}"></script>
 <script src="{% static 'js/push.js' %}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const formularios = Array.from(document.querySelectorAll("form[data-unsaved-guard='1']"));
+    if (!formularios.length) return;
+
+    const normalizarCampo = (el) => {
+        if (!el || el.disabled || !el.name) return "";
+        if (el.type === "checkbox" || el.type === "radio") return el.checked ? "1" : "0";
+        if (el.type === "file") return el.value ? "1" : "0";
+        return (el.value || "").trim();
+    };
+
+    const assinaturaFormulario = (form) => {
+        const campos = Array.from(form.elements || []);
+        return campos
+            .filter((el) => el.name && !el.disabled)
+            .map((el) => `${el.name}:${normalizarCampo(el)}`)
+            .join("|");
+    };
+
+    const estados = formularios.map((form) => ({
+        form,
+        inicial: assinaturaFormulario(form),
+        submetido: false,
+    }));
+
+    estados.forEach((estado) => {
+        estado.form.addEventListener("submit", () => {
+            estado.submetido = true;
+        });
+    });
+
+    const temAlteracaoPendente = () =>
+        estados.some((estado) => !estado.submetido && assinaturaFormulario(estado.form) !== estado.inicial);
+
+    window.addEventListener("beforeunload", (event) => {
+        if (!temAlteracaoPendente()) return;
+        event.preventDefault();
+        event.returnValue = "";
+    });
+
+    document.addEventListener("click", (event) => {
+        const link = event.target.closest("a[href]");
+        if (!link) return;
+        if (!temAlteracaoPendente()) return;
+        if (link.dataset.bypassUnsaved === "1") return;
+        const ok = window.confirm("Voce tem alteracoes nao salvas. Deseja sair sem salvar?");
+        if (!ok) event.preventDefault();
+    }, true);
+});
+</script>
 {% if CLEAR_LOCAL_SOLICITACOES %}
 <script>
 (function () {
