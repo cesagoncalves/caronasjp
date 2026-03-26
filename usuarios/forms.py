@@ -49,7 +49,7 @@ class UsuarioProfileForm(ContatoValidationMixin, UserChangeForm):
 
     class Meta:
         model = Usuario
-        fields = ("email", "nome_completo", "telefone")
+        fields = ("email", "nome_completo", "telefone", "foto")
         labels = {
             "nome_completo": "Nome",
         }
@@ -57,6 +57,7 @@ class UsuarioProfileForm(ContatoValidationMixin, UserChangeForm):
             "email": forms.EmailInput(attrs={"class": "form-control", "inputmode": "email"}),
             "nome_completo": forms.TextInput(attrs={"class": "form-control"}),
             "telefone": forms.TextInput(attrs={"class": "form-control", "inputmode": "tel", "placeholder": "(00) 00000-0000"}),
+            "foto": forms.FileInput(attrs={"class": "d-none", "accept": "image/*"}),
         }
 
 

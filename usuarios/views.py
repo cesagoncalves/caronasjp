@@ -78,12 +78,13 @@ def perfil_view(request):
         form = UsuarioProfileForm(request.POST, request.FILES, instance=usuario)
         if form.is_valid():
             usuario = form.save(commit=False)
-            nova_foto = request.FILES.get("foto")
+            nova_foto = form.cleaned_data.get("foto") or request.FILES.get("foto")
             if nova_foto:
                 usuario.foto = nova_foto
             usuario.save()
             messages.success(request, "Perfil atualizado com sucesso!")
             return redirect("perfil")
+        messages.error(request, "Nao foi possivel salvar. Verifique os campos do formulario.")
     else:
         form = UsuarioProfileForm(instance=usuario)
 

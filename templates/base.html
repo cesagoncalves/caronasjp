@@ -824,7 +824,23 @@
 {% if user.is_authenticated %}
 <div class="offcanvas offcanvas-end offcanvas-guest" tabindex="-1" id="menuUsuarioMobile" aria-labelledby="menuUsuarioMobileLabel">
     <div class="offcanvas-header border-bottom">
-        <h5 class="offcanvas-title" id="menuUsuarioMobileLabel">Menu</h5>
+        <h5 class="offcanvas-title d-flex align-items-center gap-2 mb-0" id="menuUsuarioMobileLabel">
+            {% if user.foto %}
+                <img src="{{ user.foto.url }}"
+                     class="rounded-circle"
+                     width="34" height="34"
+                     style="object-fit: cover;"
+                     alt="Perfil"
+                     onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
+            {% else %}
+                <img src="{% static 'img/avatar_padrao.jpg' %}"
+                     class="rounded-circle"
+                     width="34" height="34"
+                     style="object-fit: cover;"
+                     alt="Perfil">
+            {% endif %}
+            <span>{{ user.nome_curto|default:user.nome_completo|default:user.email }}</span>
+        </h5>
         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body p-0">

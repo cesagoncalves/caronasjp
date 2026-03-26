@@ -13,6 +13,9 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         provider = (account.provider or "").lower()
 
         if provider == "facebook":
+            if account.uid:
+                # Forca um tamanho maior para evitar avatar borrado.
+                return f"https://graph.facebook.com/{account.uid}/picture?type=large&width=512&height=512"
             picture = extra.get("picture")
             if isinstance(picture, dict):
                 data = picture.get("data") or {}
@@ -21,8 +24,6 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
                     return url
             if isinstance(picture, str) and picture:
                 return picture
-            if account.uid:
-                return f"https://graph.facebook.com/{account.uid}/picture?type=large"
 
         if provider == "google":
             picture = extra.get("picture")
