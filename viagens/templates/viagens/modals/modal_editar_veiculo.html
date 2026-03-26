@@ -1,11 +1,10 @@
 <div class="modal fade" id="modalEditarVeiculo{{ veiculo.id }}" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 shadow">
-
             <div class="modal-header bg-primary text-white rounded-top-4">
                 <h5 class="modal-title">
-                    <i class="bi bi-pencil-square me-2"></i>
-                    Editar Veículo
+                    <i class="bi bi-car-front-fill me-2"></i>
+                    Editar Veiculo
                 </h5>
                 <button type="button"
                         class="btn-close btn-close-white"
@@ -16,76 +15,129 @@
                 {% csrf_token %}
 
                 <div class="modal-body">
-
-                    <!-- TIPO -->
                     <label class="form-label fw-semibold mb-2">
-                        Tipo de veículo
+                        Tipo de veiculo
                     </label>
 
                     <div class="d-flex justify-content-between gap-2 mb-4">
-
-                        {% for value, label in veiculo.TIPO_CHOICES %}
                         <input type="radio"
                                class="btn-check"
                                name="tipo"
-                               id="tipo_{{ value }}_{{ veiculo.id }}"
-                               value="{{ value }}"
-                               {% if veiculo.tipo == value %}checked{% endif %}>
-
+                               id="tipo_carro_{{ veiculo.id }}"
+                               value="carro"
+                               {% if veiculo.tipo == "carro" %}checked{% endif %}>
                         <label class="btn btn-outline-primary flex-fill text-center"
-                               for="tipo_{{ value }}_{{ veiculo.id }}">
-                            {% if value == "carro" %}
-                                <i class="bi bi-car-front-fill fs-3 d-block"></i>
-                            {% elif value == "moto" %}
-                                <i class="bi bi-bicycle fs-3 d-block"></i>
-                            {% elif value == "van" %}
-                                <i class="bi bi-truck-front-fill fs-3 d-block"></i>
-                            {% else %}
-                                <i class="bi bi-bus-front-fill fs-3 d-block"></i>
-                            {% endif %}
-                            <small>{{ label }}</small>
+                               for="tipo_carro_{{ veiculo.id }}">
+                            <i class="bi bi-car-front-fill fs-3 d-block"></i>
+                            <small>Carro</small>
                         </label>
-                        {% endfor %}
+
+                        <input type="radio"
+                               class="btn-check"
+                               name="tipo"
+                               id="tipo_moto_{{ veiculo.id }}"
+                               value="moto"
+                               {% if veiculo.tipo == "moto" %}checked{% endif %}>
+                        <label class="btn btn-outline-primary flex-fill text-center"
+                               for="tipo_moto_{{ veiculo.id }}">
+                            <i class="bi bi-bicycle fs-3 d-block"></i>
+                            <small>Moto</small>
+                        </label>
+
+                        <input type="radio"
+                               class="btn-check"
+                               name="tipo"
+                               id="tipo_van_{{ veiculo.id }}"
+                               value="van"
+                               {% if veiculo.tipo == "van" %}checked{% endif %}>
+                        <label class="btn btn-outline-primary flex-fill text-center"
+                               for="tipo_van_{{ veiculo.id }}">
+                            <i class="bi bi-truck-front-fill fs-3 d-block"></i>
+                            <small>Van</small>
+                        </label>
+
+                        <input type="radio"
+                               class="btn-check"
+                               name="tipo"
+                               id="tipo_onibus_{{ veiculo.id }}"
+                               value="onibus"
+                               {% if veiculo.tipo == "onibus" %}checked{% endif %}>
+                        <label class="btn btn-outline-primary flex-fill text-center"
+                               for="tipo_onibus_{{ veiculo.id }}">
+                            <i class="bi bi-bus-front-fill fs-3 d-block"></i>
+                            <small>Onibus</small>
+                        </label>
                     </div>
 
-                    <!-- CAMPOS -->
                     <div class="row g-3">
-
                         <div class="col-md-6">
-                            <label class="form-label small text-muted">Marca</label>
-                            <input type="text" name="marca"
-                                   class="form-control form-control-lg"
-                                   value="{{ veiculo.marca }}">
+                            <label class="form-label text-muted small">Marca</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-tag-fill text-primary"></i>
+                                </span>
+                                <input type="text"
+                                       class="form-control"
+                                       name="marca"
+                                       value="{{ veiculo.marca|default_if_none:'' }}"
+                                       maxlength="50">
+                            </div>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small text-muted">Modelo</label>
-                            <input type="text" name="modelo"
-                                   class="form-control form-control-lg"
-                                   value="{{ veiculo.modelo }}">
+                            <label class="form-label text-muted small">Modelo</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-car-front-fill text-primary"></i>
+                                </span>
+                                <input type="text"
+                                       class="form-control"
+                                       name="modelo"
+                                       value="{{ veiculo.modelo|default_if_none:'' }}"
+                                       maxlength="50">
+                            </div>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small text-muted">Cor</label>
-                            <input type="text" name="cor"
-                                   class="form-control form-control-lg"
-                                   value="{{ veiculo.cor }}">
+                            <label class="form-label text-muted small">Cor</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-palette-fill text-primary"></i>
+                                </span>
+                                <input type="text"
+                                       class="form-control"
+                                       name="cor"
+                                       value="{{ veiculo.cor|default_if_none:'' }}"
+                                       maxlength="30">
+                            </div>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small text-muted">Ano</label>
-                            <input type="number" name="ano"
-                                   class="form-control form-control-lg"
-                                   value="{{ veiculo.ano }}">
+                            <label class="form-label text-muted small">Ano</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-calendar-fill text-primary"></i>
+                                </span>
+                                <input type="number"
+                                       class="form-control"
+                                       name="ano"
+                                       value="{{ veiculo.ano|default_if_none:'' }}"
+                                       min="1900"
+                                       max="2100">
+                            </div>
                         </div>
-
                     </div>
 
+                    <div class="alert alert-light border mt-4 mb-0 small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Para <strong>carro</strong> e <strong>moto</strong>, todos os campos sao obrigatorios.
+                        Para <strong>van</strong> e <strong>onibus</strong>, sao opcionais.
+                    </div>
                 </div>
 
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-success px-4">
-                        <i class="bi bi-check-circle"></i> Salvar Alterações
+                        <i class="bi bi-check-circle"></i> Salvar
                     </button>
                     <button type="button"
                             class="btn btn-outline-secondary"
@@ -93,9 +145,7 @@
                         Cancelar
                     </button>
                 </div>
-
             </form>
-
         </div>
     </div>
 </div>

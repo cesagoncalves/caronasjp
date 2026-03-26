@@ -85,6 +85,35 @@
     font-weight: 600;
     color: #6c757d;
 }
+.card-carona-disponivel .valor-dinheiro {
+    font-size: 1rem;
+}
+.card-carona-disponivel .rota-cidades {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    max-width: 100%;
+}
+.card-carona-disponivel .rota-cidades.rota-vertical {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    white-space: normal;
+}
+.card-carona-disponivel .rota-arrow-right {
+    color: #0d6efd;
+}
+.card-carona-disponivel .rota-arrow-down {
+    display: none;
+    color: #0d6efd;
+}
+.card-carona-disponivel .rota-cidades.rota-vertical .rota-arrow-right {
+    display: none;
+}
+.card-carona-disponivel .rota-cidades.rota-vertical .rota-arrow-down {
+    display: inline-block;
+}
 .filtro-tipo-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(88px, 1fr));
@@ -101,6 +130,18 @@
     .card-carona-disponivel .card-body img.rounded-circle {
         width: 36px;
         height: 36px;
+    }
+    .card-carona-disponivel .rota-cidades {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        white-space: normal;
+    }
+    .card-carona-disponivel .rota-arrow-right {
+        display: none;
+    }
+    .card-carona-disponivel .rota-arrow-down {
+        display: inline-block;
     }
     .filtro-tipo-grid .btn {
         min-width: 0;
@@ -250,7 +291,7 @@
             <input class="btn-check" type="checkbox" name="tipos" value="onibus" id="filtro_tipo_onibus" {% if "onibus" in tipos_selecionados %}checked{% endif %}>
             <label class="btn btn-outline-primary text-center" for="filtro_tipo_onibus">
                 <i class="bi bi-bus-front-fill fs-4 d-block"></i>
-                <small>Onibus</small>
+                <small>Ônibus</small>
             </label>
         </div>
     </div>
@@ -278,9 +319,11 @@
 
             <!-- ESQUERDA -->
             <div class="carona-left">
-                <div class="fw-semibold small">
-                    <i class="bi bi-geo-alt text-success"></i>
-                    {{ carona.origem }} <i class="bi bi-arrow-right-circle-fill text-primary mx-1"></i> {{ carona.destino }}
+                <div class="fw-semibold small rota-cidades js-rota-cidades">
+                    <span><i class="bi bi-geo-alt-fill text-success me-1"></i>{{ carona.origem }}</span>
+                    <i class="bi bi-arrow-right-circle-fill rota-arrow-right"></i>
+                    <i class="bi bi-arrow-down-circle-fill rota-arrow-down"></i>
+                    <span><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ carona.destino }}</span>
                 </div>
                 <div class="text-muted small">
                     <span class="me-1">📅</span>{{ carona.data|friendly_date }}
@@ -291,7 +334,7 @@
                     {% if carona.tipo_valor == "gratuita" %}
                         <span class="badge bg-success">Gratuita</span>
                     {% elif carona.tipo_valor == "dinheiro" %}
-                        <span class="fw-semibold text-success">
+                        <span class="fw-semibold text-success valor-dinheiro">
                             <i class="bi bi-cash-coin me-1"></i>{{ carona.valor_exibicao }}
                         </span>
                     {% else %}
@@ -583,12 +626,25 @@ document.addEventListener("DOMContentLoaded", async () => {
         toggleFiltrosTexto.textContent = aberto ? "Ocultar filtros" : "Mostrar filtros";
     }
 
+    function atualizarLayoutRotas() {
+        const mobile = window.matchMedia("(max-width: 575.98px)").matches;
+        document.querySelectorAll(".js-rota-cidades").forEach((el) => {
+            el.classList.remove("rota-vertical");
+            if (mobile) return;
+            if (el.scrollWidth > el.clientWidth + 2) {
+                el.classList.add("rota-vertical");
+            }
+        });
+    }
+
     if (filtrosCollapse) {
         filtrosCollapse.addEventListener("shown.bs.collapse", atualizarTextoFiltro);
         filtrosCollapse.addEventListener("hidden.bs.collapse", atualizarTextoFiltro);
         atualizarTextoFiltro();
     }
 
+    window.addEventListener("resize", atualizarLayoutRotas);
+    atualizarLayoutRotas();
     updateArrows();
 });
 </script>

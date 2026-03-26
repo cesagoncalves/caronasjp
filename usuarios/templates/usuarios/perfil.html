@@ -114,17 +114,65 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+    const formPerfil = document.querySelector("form[data-unsaved-guard='1']");
     const inputFoto = document.getElementById("id_foto_upload");
     const preview = document.getElementById("perfil-preview");
+    const inputEmail = document.getElementById("id_email");
+    const inputTelefone = document.getElementById("id_telefone");
 
-    if (!inputFoto || !preview) return;
+    if (inputFoto && preview) {
+        inputFoto.addEventListener("change", () => {
+            const file = inputFoto.files && inputFoto.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            preview.src = url;
+        });
+    }
 
-    inputFoto.addEventListener("change", () => {
-        const file = inputFoto.files && inputFoto.files[0];
-        if (!file) return;
-        const url = URL.createObjectURL(file);
-        preview.src = url;
-    });
+    function limparErrosLocais() {
+        document.querySelectorAll(".js-erro-local-perfil").forEach((el) => el.remove());
+    }
+
+    function mostrarErroLocal(input, mensagem) {
+        if (!input) return;
+        const erro = document.createElement("div");
+        erro.className = "text-danger small mt-1 js-erro-local-perfil";
+        erro.textContent = mensagem;
+        input.insertAdjacentElement("afterend", erro);
+    }
+
+    function validarContatoLocal() {
+        limparErrosLocais();
+        let ok = true;
+
+        if (inputEmail && inputEmail.value.trim()) {
+            const email = inputEmail.value.trim();
+            const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            if (!emailValido) {
+                mostrarErroLocal(inputEmail, "Informe um email valido.");
+                ok = false;
+            }
+        }
+
+        if (inputTelefone && inputTelefone.value.trim()) {
+            const digits = inputTelefone.value.replace(/\D/g, "");
+            const telValido = digits.length === 10 || digits.length === 11;
+            if (!telValido) {
+                mostrarErroLocal(inputTelefone, "Informe um telefone valido com DDD.");
+                ok = false;
+            }
+        }
+
+        return ok;
+    }
+
+    if (formPerfil) {
+        formPerfil.addEventListener("submit", (event) => {
+            if (!validarContatoLocal()) {
+                event.preventDefault();
+            }
+        });
+    }
 });
 </script>
 
