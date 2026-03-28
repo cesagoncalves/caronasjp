@@ -82,7 +82,7 @@
                     <div class="{% if user == carona.motorista %}col-6 col-md-3{% else %}col-4{% endif %}">
                         <div class="border rounded-3 p-3 h-100">
                             <i class="bi bi-calendar-event fs-3 text-primary"></i>
-                            <p class="fw-bold mb-0">{{ carona.data|friendly_date }}</p>
+                            <p class="fw-bold mb-0 text-center w-100">{{ carona.data|friendly_date }}</p>
                         </div>
                     </div>
 
@@ -412,9 +412,6 @@
                                     <a href="{% url 'encomendas_carona' carona.id %}" class="btn btn-outline-primary">
                                         <i class="bi bi-box-seam"></i> Visualizar detalhes das encomendas
                                     </a>
-                                    <a href="{% url 'passageiros_carona' carona.id %}" class="btn btn-outline-primary">
-                                        <i class="bi bi-people"></i> Visualizar detalhes dos passageiros
-                                    </a>
                                 </div>
                                 <div class="js-paginated-panel" data-page-size="4">
                                 <div class="list-group list-group-flush">
@@ -518,6 +515,15 @@
     if (window.__modalDetalhePadraoInit) return;
     window.__modalDetalhePadraoInit = true;
 
+    const reposicionarPainelMotorista = () => {
+        document.querySelectorAll(".modal .modal-body").forEach((body) => {
+            const painelMotorista = body.querySelector(".js-painel-motorista");
+            const origemDestino = body.querySelector(".js-origem-destino");
+            if (!painelMotorista || !origemDestino) return;
+            body.insertBefore(painelMotorista, origemDestino);
+        });
+    };
+
     const initPaginacaoModal = () => {
         document.querySelectorAll(".js-paginated-panel").forEach((panel) => {
             if (panel.dataset.paginatedReady === "1") return;
@@ -570,9 +576,11 @@
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () => {
+            reposicionarPainelMotorista();
             initPaginacaoModal();
         });
     } else {
+        reposicionarPainelMotorista();
         initPaginacaoModal();
     }
 })();

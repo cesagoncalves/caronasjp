@@ -77,6 +77,19 @@
 .card-carona-disponivel .motorista-vagas {
     margin-top: 6px;
 }
+.card-carona-disponivel .motorista-foto-slot {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.card-carona-disponivel .motorista-foto-slot img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+}
 .card-carona-disponivel .valor-linha {
     margin-top: 6px;
 }
@@ -128,6 +141,15 @@
         gap: 8px;
     }
     .card-carona-disponivel .card-body img.rounded-circle {
+        width: 36px;
+        height: 36px;
+    }
+    .card-carona-disponivel .motorista-foto-slot {
+        width: 40px;
+        height: 40px;
+        flex-basis: 40px;
+    }
+    .card-carona-disponivel .motorista-foto-slot img {
         width: 36px;
         height: 36px;
     }
@@ -330,9 +352,8 @@
                     <span><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ carona.destino }}</span>
                 </div>
                 <div class="text-muted small">
-                    <span class="me-1">📅</span>{{ carona.data|friendly_date }}
-                    <span class="mx-1">·</span>
-                    <span class="me-1">🕒</span>{{ carona.hora|time:"H:i" }}
+                    <div><span class="me-1">📅</span>{{ carona.data|friendly_date }}</div>
+                    <div><span class="me-1">🕒</span>{{ carona.hora|time:"H:i" }}</div>
                 </div>
                 <div class="valor-linha">
                     {% if carona.tipo_valor == "gratuita" %}
@@ -391,22 +412,20 @@
                     </div>
                 </div>
 
-                {% if carona.motorista.foto %}
-                    <img src="{{ carona.motorista.foto.url }}"
-                         class="rounded-circle shadow-sm js-foto-motorista"
-                         data-src="{{ carona.motorista.foto.url }}"
-                         data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
-                         width="40" height="40"
-                         style="object-fit:cover;"
-                         onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
-                {% else %}
-                    <img src="{% static 'img/avatar_padrao.jpg' %}"
-                         class="rounded-circle shadow-sm js-foto-motorista"
-                         data-src="{% static 'img/avatar_padrao.jpg' %}"
-                         data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
-                         width="40" height="40"
-                         style="object-fit:cover;">
-                {% endif %}
+                <div class="motorista-foto-slot">
+                    {% if carona.motorista.foto %}
+                        <img src="{{ carona.motorista.foto.url }}"
+                             class="rounded-circle shadow-sm js-foto-motorista"
+                             data-src="{{ carona.motorista.foto.url }}"
+                             data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
+                             onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
+                    {% else %}
+                        <img src="{% static 'img/avatar_padrao.jpg' %}"
+                             class="rounded-circle shadow-sm js-foto-motorista"
+                             data-src="{% static 'img/avatar_padrao.jpg' %}"
+                             data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}">
+                    {% endif %}
+                </div>
             </div>
 
         </div>
@@ -425,7 +444,7 @@
 
 </div>
 
-{% include "viagens/modals/modal_detalhe_carona.html" %}
+{% include "viagens/modals/modal_detalhe_carona.html" with carona=carona %}
 {% empty %}
 <div class="alert alert-info text-center">Não há caronas no momento.</div>
 {% endfor %}

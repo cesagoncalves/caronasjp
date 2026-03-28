@@ -193,6 +193,9 @@
         object-fit: contain;
         background: #f8f9fa;
     }
+    #modalImagemZoom {
+        z-index: 3000;
+    }
 
     @media (min-width: 768px) {
         .notification-bell {
@@ -936,7 +939,7 @@
 </div>
 {% endif %}
 
-<div class="modal fade" id="modalImagemZoom" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalImagemZoom" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow rounded-4">
             <div class="modal-body text-center p-3">

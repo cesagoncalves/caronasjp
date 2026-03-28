@@ -370,7 +370,7 @@ def lista_caronas(request):
                 x["carona"].data,
                 x["carona"].hora,
             ),
-            reverse=True
+            reverse=False
         )
 
         if hasattr(caronas, "values_list"):

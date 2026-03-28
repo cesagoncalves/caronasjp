@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% load filters %}
 
 {% block content %}
@@ -21,8 +22,14 @@
             <div class="card border-0 shadow-sm rounded-3 mb-3">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                        <div>
-                            <h5 class="mb-1">{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}</h5>
+                        <div class="d-flex align-items-start gap-2">
+                            {% if solicitacao.solicitante and solicitacao.solicitante.foto %}
+                                <img src="{{ solicitacao.solicitante.foto.url }}" width="52" height="52" class="rounded-circle" style="object-fit:cover;" onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
+                            {% else %}
+                                <img src="{% static 'img/avatar_padrao.jpg' %}" width="52" height="52" class="rounded-circle" style="object-fit:cover;">
+                            {% endif %}
+                            <div>
+                                <h5 class="mb-1">{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}</h5>
                             <div class="small mb-1">
                                 <a href="https://wa.me/{{ solicitacao.telefone_solicitante|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}" target="_blank" rel="noopener" class="text-decoration-none">
                                     <i class="bi bi-whatsapp me-1"></i>{{ solicitacao.telefone_solicitante }}
@@ -34,6 +41,7 @@
                             {% if solicitacao.endereco_destino_solicitante %}
                                 <div class="text-muted small"><i class="bi bi-signpost-2-fill me-1"></i>Destino: {{ solicitacao.endereco_destino_solicitante }}</div>
                             {% endif %}
+                            </div>
                         </div>
                         <span class="badge bg-warning text-dark">Pendente</span>
                     </div>
@@ -69,8 +77,14 @@
             <div class="card border-0 shadow-sm rounded-3 mb-3">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                        <div>
-                            <h5 class="mb-1">{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}</h5>
+                        <div class="d-flex align-items-start gap-2">
+                            {% if solicitacao.solicitante and solicitacao.solicitante.foto %}
+                                <img src="{{ solicitacao.solicitante.foto.url }}" width="52" height="52" class="rounded-circle" style="object-fit:cover;" onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
+                            {% else %}
+                                <img src="{% static 'img/avatar_padrao.jpg' %}" width="52" height="52" class="rounded-circle" style="object-fit:cover;">
+                            {% endif %}
+                            <div>
+                                <h5 class="mb-1">{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}</h5>
                             <div class="small mb-1">
                                 <a href="https://wa.me/{{ solicitacao.telefone_solicitante|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}" target="_blank" rel="noopener" class="text-decoration-none">
                                     <i class="bi bi-whatsapp me-1"></i>{{ solicitacao.telefone_solicitante }}
@@ -82,6 +96,7 @@
                             {% if solicitacao.endereco_destino_solicitante %}
                                 <div class="text-muted small"><i class="bi bi-signpost-2-fill me-1"></i>Destino: {{ solicitacao.endereco_destino_solicitante }}</div>
                             {% endif %}
+                            </div>
                         </div>
                         <span class="badge bg-success">Aceito</span>
                     </div>
