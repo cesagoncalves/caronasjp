@@ -122,37 +122,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const inputEmail = document.getElementById("id_email");
     const inputTelefone = document.getElementById("id_telefone");
 
-    const cropSquare = (file, size = 700) => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const img = new Image();
-            img.onload = () => {
-                const side = Math.min(img.width, img.height);
-                const sx = Math.floor((img.width - side) / 2);
-                const sy = Math.floor((img.height - side) / 2);
-                const canvas = document.createElement("canvas");
-                canvas.width = size;
-                canvas.height = size;
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
-                canvas.toBlob((blob) => {
-                    if (!blob) return reject(new Error("Falha ao processar imagem"));
-                    resolve(new File([blob], "perfil.jpg", { type: "image/jpeg" }));
-                }, "image/jpeg", 0.9);
-            };
-            img.onerror = reject;
-            img.src = reader.result;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-
     if (inputFoto && preview) {
         inputFoto.addEventListener("change", async () => {
             const file = inputFoto.files && inputFoto.files[0];
             if (!file) return;
             try {
-                const croppedFile = await cropSquare(file);
+                const croppedFile = typeof window.openImageCropper === "function"
+                    ? await window.openImageCropper(file, {
+                        aspectRatio: 1,
+                        outputWidth: 700,
+                        fileName: "perfil.jpg",
+                    })
+                    : file;
+                if (!croppedFile) return;
                 const dt = new DataTransfer();
                 dt.items.add(croppedFile);
                 inputFoto.files = dt.files;

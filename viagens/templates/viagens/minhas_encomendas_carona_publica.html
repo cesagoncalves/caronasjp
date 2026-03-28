@@ -9,7 +9,7 @@ data-page="encomendas-carona-local" data-carona-id="{{ carona_id }}"
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <h2 class="mb-0">Minhas Encomendas da Viagem</h2>
-        <a href="{% url 'minhas_encomendas_passageiro' %}" class="btn btn-outline-secondary">
+        <a href="{% url 'minhas_encomendas_passageiro' %}" class="btn btn-outline-secondary" onclick="if(document.referrer){history.back();return false;}">
             <i class="bi bi-arrow-left"></i> Voltar
         </a>
     </div>

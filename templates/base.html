@@ -196,6 +196,33 @@
     #modalImagemZoom {
         z-index: 3000;
     }
+    .cropper-stage {
+        width: min(86vw, 360px);
+        margin: 0 auto;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #111;
+        position: relative;
+        touch-action: none;
+    }
+    .cropper-stage::before {
+        content: "";
+        display: block;
+        padding-top: var(--cropper-padding, 100%);
+    }
+    .cropper-image {
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        max-width: none;
+        user-select: none;
+        -webkit-user-drag: none;
+        cursor: grab;
+        transform-origin: center center;
+    }
+    .cropper-image.dragging {
+        cursor: grabbing;
+    }
 
     @media (min-width: 768px) {
         .notification-bell {
@@ -857,26 +884,72 @@
 
             <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                     type="button" data-bs-toggle="collapse" data-bs-target="#menuPassageiroMobile" aria-expanded="false">
-                <span><i class="bi bi-person-fill me-2 text-success"></i> Passageiro</span>
+                <span class="{% if qtd_notificacoes_passageiro > 0 %}text-warning fw-bold{% endif %}">
+                    <i class="bi bi-person-fill me-2 text-success"></i> Passageiro
+                    {% if qtd_notificacoes_passageiro > 0 %}
+                        <span class="badge bg-danger ms-1">{{ qtd_notificacoes_passageiro }}</span>
+                    {% endif %}
+                </span>
                 <i class="bi bi-chevron-down small"></i>
             </button>
             <div class="collapse mobile-submenu" id="menuPassageiroMobile">
-                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_viagens' %}">Minhas Viagens</a>
-                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_solicitacoes' %}">Minhas Solicitações</a>
-                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_encomendas_passageiro' %}">Minhas Encomendas</a>
+                <a class="list-group-item list-group-item-action border-0 {% if qtd_viagens_novas > 0 %}text-warning fw-bold{% endif %}" id="nav-minhas-viagens-mobile" href="{% url 'minhas_viagens' %}">
+                    Minhas Viagens
+                    {% if qtd_viagens_novas > 0 %}
+                        <span class="badge bg-danger ms-1" id="badge-viagens-mobile">{{ qtd_viagens_novas }}</span>
+                    {% else %}
+                        <span class="badge bg-danger ms-1 d-none" id="badge-viagens-mobile">0</span>
+                    {% endif %}
+                </a>
+                <a class="list-group-item list-group-item-action border-0 {% if qtd_solicitacoes_novas > 0 %}text-warning fw-bold{% endif %}" id="nav-minhas-solicitacoes-mobile" href="{% url 'minhas_solicitacoes' %}">
+                    Minhas Solicitações
+                    {% if qtd_solicitacoes_novas > 0 %}
+                        <span class="badge bg-danger ms-1" id="badge-solicitacoes-mobile">{{ qtd_solicitacoes_novas }}</span>
+                    {% else %}
+                        <span class="badge bg-danger ms-1 d-none" id="badge-solicitacoes-mobile">0</span>
+                    {% endif %}
+                </a>
+                <a class="list-group-item list-group-item-action border-0 {% if qtd_encomendas_novas > 0 %}text-warning fw-bold{% endif %}" id="nav-minhas-encomendas-mobile" href="{% url 'minhas_encomendas_passageiro' %}">
+                    Minhas Encomendas
+                    {% if qtd_encomendas_novas > 0 %}
+                        <span class="badge bg-danger ms-1" id="badge-encomendas-mobile">{{ qtd_encomendas_novas }}</span>
+                    {% else %}
+                        <span class="badge bg-danger ms-1 d-none" id="badge-encomendas-mobile">0</span>
+                    {% endif %}
+                </a>
             </div>
 
             <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                     type="button" data-bs-toggle="collapse" data-bs-target="#menuMotoristaMobile" aria-expanded="false">
-                <span><i class="bi bi-car-front-fill me-2 text-primary"></i> Motorista</span>
+                <span class="{% if qtd_notificacoes_motorista > 0 %}text-warning fw-bold{% endif %}">
+                    <i class="bi bi-car-front-fill me-2 text-primary"></i> Motorista
+                    {% if qtd_notificacoes_motorista > 0 %}
+                        <span class="badge bg-danger ms-1">{{ qtd_notificacoes_motorista }}</span>
+                    {% endif %}
+                </span>
                 <i class="bi bi-chevron-down small"></i>
             </button>
             <div class="collapse mobile-submenu" id="menuMotoristaMobile">
                 <a class="list-group-item list-group-item-action border-0" href="{% url 'criar_carona' %}">Oferecer Carona</a>
-                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_caronas' %}">Minhas Caronas</a>
+                <a class="list-group-item list-group-item-action border-0 {% if qtd_eventos_motorista > 0 %}text-warning fw-bold{% endif %}" href="{% url 'minhas_caronas' %}">
+                    Minhas Caronas
+                    {% if qtd_eventos_motorista > 0 %}
+                        <span class="badge bg-danger ms-1">{{ qtd_eventos_motorista }}</span>
+                    {% endif %}
+                </a>
                 <a class="list-group-item list-group-item-action border-0" href="{% url 'meus_veiculos' %}">Meus Veículos</a>
-                <a class="list-group-item list-group-item-action border-0" href="{% url 'minhas_encomendas' %}">Minhas Encomendas</a>
-                <a class="list-group-item list-group-item-action border-0" href="{% url 'gerenciar_solicitacoes' %}">Solicitacões Recebidas</a>
+                <a class="list-group-item list-group-item-action border-0 {% if qtd_eventos_motorista_encomendas > 0 %}text-warning fw-bold{% endif %}" href="{% url 'minhas_encomendas' %}">
+                    Minhas Encomendas
+                    {% if qtd_eventos_motorista_encomendas > 0 %}
+                        <span class="badge bg-danger ms-1">{{ qtd_eventos_motorista_encomendas }}</span>
+                    {% endif %}
+                </a>
+                <a class="list-group-item list-group-item-action border-0 {% if qtd_solicitacoes_pendentes > 0 %}text-warning fw-bold{% endif %}" href="{% url 'gerenciar_solicitacoes' %}">
+                    Solicitacões Recebidas
+                    {% if qtd_solicitacoes_pendentes > 0 %}
+                        <span class="badge bg-danger ms-1">{{ qtd_solicitacoes_pendentes }}</span>
+                    {% endif %}
+                </a>
             </div>
 
             <a class="list-group-item list-group-item-action" href="{% url 'perfil' %}">
@@ -908,14 +981,17 @@
             <a class="list-group-item list-group-item-action" href="{% url 'historico_viagens' %}">
                 <i class="bi bi-clock-history me-2 text-primary"></i> Histórico
             </a>
-            <a class="list-group-item list-group-item-action" href="{% url 'minhas_viagens' %}">
+            <a class="list-group-item list-group-item-action position-relative" id="nav-minhas-viagens-mobile" href="{% url 'minhas_viagens' %}">
                 <i class="bi bi-calendar-event me-2 text-primary"></i> Minhas Viagens
+                <span id="badge-viagens-mobile" class="badge bg-danger ms-1 d-none">0</span>
             </a>
-            <a class="list-group-item list-group-item-action" href="{% url 'minhas_solicitacoes' %}">
+            <a class="list-group-item list-group-item-action position-relative" id="nav-minhas-solicitacoes-mobile" href="{% url 'minhas_solicitacoes' %}">
                 <i class="bi bi-inbox me-2 text-primary"></i> Minhas Solicitações
+                <span id="badge-solicitacoes-mobile" class="badge bg-danger ms-1 d-none">0</span>
             </a>
-            <a class="list-group-item list-group-item-action" href="{% url 'minhas_encomendas_passageiro' %}">
+            <a class="list-group-item list-group-item-action position-relative" id="nav-minhas-encomendas-mobile" href="{% url 'minhas_encomendas_passageiro' %}">
                 <i class="bi bi-box-seam me-2 text-primary"></i> Minhas Encomendas
+                <span id="badge-encomendas-mobile" class="badge bg-danger ms-1 d-none">0</span>
             </a>
         </div>
         <div class="p-3 guest-cta d-grid gap-2">
@@ -939,12 +1015,36 @@
 </div>
 {% endif %}
 
-<div class="modal fade" id="modalImagemZoom" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
+<div class="modal fade" id="modalImagemZoom" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow rounded-4">
             <div class="modal-body text-center p-3">
                 <img id="imagemZoomAmpliada" src="" class="img-fluid rounded-3 img-zoom-preview" alt="Imagem ampliada">
                 <p id="tituloImagemZoom" class="mt-2 mb-0 fw-semibold"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalImageCropper" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajustar corte</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="cropperStage" class="cropper-stage" style="--cropper-padding:100%;">
+                    <img id="cropperImage" class="cropper-image" alt="Recorte">
+                </div>
+                <div class="mt-3">
+                    <label for="cropperZoom" class="form-label small text-muted mb-1">Zoom</label>
+                    <input id="cropperZoom" type="range" min="1" max="4" step="0.01" value="1" class="form-range">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnCropperApply">Aplicar corte</button>
             </div>
         </div>
     </div>
@@ -1113,11 +1213,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const titulo = document.getElementById("tituloImagemZoom");
     const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
     if (!modal || !imgAmpliada || !titulo) return;
+    let modalPaiAbertoId = null;
 
     const abrirZoom = (img, event) => {
         if (!img) return;
         event.preventDefault();
         event.stopPropagation();
+        const modalPai = img.closest(".modal.show");
+        modalPaiAbertoId = modalPai ? modalPai.id : null;
+        if (modalPaiAbertoId) {
+            bootstrap.Modal.getOrCreateInstance(modalPai).hide();
+        }
         imgAmpliada.src = img.dataset.src || img.src;
         imgAmpliada.classList.remove("zoom-2");
         titulo.textContent = img.dataset.nome || img.alt || "Imagem";
@@ -1141,6 +1247,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     imgAmpliada.addEventListener("click", () => {
         imgAmpliada.classList.toggle("zoom-2");
+    });
+
+    modalEl.addEventListener("hidden.bs.modal", () => {
+        if (!modalPaiAbertoId) return;
+        const modalPai = document.getElementById(modalPaiAbertoId);
+        modalPaiAbertoId = null;
+        if (!modalPai) return;
+        bootstrap.Modal.getOrCreateInstance(modalPai).show();
     });
 });
 </script>
@@ -1168,6 +1282,182 @@ document.addEventListener("DOMContentLoaded", () => {
         imgAmpliada.classList.toggle("zoom-2");
     });
 });
+</script>
+
+<script>
+(function () {
+    let cropperReady = false;
+    let cropState = null;
+
+    function clamp(val, min, max) {
+        return Math.max(min, Math.min(max, val));
+    }
+
+    function ensureCropperReady() {
+        if (cropperReady) return true;
+        const modalEl = document.getElementById("modalImageCropper");
+        const stage = document.getElementById("cropperStage");
+        const img = document.getElementById("cropperImage");
+        const zoom = document.getElementById("cropperZoom");
+        const btnApply = document.getElementById("btnCropperApply");
+        if (!modalEl || !stage || !img || !zoom || !btnApply || !window.bootstrap) return false;
+
+        const modal = new bootstrap.Modal(modalEl);
+        cropState = {
+            modalEl, modal, stage, img, zoom, btnApply,
+            resolve: null, reject: null, options: null,
+            imageEl: null, imgW: 0, imgH: 0, scale: 1, minScale: 1, x: 0, y: 0,
+            dragging: false, startX: 0, startY: 0, originX: 0, originY: 0
+        };
+
+        const render = () => {
+            if (!cropState) return;
+            cropState.img.style.transform = `translate(${cropState.x}px, ${cropState.y}px) scale(${cropState.scale})`;
+        };
+
+        const clampPosition = () => {
+            const frameW = cropState.stage.clientWidth;
+            const frameH = cropState.stage.clientHeight;
+            const scaledW = cropState.imgW * cropState.scale;
+            const scaledH = cropState.imgH * cropState.scale;
+            const maxX = Math.max(0, (scaledW - frameW) / 2);
+            const maxY = Math.max(0, (scaledH - frameH) / 2);
+            cropState.x = clamp(cropState.x, -maxX, maxX);
+            cropState.y = clamp(cropState.y, -maxY, maxY);
+        };
+
+        const updateZoomBounds = () => {
+            const frameW = cropState.stage.clientWidth;
+            const frameH = cropState.stage.clientHeight;
+            cropState.minScale = Math.max(frameW / cropState.imgW, frameH / cropState.imgH);
+            cropState.scale = Math.max(cropState.scale, cropState.minScale);
+            cropState.zoom.min = String(cropState.minScale);
+            cropState.zoom.max = String(cropState.minScale * 4);
+            cropState.zoom.value = String(cropState.scale);
+            clampPosition();
+            render();
+        };
+
+        zoom.addEventListener("input", () => {
+            cropState.scale = Number(cropState.zoom.value || cropState.minScale);
+            clampPosition();
+            render();
+        });
+
+        stage.addEventListener("pointerdown", (e) => {
+            e.preventDefault();
+            cropState.dragging = true;
+            cropState.startX = e.clientX;
+            cropState.startY = e.clientY;
+            cropState.originX = cropState.x;
+            cropState.originY = cropState.y;
+            cropState.img.classList.add("dragging");
+        });
+
+        window.addEventListener("pointermove", (e) => {
+            if (!cropState.dragging) return;
+            cropState.x = cropState.originX + (e.clientX - cropState.startX);
+            cropState.y = cropState.originY + (e.clientY - cropState.startY);
+            clampPosition();
+            render();
+        });
+
+        window.addEventListener("pointerup", () => {
+            if (!cropState.dragging) return;
+            cropState.dragging = false;
+            cropState.img.classList.remove("dragging");
+        });
+
+        btnApply.addEventListener("click", async () => {
+            if (!cropState.imageEl || !cropState.resolve) return;
+            const frameW = cropState.stage.clientWidth;
+            const frameH = cropState.stage.clientHeight;
+            const aspect = cropState.options.aspectRatio || 1;
+            const outW = cropState.options.outputWidth || 1000;
+            const outH = Math.round(outW / aspect);
+
+            const srcW = frameW / cropState.scale;
+            const srcH = frameH / cropState.scale;
+            const srcX = (cropState.imgW - srcW) / 2 - (cropState.x / cropState.scale);
+            const srcY = (cropState.imgH - srcH) / 2 - (cropState.y / cropState.scale);
+
+            const canvas = document.createElement("canvas");
+            canvas.width = outW;
+            canvas.height = outH;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(
+                cropState.imageEl,
+                srcX, srcY, srcW, srcH,
+                0, 0, outW, outH
+            );
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    cropState.resolve(null);
+                    cropState.resolve = null;
+                    cropState.modal.hide();
+                    return;
+                }
+                const fileName = cropState.options.fileName || "imagem.jpg";
+                const file = new File([blob], fileName, { type: "image/jpeg" });
+                cropState.resolve(file);
+                cropState.resolve = null;
+                cropState.modal.hide();
+            }, "image/jpeg", cropState.options.quality || 0.9);
+        });
+
+        modalEl.addEventListener("hidden.bs.modal", () => {
+            if (!cropState || !cropState.resolve) return;
+            cropState.resolve(null);
+            cropState.resolve = null;
+            cropState.reject = null;
+            cropState.options = null;
+            cropState.imageEl = null;
+        });
+
+        window.openImageCropper = (file, options = {}) => {
+            if (!file) return Promise.resolve(null);
+            return new Promise((resolve, reject) => {
+                cropState.resolve = resolve;
+                cropState.reject = reject;
+                cropState.options = {
+                    aspectRatio: options.aspectRatio || 1,
+                    outputWidth: options.outputWidth || 1000,
+                    quality: options.quality || 0.9,
+                    fileName: options.fileName || "imagem.jpg",
+                };
+                const aspect = cropState.options.aspectRatio;
+                const percent = `${100 / aspect}%`;
+                cropState.stage.style.setProperty("--cropper-padding", percent);
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const imageEl = new Image();
+                    imageEl.onload = () => {
+                        cropState.imageEl = imageEl;
+                        cropState.imgW = imageEl.width;
+                        cropState.imgH = imageEl.height;
+                        cropState.img.src = imageEl.src;
+                        cropState.scale = 1;
+                        cropState.x = 0;
+                        cropState.y = 0;
+                        cropState.modal.show();
+                        requestAnimationFrame(updateZoomBounds);
+                    };
+                    imageEl.onerror = () => resolve(null);
+                    imageEl.src = reader.result;
+                };
+                reader.onerror = () => resolve(null);
+                reader.readAsDataURL(file);
+            });
+        };
+
+        cropperReady = true;
+        return true;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        ensureCropperReady();
+    });
+})();
 </script>
 
 

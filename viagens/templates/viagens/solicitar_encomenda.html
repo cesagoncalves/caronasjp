@@ -64,7 +64,7 @@
                 </button>
             </form>
 
-            <a href="{% url 'lista_caronas' %}" class="btn btn-outline-secondary w-100 mt-3 py-2">
+            <a href="{% url 'lista_caronas' %}" class="btn btn-outline-secondary w-100 mt-3 py-2" onclick="if(document.referrer){history.back();return false;}">
                 <i class="bi bi-arrow-left"></i> Voltar para lista
             </a>
         </div>
@@ -117,43 +117,6 @@
     const previewWrap = document.getElementById("previewFotoEncomendaWrap");
     const previewFoto = document.getElementById("previewFotoEncomenda");
 
-    const cropRatio = (file, ratioW = 4, ratioH = 3, maxW = 1200) => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const img = new Image();
-            img.onload = () => {
-                const targetRatio = ratioW / ratioH;
-                const sourceRatio = img.width / img.height;
-                let sx = 0;
-                let sy = 0;
-                let sw = img.width;
-                let sh = img.height;
-                if (sourceRatio > targetRatio) {
-                    sw = Math.floor(img.height * targetRatio);
-                    sx = Math.floor((img.width - sw) / 2);
-                } else if (sourceRatio < targetRatio) {
-                    sh = Math.floor(img.width / targetRatio);
-                    sy = Math.floor((img.height - sh) / 2);
-                }
-                const outW = Math.min(maxW, sw);
-                const outH = Math.round(outW / targetRatio);
-                const canvas = document.createElement("canvas");
-                canvas.width = outW;
-                canvas.height = outH;
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(img, sx, sy, sw, sh, 0, 0, outW, outH);
-                canvas.toBlob((blob) => {
-                    if (!blob) return reject(new Error("Falha ao processar imagem"));
-                    resolve(new File([blob], "encomenda.jpg", { type: "image/jpeg" }));
-                }, "image/jpeg", 0.9);
-            };
-            img.onerror = reject;
-            img.src = reader.result;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-
     if (inputFotoEncomenda) {
         inputFotoEncomenda.addEventListener("change", async () => {
             const file = inputFotoEncomenda.files && inputFotoEncomenda.files[0];
@@ -162,7 +125,14 @@
                 return;
             }
             try {
-                const croppedFile = await cropRatio(file);
+                const croppedFile = typeof window.openImageCropper === "function"
+                    ? await window.openImageCropper(file, {
+                        aspectRatio: 4 / 3,
+                        outputWidth: 1200,
+                        fileName: "encomenda.jpg",
+                    })
+                    : file;
+                if (!croppedFile) return;
                 const dt = new DataTransfer();
                 dt.items.add(croppedFile);
                 inputFotoEncomenda.files = dt.files;
