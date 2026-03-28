@@ -151,7 +151,7 @@ def lista_caronas(request):
         carona.encomendas_pendentes = carona.solicitacoes.filter(tipo="encomenda", status="pendente").count()
         carona.encomendas_ativas = carona.solicitacoes.filter(
             tipo="encomenda",
-            status__in=["pendente", "aceita"]
+            status="aceita"
         ).count()
 
         if request.user.is_authenticated and request.user != carona.motorista:
@@ -219,9 +219,16 @@ def lista_caronas(request):
     destino = request.GET.get('destino')
     data = request.GET.get('data')
     hora = request.GET.get('hora')
+    vagas_min = request.GET.get("vagas_min")
     motorista = request.GET.get('motorista')
     tipos = request.GET.getlist("tipos")
     tipos_validos = [t for t in tipos if t in {"carro", "moto", "van", "onibus"}]
+    vagas_min_valor = None
+    if vagas_min:
+        try:
+            vagas_min_valor = max(int(vagas_min), 1)
+        except (TypeError, ValueError):
+            vagas_min_valor = None
 
     if data:
         caronas = caronas.filter(data=data)
@@ -242,6 +249,9 @@ def lista_caronas(request):
             and (not destino or match_cidade(destino, c.destino))
         ]
 
+    if vagas_min_valor:
+        caronas = [c for c in caronas if c.vagas_restantes >= vagas_min_valor]
+
     partes_resumo = []
     if origem:
         partes_resumo.append(f"saindo de {origem}")
@@ -260,6 +270,8 @@ def lista_caronas(request):
                 partes_resumo.append(f"em {data_ref}")
     if hora:
         partes_resumo.append(f"a partir de {hora}")
+    if vagas_min_valor:
+        partes_resumo.append(f"a partir de {vagas_min_valor} vaga(s)")
     if tipos_validos:
         labels_tipos = {
             "carro": "carro",
@@ -378,6 +390,7 @@ def lista_caronas(request):
         'destino': destino or "",
         'data': data or "",
         'hora': hora or "",
+        "vagas_min": vagas_min_valor or "",
         'motorista': motorista or "",
         "tipos_selecionados": tipos_validos,
         "resumo_filtros": resumo_filtros,
@@ -1061,16 +1074,20 @@ def minhas_viagens(request):
             lida=False
         ).update(lida=True)
 
-        viagens = Solicitacao.objects.filter(
+        viagens_base = Solicitacao.objects.filter(
             solicitante=request.user,
             tipo='carona',
             status='aceita',
-            carona__status='ativa'  
-        ).select_related('carona').order_by('carona__data', 'carona__hora', '-data_solicitacao')
+        ).select_related('carona', 'carona__motorista')
+        viagens_ativas = viagens_base.filter(
+            carona__status='ativa'
+        ).order_by('carona__data', 'carona__hora', '-data_solicitacao')
+        viagens_recentes = viagens_base.order_by("-data_solicitacao")[:6]
 
 
         return render(request, 'viagens/minhas_viagens.html', {
-            'viagens': viagens,
+            'viagens_ativas': viagens_ativas,
+            'viagens_recentes': viagens_recentes,
             'modo': 'bd'
         })
 
@@ -1259,9 +1276,22 @@ def editar_veiculo(request, veiculo_id):
         form = VeiculoForm(request.POST, instance=veiculo)
         if form.is_valid():
             form.save()
-            messages.success(request, "Veículo atualizado com sucesso.")
-        else:
-            messages.error(request, "Erro ao atualizar veículo.")
+            messages.success(request, "Veiculo atualizado com sucesso.")
+            return redirect("meus_veiculos")
+
+        messages.error(request, "Erro ao atualizar veiculo.")
+        veiculos = Veiculo.objects.filter(motorista=request.user)
+        return render(
+            request,
+            "viagens/meus_veiculos.html",
+            {
+                "veiculos": veiculos,
+                "veiculo_form": VeiculoForm(),
+                "invalid_edit_veiculo_id": veiculo.id,
+                "invalid_edit_data": request.POST,
+                "invalid_edit_errors": form.errors,
+            },
+        )
 
     return redirect("meus_veiculos")
 
@@ -1475,11 +1505,19 @@ def minhas_caronas_view(request):
         ).count()
         carona.encomendas_ativas = carona.solicitacoes.filter(
             tipo='encomenda',
-            status__in=['pendente', 'aceita']
+            status='aceita'
         ).count()
 
+    caronas_recentes = (
+        Carona.objects
+        .filter(motorista=request.user)
+        .exclude(status="ativa")
+        .order_by("-data", "-hora", "-criado_em")[:6]
+    )
+
     return render(request, "viagens/minhas_caronas.html", {
-        "caronas": caronas
+        "caronas": caronas,
+        "caronas_recentes": caronas_recentes,
     })
 
 
@@ -1494,21 +1532,17 @@ def encomendas_carona(request, carona_id):
         carona=carona,
     ).update(lida=True)
 
-    mostrar_todas = request.GET.get("todas") == "1"
-
     encomendas = Solicitacao.objects.filter(
         carona=carona,
         tipo="encomenda",
+        status__in=["pendente", "aceita"],
     )
-    if not mostrar_todas:
-        encomendas = encomendas.filter(status__in=["pendente", "aceita"])
 
     encomendas = encomendas.select_related("solicitante", "carona").order_by("carona__data", "carona__hora", "-data_solicitacao")
 
     return render(request, "viagens/encomendas_carona.html", {
         "carona": carona,
         "encomendas": encomendas,
-        "mostrar_todas": mostrar_todas,
     })
 
 
@@ -1529,6 +1563,28 @@ def detalhe_encomenda(request, encomenda_id):
 
     return render(request, "viagens/detalhe_encomenda.html", {
         "encomenda": encomenda,
+    })
+
+
+@login_required
+def passageiros_carona(request, carona_id):
+    carona = get_object_or_404(Carona, id=carona_id, motorista=request.user)
+    passageiros_pendentes = (
+        Solicitacao.objects
+        .filter(carona=carona, tipo="carona", status="pendente")
+        .select_related("solicitante")
+        .order_by("-data_solicitacao")
+    )
+    passageiros_aceitos = (
+        Solicitacao.objects
+        .filter(carona=carona, tipo="carona", status="aceita")
+        .select_related("solicitante")
+        .order_by("-data_solicitacao")
+    )
+    return render(request, "viagens/passageiros_carona.html", {
+        "carona": carona,
+        "passageiros_pendentes": passageiros_pendentes,
+        "passageiros_aceitos": passageiros_aceitos,
     })
 
 
@@ -1666,6 +1722,7 @@ def marcar_notificacoes_como_lidas(request):
 def limpar_notificacoes(request):
     Notificacao.objects.filter(usuario=request.user).delete()
     return JsonResponse({"status": "ok"})
+
 
 
 

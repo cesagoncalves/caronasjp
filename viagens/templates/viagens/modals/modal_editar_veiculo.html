@@ -1,5 +1,5 @@
 <div class="modal fade" id="modalEditarVeiculo{{ veiculo.id }}" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content rounded-4 shadow">
             <div class="modal-header bg-primary text-white rounded-top-4">
                 <h5 class="modal-title">
@@ -15,6 +15,11 @@
                 {% csrf_token %}
 
                 <div class="modal-body">
+                    {% if invalid_edit_veiculo_id == veiculo.id and invalid_edit_errors %}
+                        <div class="alert alert-danger small">
+                            Corrija os campos destacados para salvar.
+                        </div>
+                    {% endif %}
                     <label class="form-label fw-semibold mb-2">
                         Tipo de veiculo
                     </label>
@@ -25,7 +30,7 @@
                                name="tipo"
                                id="tipo_carro_{{ veiculo.id }}"
                                value="carro"
-                               {% if veiculo.tipo == "carro" %}checked{% endif %}>
+                               {% if invalid_edit_veiculo_id == veiculo.id %}{% if invalid_edit_data.tipo == "carro" %}checked{% endif %}{% elif veiculo.tipo == "carro" %}checked{% endif %}>
                         <label class="btn btn-outline-primary flex-fill text-center"
                                for="tipo_carro_{{ veiculo.id }}">
                             <i class="bi bi-car-front-fill fs-3 d-block"></i>
@@ -37,7 +42,7 @@
                                name="tipo"
                                id="tipo_moto_{{ veiculo.id }}"
                                value="moto"
-                               {% if veiculo.tipo == "moto" %}checked{% endif %}>
+                               {% if invalid_edit_veiculo_id == veiculo.id %}{% if invalid_edit_data.tipo == "moto" %}checked{% endif %}{% elif veiculo.tipo == "moto" %}checked{% endif %}>
                         <label class="btn btn-outline-primary flex-fill text-center"
                                for="tipo_moto_{{ veiculo.id }}">
                             <i class="bi bi-bicycle fs-3 d-block"></i>
@@ -49,7 +54,7 @@
                                name="tipo"
                                id="tipo_van_{{ veiculo.id }}"
                                value="van"
-                               {% if veiculo.tipo == "van" %}checked{% endif %}>
+                               {% if invalid_edit_veiculo_id == veiculo.id %}{% if invalid_edit_data.tipo == "van" %}checked{% endif %}{% elif veiculo.tipo == "van" %}checked{% endif %}>
                         <label class="btn btn-outline-primary flex-fill text-center"
                                for="tipo_van_{{ veiculo.id }}">
                             <i class="bi bi-truck-front-fill fs-3 d-block"></i>
@@ -61,14 +66,16 @@
                                name="tipo"
                                id="tipo_onibus_{{ veiculo.id }}"
                                value="onibus"
-                               {% if veiculo.tipo == "onibus" %}checked{% endif %}>
+                               {% if invalid_edit_veiculo_id == veiculo.id %}{% if invalid_edit_data.tipo == "onibus" %}checked{% endif %}{% elif veiculo.tipo == "onibus" %}checked{% endif %}>
                         <label class="btn btn-outline-primary flex-fill text-center"
                                for="tipo_onibus_{{ veiculo.id }}">
                             <i class="bi bi-bus-front-fill fs-3 d-block"></i>
                             <small>Onibus</small>
                         </label>
                     </div>
-
+                    {% if invalid_edit_veiculo_id == veiculo.id and invalid_edit_errors.tipo %}
+                        <div class="text-danger small mt-n2 mb-2">{{ invalid_edit_errors.tipo|join:", " }}</div>
+                    {% endif %}
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label text-muted small">Marca</label>
@@ -79,9 +86,12 @@
                                 <input type="text"
                                        class="form-control"
                                        name="marca"
-                                       value="{{ veiculo.marca|default_if_none:'' }}"
+                                       value="{% if invalid_edit_veiculo_id == veiculo.id %}{{ invalid_edit_data.marca|default:'' }}{% else %}{{ veiculo.marca|default_if_none:'' }}{% endif %}"
                                        maxlength="50">
                             </div>
+                            {% if invalid_edit_veiculo_id == veiculo.id and invalid_edit_errors.marca %}
+                                <div class="text-danger small mt-1">{{ invalid_edit_errors.marca|join:", " }}</div>
+                            {% endif %}
                         </div>
 
                         <div class="col-md-6">
@@ -93,9 +103,12 @@
                                 <input type="text"
                                        class="form-control"
                                        name="modelo"
-                                       value="{{ veiculo.modelo|default_if_none:'' }}"
+                                       value="{% if invalid_edit_veiculo_id == veiculo.id %}{{ invalid_edit_data.modelo|default:'' }}{% else %}{{ veiculo.modelo|default_if_none:'' }}{% endif %}"
                                        maxlength="50">
                             </div>
+                            {% if invalid_edit_veiculo_id == veiculo.id and invalid_edit_errors.modelo %}
+                                <div class="text-danger small mt-1">{{ invalid_edit_errors.modelo|join:", " }}</div>
+                            {% endif %}
                         </div>
 
                         <div class="col-md-6">
@@ -107,9 +120,12 @@
                                 <input type="text"
                                        class="form-control"
                                        name="cor"
-                                       value="{{ veiculo.cor|default_if_none:'' }}"
+                                       value="{% if invalid_edit_veiculo_id == veiculo.id %}{{ invalid_edit_data.cor|default:'' }}{% else %}{{ veiculo.cor|default_if_none:'' }}{% endif %}"
                                        maxlength="30">
                             </div>
+                            {% if invalid_edit_veiculo_id == veiculo.id and invalid_edit_errors.cor %}
+                                <div class="text-danger small mt-1">{{ invalid_edit_errors.cor|join:", " }}</div>
+                            {% endif %}
                         </div>
 
                         <div class="col-md-6">
@@ -121,10 +137,13 @@
                                 <input type="number"
                                        class="form-control"
                                        name="ano"
-                                       value="{{ veiculo.ano|default_if_none:'' }}"
+                                       value="{% if invalid_edit_veiculo_id == veiculo.id %}{{ invalid_edit_data.ano|default:'' }}{% else %}{{ veiculo.ano|default_if_none:'' }}{% endif %}"
                                        min="1900"
                                        max="2100">
                             </div>
+                            {% if invalid_edit_veiculo_id == veiculo.id and invalid_edit_errors.ano %}
+                                <div class="text-danger small mt-1">{{ invalid_edit_errors.ano|join:", " }}</div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -149,3 +168,13 @@
         </div>
     </div>
 </div>
+
+{% if invalid_edit_veiculo_id == veiculo.id %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const modalEl = document.getElementById("modalEditarVeiculo{{ veiculo.id }}");
+    if (!modalEl) return;
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+});
+</script>
+{% endif %}

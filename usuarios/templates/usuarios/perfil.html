@@ -102,7 +102,9 @@
             </form>
 
             <div class="d-flex flex-wrap align-items-stretch gap-2 mt-3">
+                {% if not user.socialaccount_set.exists %}
                 <a href="{% url 'alterar_senha' %}" class="btn btn-outline-secondary d-inline-flex align-items-center">Alterar senha</a>
+                {% endif %}
                 <form method="post" action="{% url 'excluir_conta' %}" class="m-0 d-flex" onsubmit="return confirm('Tem certeza que deseja excluir sua conta? Esta acao nao pode ser desfeita.');">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-outline-danger d-inline-flex align-items-center">Excluir conta</button>

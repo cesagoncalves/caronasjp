@@ -7,23 +7,42 @@ from .migracao_dispositivo import parse_solicitacao_ids, vincular_solicitacoes_d
 
 
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
+    def _resolver_avatar_facebook(self, account, extra):
+        if account.uid:
+            try:
+                info_url = (
+                    f"https://graph.facebook.com/{account.uid}/picture"
+                    "?type=large&width=512&height=512&redirect=false"
+                )
+                response = requests.get(info_url, timeout=10)
+                response.raise_for_status()
+                data = response.json().get("data") or {}
+                if data.get("is_silhouette"):
+                    return None
+                if data.get("url"):
+                    return data["url"]
+            except Exception:
+                pass
+
+        picture = extra.get("picture")
+        if isinstance(picture, dict):
+            data = picture.get("data") or {}
+            if data.get("is_silhouette"):
+                return None
+            url = data.get("url")
+            if url:
+                return url
+        if isinstance(picture, str) and picture and "silhouette" not in picture.lower():
+            return picture
+        return None
+
     def _resolver_avatar_url(self, sociallogin):
         account = sociallogin.account
         extra = account.extra_data or {}
         provider = (account.provider or "").lower()
 
         if provider == "facebook":
-            if account.uid:
-                # Forca um tamanho maior para evitar avatar borrado.
-                return f"https://graph.facebook.com/{account.uid}/picture?type=large&width=512&height=512"
-            picture = extra.get("picture")
-            if isinstance(picture, dict):
-                data = picture.get("data") or {}
-                url = data.get("url")
-                if url:
-                    return url
-            if isinstance(picture, str) and picture:
-                return picture
+            return self._resolver_avatar_facebook(account, extra)
 
         if provider == "google":
             picture = extra.get("picture")

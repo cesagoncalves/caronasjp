@@ -63,13 +63,13 @@
                 <div class="row mb-4 js-origem-destino">
                     <div class="col-md-6 mb-3 mb-md-0 text-center">
                         <div class="mb-2">
-                            <span class="badge bg-dark text-white px-3 py-2">Origem</span>
+                            <span class="badge bg-primary text-white px-3 py-2">Origem</span>
                         </div>
                         <p class="fs-5 fw-semibold mb-0">{{ carona.origem }}</p>
                     </div>
                     <div class="col-md-6 text-center">
                         <div class="mb-2">
-                            <span class="badge bg-dark text-white px-3 py-2">Destino</span>
+                            <span class="badge bg-primary text-white px-3 py-2">Destino</span>
                         </div>
                         <p class="fs-5 fw-semibold mb-0">{{ carona.destino }}</p>
                     </div>
@@ -178,7 +178,7 @@
             <p class="text-muted small mb-0">Motorista</p>
 
             {% if user == carona.motorista %}
-                <span class="badge bg-primary mb-1">Voce</span>
+                <span class="badge bg-primary mb-1">Você</span>
             {% else %}
                 <p class="fw-semibold mb-1">
                     {{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}
@@ -256,6 +256,11 @@
                             {% if passageiros.count == 0 and pendentes.count == 0 %}
                                 <div class="text-muted small ps-1 text-center">Nenhum passageiro confirmado ainda.</div>
                             {% else %}
+                                <div class="mb-3 text-center">
+                                    <a href="{% url 'passageiros_carona' carona.id %}" class="btn btn-outline-primary">
+                                        <i class="bi bi-people"></i> Visualizar detalhes dos passageiros
+                                    </a>
+                                </div>
                                 {% if pendentes.count > 0 %}
                                     <div class="mb-3">
                                         <div class="list-group list-group-flush">
@@ -407,6 +412,9 @@
                                     <a href="{% url 'encomendas_carona' carona.id %}" class="btn btn-outline-primary">
                                         <i class="bi bi-box-seam"></i> Visualizar detalhes das encomendas
                                     </a>
+                                    <a href="{% url 'passageiros_carona' carona.id %}" class="btn btn-outline-primary">
+                                        <i class="bi bi-people"></i> Visualizar detalhes dos passageiros
+                                    </a>
                                 </div>
                                 <div class="js-paginated-panel" data-page-size="4">
                                 <div class="list-group list-group-flush">
@@ -416,6 +424,13 @@
                                                 <div>
                                                     <p class="fw-semibold mb-1">{{ encomenda.solicitante.nome_curto|default:encomenda.nome_solicitante }}</p>
                                                     <div class="small text-muted mb-1">{{ encomenda.descricao_item|default:"Sem descricao" }}</div>
+                                                    {% if encomenda.foto_encomenda %}
+                                                        <img src="{{ encomenda.foto_encomenda.url }}"
+                                                             class="img-fluid rounded border mb-1 js-foto-zoom"
+                                                             style="max-width:90px; max-height:90px; object-fit:cover; cursor:zoom-in;"
+                                                             alt="Foto da encomenda"
+                                                             data-nome="Foto da encomenda">
+                                                    {% endif %}
                                                     {% if encomenda.status == "pendente" %}
                                                         <span class="badge bg-warning text-dark">Pendente</span>
                                                     {% endif %}
@@ -482,7 +497,9 @@
                                 <i class="bi bi-check-circle"></i> Solicitar vaga
                             </a>
                         {% else %}
-                            <span class="badge bg-danger fs-6 px-3 py-2">Lotada</span>
+                            <button type="button" class="btn btn-outline-secondary btn-footer-eq" disabled>
+                                <i class="bi bi-slash-circle me-1"></i> Viagem lotada
+                            </button>
                         {% endif %}
 
                         <a href="{% url 'solicitar_encomenda' carona.id %}" class="btn btn-outline-primary btn-footer-eq">
@@ -500,19 +517,6 @@
 (function () {
     if (window.__modalDetalhePadraoInit) return;
     window.__modalDetalhePadraoInit = true;
-
-    const reposicionarPainelMotorista = () => {
-        document.querySelectorAll(".modal .modal-body").forEach((body) => {
-            const painelMotorista = body.querySelector(".js-painel-motorista");
-            const painelDivider = body.querySelector(".js-painel-motorista-divider");
-            const origemDestino = body.querySelector(".js-origem-destino");
-            if (!painelMotorista || !origemDestino) return;
-            if (painelDivider) {
-                body.insertBefore(painelDivider, origemDestino);
-            }
-            body.insertBefore(painelMotorista, origemDestino);
-        });
-    };
 
     const initPaginacaoModal = () => {
         document.querySelectorAll(".js-paginated-panel").forEach((panel) => {
@@ -566,11 +570,9 @@
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () => {
-            reposicionarPainelMotorista();
             initPaginacaoModal();
         });
     } else {
-        reposicionarPainelMotorista();
         initPaginacaoModal();
     }
 })();

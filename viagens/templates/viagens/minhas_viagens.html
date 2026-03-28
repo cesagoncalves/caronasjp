@@ -49,9 +49,10 @@ data-page="viagens-local"
     <h2 class="mb-4 fw-bold">Minhas Viagens</h2>
 
     {% if modo == 'bd' %}
-        {% if viagens %}
+        {% if viagens_ativas %}
+            <h5 class="fw-bold mb-3 text-center">Viagens ativas</h5>
             <div class="row g-3">
-                {% for v in viagens %}
+                {% for v in viagens_ativas %}
                 <div class="col-12">
                     <div class="card card-viagem card-viagem-clickable" data-modal-target="#modalCarona{{ v.carona.id }}">
                         <div class="card-body p-3">
@@ -83,12 +84,33 @@ data-page="viagens-local"
                 </div>
                 {% endfor %}
             </div>
-            {% for v in viagens %}
+            {% for v in viagens_ativas %}
                 {% include "viagens/modals/modal_detalhe_carona.html" with carona=v.carona %}
             {% endfor %}
         {% else %}
             <div class="alert alert-info text-center">
                 Voce ainda nao tem viagens aceitas.
+            </div>
+        {% endif %}
+
+        {% if viagens_recentes %}
+            <div class="mt-4">
+                <h5 class="fw-bold mb-3 text-center">Viagens recentes</h5>
+                <div class="row g-2">
+                    {% for v in viagens_recentes %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-3">
+                                <div class="fw-semibold">{{ v.carona.origem }} -> {{ v.carona.destino }}</div>
+                                <div class="text-muted small mb-2">{{ v.carona.data|friendly_date_time:v.carona.hora }}</div>
+                                <span class="badge {% if v.carona.status == 'ativa' %}bg-success{% elif v.carona.status == 'concluida' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                    {{ v.carona.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         {% endif %}
     {% endif %}

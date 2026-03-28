@@ -1111,22 +1111,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
     if (!modal || !imgAmpliada || !titulo) return;
 
-    document.querySelectorAll(".js-foto-zoom").forEach((img) => {
-        ["mousedown", "touchstart"].forEach((evtName) => {
-            img.addEventListener(evtName, (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-            });
-        });
+    const abrirZoom = (img, event) => {
+        if (!img) return;
+        event.preventDefault();
+        event.stopPropagation();
+        imgAmpliada.src = img.dataset.src || img.src;
+        imgAmpliada.classList.remove("zoom-2");
+        titulo.textContent = img.dataset.nome || img.alt || "Imagem";
+        modal.show();
+    };
 
-        img.addEventListener("click", (event) => {
+    ["mousedown", "touchstart"].forEach((evtName) => {
+        document.addEventListener(evtName, (event) => {
+            const img = event.target.closest(".js-foto-zoom");
+            if (!img) return;
             event.preventDefault();
             event.stopPropagation();
-            imgAmpliada.src = img.dataset.src || img.src;
-            imgAmpliada.classList.remove("zoom-2");
-            titulo.textContent = img.dataset.nome || img.alt || "Imagem";
-            modal.show();
         });
+    });
+
+    document.addEventListener("click", (event) => {
+        const img = event.target.closest(".js-foto-zoom");
+        if (!img) return;
+        abrirZoom(img, event);
     });
 
     imgAmpliada.addEventListener("click", () => {
@@ -1243,7 +1250,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!link) return;
         if (!temAlteracaoPendente()) return;
         if (link.dataset.bypassUnsaved === "1") return;
-        const ok = window.confirm("Voce tem alteracoes nao salvas. Deseja sair sem salvar?");
+        const ok = window.confirm("Você tem alteracoes nao salvas. Deseja sair sem salvar?");
         if (!ok) event.preventDefault();
     }, true);
 });

@@ -19,6 +19,10 @@ data-page="encomendas-local"
     transition: all .15s ease;
     box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important;
 }
+.btn-cancelar-encomenda{
+    min-height: 42px;
+    font-weight: 600;
+}
 </style>
 
 <div class="container mt-4">
@@ -105,8 +109,8 @@ onsubmit="return confirm('Cancelar envio desta encomenda?');">
 
 {% csrf_token %}
 
-<button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2">
-Cancelar envio
+<button type="submit" class="btn btn-outline-danger btn-cancelar-encomenda w-100 d-inline-flex align-items-center justify-content-center gap-1">
+<i class="bi bi-x-circle"></i> Cancelar envio
 </button>
 
 </form>
@@ -282,8 +286,8 @@ onsubmit="return confirm('Cancelar envio desta encomenda?');">
 
 {% csrf_token %}
 
-<button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2">
-Cancelar envio
+<button type="submit" class="btn btn-outline-danger btn-cancelar-encomenda w-100 d-inline-flex align-items-center justify-content-center gap-1">
+<i class="bi bi-x-circle"></i> Cancelar envio
 </button>
 
 </form>

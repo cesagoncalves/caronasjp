@@ -58,9 +58,30 @@
 
                 </div>
             </div>
-            {% include "viagens/modals/modal_detalhe_carona.html" %}
+            {% include "viagens/modals/modal_detalhe_carona.html" with carona=carona %}
             {% endfor %}
         </div>
+
+        {% if caronas_recentes %}
+        <div class="mt-4">
+            <h4 class="fw-bold text-center mb-3">Caronas recentes</h4>
+            <div class="row g-2">
+                {% for carona in caronas_recentes %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="fw-semibold">{{ carona.origem }} -> {{ carona.destino }}</div>
+                            <div class="text-muted small mb-2">{{ carona.data|date:"d/m/Y" }} as {{ carona.hora|time:"H:i" }}</div>
+                            <span class="badge {% if carona.status == 'concluida' %}bg-primary{% else %}bg-secondary{% endif %}">
+                                {{ carona.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     {% else %}
         <div class="alert alert-info text-center">Voce ainda nao tem caronas cadastradas.</div>
     {% endif %}

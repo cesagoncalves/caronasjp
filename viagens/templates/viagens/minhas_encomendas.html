@@ -10,6 +10,10 @@
     transition: all .15s ease;
     box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important;
 }
+.btn-acao-encomenda{
+    min-height: 42px;
+    font-weight: 600;
+}
 </style>
 
 <div class="container mt-4">
@@ -271,7 +275,7 @@ Solicitada em {{ e.data_solicitacao|date:"d/m/Y H:i" }}
 <div class="d-flex flex-wrap gap-1 mt-1">
 
 <a href="{% url 'aceitar_solicitacao' e.id %}"
-class="btn btn-success btn-sm py-0 px-2"
+class="btn btn-success btn-acao-encomenda flex-fill"
 onclick="event.stopPropagation();">
 
 <i class="bi bi-check-circle"></i> Aceitar
@@ -279,7 +283,7 @@ onclick="event.stopPropagation();">
 </a>
 
 <a href="{% url 'recusar_solicitacao' e.id %}"
-class="btn btn-outline-danger btn-sm py-0 px-2"
+class="btn btn-outline-danger btn-acao-encomenda flex-fill"
 onclick="event.stopPropagation();">
 
 <i class="bi bi-x-circle"></i> Recusar
@@ -299,8 +303,8 @@ onsubmit="return confirm('Cancelar a entrega desta encomenda?');">
 
 {% csrf_token %}
 
-<button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2">
-Cancelar entrega
+<button type="submit" class="btn btn-outline-danger btn-acao-encomenda w-100 d-inline-flex align-items-center justify-content-center gap-1">
+<i class="bi bi-x-circle"></i> Cancelar entrega
 </button>
 
 </form>

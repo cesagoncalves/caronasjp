@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h2 class="mb-0">Passageiros da Carona</h2>
+        <a href="{% url 'minhas_caronas' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </div>
+
+    <div class="alert alert-light border mb-3">
+        <strong>{{ carona.origem }} -> {{ carona.destino }}</strong><br>
+        {{ carona.data|friendly_date_time:carona.hora }}
+    </div>
+
+    {% if passageiros_pendentes %}
+        <h5 class="fw-bold mb-2">Pendentes</h5>
+        {% for solicitacao in passageiros_pendentes %}
+            <div class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                            <h5 class="mb-1">{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}</h5>
+                            <div class="small mb-1">
+                                <a href="https://wa.me/{{ solicitacao.telefone_solicitante|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}" target="_blank" rel="noopener" class="text-decoration-none">
+                                    <i class="bi bi-whatsapp me-1"></i>{{ solicitacao.telefone_solicitante }}
+                                </a>
+                            </div>
+                            {% if solicitacao.endereco_solicitante %}
+                                <div class="text-muted small mb-1"><i class="bi bi-geo-alt-fill me-1"></i>Embarque: {{ solicitacao.endereco_solicitante }}</div>
+                            {% endif %}
+                            {% if solicitacao.endereco_destino_solicitante %}
+                                <div class="text-muted small"><i class="bi bi-signpost-2-fill me-1"></i>Destino: {{ solicitacao.endereco_destino_solicitante }}</div>
+                            {% endif %}
+                        </div>
+                        <span class="badge bg-warning text-dark">Pendente</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <span class="badge bg-primary-subtle text-primary-emphasis">
+                            <i class="bi bi-person-fill me-1"></i>{{ solicitacao.quantidade }} vaga{{ solicitacao.quantidade|pluralize }}
+                        </span>
+                        {% if solicitacao.malas > 0 %}
+                            <span class="badge bg-warning-subtle text-warning-emphasis">
+                                <i class="bi bi-suitcase me-1"></i>{{ solicitacao.get_malas_display }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% if solicitacao.observacoes %}
+                        <p class="mb-0 mt-2"><strong>Observacoes:</strong> {{ solicitacao.observacoes }}</p>
+                    {% endif %}
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="{% url 'aceitar_solicitacao' solicitacao.id %}" class="btn btn-success flex-fill">
+                            <i class="bi bi-check-circle me-1"></i>Aceitar
+                        </a>
+                        <a href="{% url 'recusar_solicitacao' solicitacao.id %}" class="btn btn-outline-danger flex-fill">
+                            <i class="bi bi-x-circle me-1"></i>Recusar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <h5 class="fw-bold mt-4 mb-2">Confirmados</h5>
+    {% if passageiros_aceitos %}
+        {% for solicitacao in passageiros_aceitos %}
+            <div class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                            <h5 class="mb-1">{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}</h5>
+                            <div class="small mb-1">
+                                <a href="https://wa.me/{{ solicitacao.telefone_solicitante|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}" target="_blank" rel="noopener" class="text-decoration-none">
+                                    <i class="bi bi-whatsapp me-1"></i>{{ solicitacao.telefone_solicitante }}
+                                </a>
+                            </div>
+                            {% if solicitacao.endereco_solicitante %}
+                                <div class="text-muted small mb-1"><i class="bi bi-geo-alt-fill me-1"></i>Embarque: {{ solicitacao.endereco_solicitante }}</div>
+                            {% endif %}
+                            {% if solicitacao.endereco_destino_solicitante %}
+                                <div class="text-muted small"><i class="bi bi-signpost-2-fill me-1"></i>Destino: {{ solicitacao.endereco_destino_solicitante }}</div>
+                            {% endif %}
+                        </div>
+                        <span class="badge bg-success">Aceito</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <span class="badge bg-primary-subtle text-primary-emphasis">
+                            <i class="bi bi-person-fill me-1"></i>{{ solicitacao.quantidade }} vaga{{ solicitacao.quantidade|pluralize }}
+                        </span>
+                        {% if solicitacao.malas > 0 %}
+                            <span class="badge bg-warning-subtle text-warning-emphasis">
+                                <i class="bi bi-suitcase me-1"></i>{{ solicitacao.get_malas_display }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% if solicitacao.observacoes %}
+                        <p class="mb-0 mt-2"><strong>Observacoes:</strong> {{ solicitacao.observacoes }}</p>
+                    {% endif %}
+                    <form method="post" action="{% url 'remover_passageiro' solicitacao.id %}" class="mt-3" onsubmit="return confirm('Remover este passageiro da viagem?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            <i class="bi bi-x-circle me-1"></i>Remover passageiro
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info mb-0">Nenhum passageiro confirmado para esta carona.</div>
+    {% endif %}
+</div>
+{% endblock %}

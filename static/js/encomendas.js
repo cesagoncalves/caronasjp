@@ -59,6 +59,18 @@ async function cancelarEncomendaLocal(id, token) {
     }
 }
 
+function bindCardsEncomendaLocal() {
+    document.querySelectorAll(".js-card-encomenda-local").forEach((card) => {
+        if (card.dataset.boundClick === "1") return;
+        card.dataset.boundClick = "1";
+        card.addEventListener("click", (event) => {
+            if (event.target.closest("a,button,form,input,select,textarea,label")) return;
+            const href = card.getAttribute("data-href");
+            if (href) window.location.href = href;
+        });
+    });
+}
+
 function renderEncomendasLocal() {
     const container = document.getElementById("lista-encomendas");
     if (!container) return;
@@ -106,7 +118,7 @@ function renderEncomendasLocal() {
         ` : "";
 
         container.innerHTML = itensPagina.map(e => `
-            <div class="card border-0 shadow-sm rounded-3 mb-3 card-hover">
+            <div class="card border-0 shadow-sm rounded-3 mb-3 card-hover js-card-encomenda-local" data-href="/minhas-encomendas/publica/carona/${e.carona_id}/" style="cursor:pointer;">
                 <div class="card-body p-2">
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-1 mb-1">
                         <div>
@@ -120,13 +132,14 @@ function renderEncomendasLocal() {
                     ${e.observacoes ? `<p class="mb-1"><strong>Observacoes:</strong> ${e.observacoes}</p>` : ""}
                     <p class="text-muted small mb-1">Solicitada em ${e.data_solicitacao || "-"}</p>
                     ${podeCancelarEncomenda(e) ? `
-                        <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2"
+                        <button type="button" class="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-1"
                             onclick="cancelarEncomendaLocal(${e.id}, '${e.token_cancelamento}')">
-                            Cancelar envio
+                            <i class="bi bi-x-circle"></i> Cancelar envio
                         </button>` : ""}
                 </div>
             </div>
         `).join("") + paginacao;
+        bindCardsEncomendaLocal();
         return;
     }
 
@@ -182,7 +195,7 @@ function renderEncomendasLocal() {
     const baseListaDetalhes = lista.slice(0, limiteRecentes);
     const detalhesHtml = baseListaDetalhes.map(e => `
         <div class="col-md-6 col-lg-4">
-            <div class="card border-0 shadow-sm rounded-3 h-100 card-hover">
+            <div class="card border-0 shadow-sm rounded-3 h-100 card-hover js-card-encomenda-local" data-href="/minhas-encomendas/publica/carona/${e.carona_id}/" style="cursor:pointer;">
                 <div class="card-body p-2">
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-1 mb-1">
                         <div>
@@ -194,9 +207,9 @@ function renderEncomendasLocal() {
                     <p class="mb-1"><strong>Descricao:</strong> ${e.descricao_item || "-"}</p>
                     <p class="text-muted small mb-1">Solicitada em ${e.data_solicitacao || "-"}</p>
                     ${podeCancelarEncomenda(e) ? `
-                        <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2 mt-1"
+                        <button type="button" class="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-1 mt-1"
                             onclick="cancelarEncomendaLocal(${e.id}, '${e.token_cancelamento}')">
-                            Cancelar envio
+                            <i class="bi bi-x-circle"></i> Cancelar envio
                         </button>` : ""}
                 </div>
             </div>
@@ -220,6 +233,7 @@ function renderEncomendasLocal() {
         ${verTodasLink}
         ${detalhesHtml ? `<div class="row g-2">${detalhesHtml}</div>` : `<div class="alert alert-info text-center">Voce ainda nao fez nenhuma solicitacao de encomenda.</div>`}
     `;
+    bindCardsEncomendaLocal();
 }
 
 function renderEncomendasCaronaLocal() {
@@ -268,9 +282,9 @@ function renderEncomendasCaronaLocal() {
                     ${e.endereco_solicitante ? `<p class="mb-1 small text-muted"><i class="bi bi-geo-alt-fill me-1"></i>Coleta: ${e.endereco_solicitante}</p>` : ""}
                     ${e.endereco_destino_solicitante ? `<p class="mb-2 small text-muted"><i class="bi bi-signpost-2-fill me-1"></i>Entrega: ${e.endereco_destino_solicitante}</p>` : ""}
                     ${podeCancelarEncomenda(e) ? `
-                        <button type="button" class="btn btn-outline-danger btn-sm"
+                        <button type="button" class="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-1"
                             onclick="cancelarEncomendaLocal(${e.id}, '${e.token_cancelamento}')">
-                            <i class="bi bi-x-circle"></i> Cancelar encomenda
+                            <i class="bi bi-x-circle"></i> Cancelar envio
                         </button>` : ""}
                 </div>
             </div>
