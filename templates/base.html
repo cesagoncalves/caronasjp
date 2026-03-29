@@ -1306,20 +1306,22 @@ document.addEventListener("DOMContentLoaded", () => {
         cropState = {
             modalEl, modal, stage, img, zoom, btnApply,
             resolve: null, reject: null, options: null,
-            imageEl: null, imgW: 0, imgH: 0, scale: 1, minScale: 1, x: 0, y: 0,
+            imageEl: null, imgW: 0, imgH: 0, baseScale: 1, zoomLevel: 1, x: 0, y: 0,
             dragging: false, startX: 0, startY: 0, originX: 0, originY: 0
         };
 
+        const effectiveScale = () => cropState.baseScale * cropState.zoomLevel;
+
         const render = () => {
             if (!cropState) return;
-            cropState.img.style.transform = `translate(${cropState.x}px, ${cropState.y}px) scale(${cropState.scale})`;
+            cropState.img.style.transform = `translate(${cropState.x}px, ${cropState.y}px) scale(${effectiveScale()})`;
         };
 
         const clampPosition = () => {
             const frameW = cropState.stage.clientWidth;
             const frameH = cropState.stage.clientHeight;
-            const scaledW = cropState.imgW * cropState.scale;
-            const scaledH = cropState.imgH * cropState.scale;
+            const scaledW = cropState.imgW * effectiveScale();
+            const scaledH = cropState.imgH * effectiveScale();
             const maxX = Math.max(0, (scaledW - frameW) / 2);
             const maxY = Math.max(0, (scaledH - frameH) / 2);
             cropState.x = clamp(cropState.x, -maxX, maxX);
@@ -1329,17 +1331,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const updateZoomBounds = () => {
             const frameW = cropState.stage.clientWidth;
             const frameH = cropState.stage.clientHeight;
-            cropState.minScale = Math.max(frameW / cropState.imgW, frameH / cropState.imgH);
-            cropState.scale = Math.max(cropState.scale, cropState.minScale);
-            cropState.zoom.min = String(cropState.minScale);
-            cropState.zoom.max = String(cropState.minScale * 4);
-            cropState.zoom.value = String(cropState.scale);
+            cropState.baseScale = Math.max(frameW / cropState.imgW, frameH / cropState.imgH);
+            cropState.zoomLevel = 1;
+            cropState.zoom.min = "1";
+            cropState.zoom.max = "4";
+            cropState.zoom.step = "0.01";
+            cropState.zoom.value = "1";
+            cropState.x = 0;
+            cropState.y = 0;
             clampPosition();
             render();
         };
 
         zoom.addEventListener("input", () => {
-            cropState.scale = Number(cropState.zoom.value || cropState.minScale);
+            cropState.zoomLevel = Number(cropState.zoom.value || 1);
             clampPosition();
             render();
         });
@@ -1375,11 +1380,14 @@ document.addEventListener("DOMContentLoaded", () => {
             const aspect = cropState.options.aspectRatio || 1;
             const outW = cropState.options.outputWidth || 1000;
             const outH = Math.round(outW / aspect);
+            const scale = effectiveScale();
 
-            const srcW = frameW / cropState.scale;
-            const srcH = frameH / cropState.scale;
-            const srcX = (cropState.imgW - srcW) / 2 - (cropState.x / cropState.scale);
-            const srcY = (cropState.imgH - srcH) / 2 - (cropState.y / cropState.scale);
+            const srcW = frameW / scale;
+            const srcH = frameH / scale;
+            const srcXRaw = (cropState.imgW - srcW) / 2 - (cropState.x / scale);
+            const srcYRaw = (cropState.imgH - srcH) / 2 - (cropState.y / scale);
+            const srcX = clamp(srcXRaw, 0, Math.max(0, cropState.imgW - srcW));
+            const srcY = clamp(srcYRaw, 0, Math.max(0, cropState.imgH - srcH));
 
             const canvas = document.createElement("canvas");
             canvas.width = outW;
@@ -1436,11 +1444,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         cropState.imgW = imageEl.width;
                         cropState.imgH = imageEl.height;
                         cropState.img.src = imageEl.src;
-                        cropState.scale = 1;
-                        cropState.x = 0;
-                        cropState.y = 0;
+                        const onShown = () => {
+                            updateZoomBounds();
+                            modalEl.removeEventListener("shown.bs.modal", onShown);
+                        };
+                        modalEl.addEventListener("shown.bs.modal", onShown);
                         cropState.modal.show();
-                        requestAnimationFrame(updateZoomBounds);
                     };
                     imageEl.onerror = () => resolve(null);
                     imageEl.src = reader.result;
