@@ -231,7 +231,7 @@ function renderEncomendasLocal() {
         </div>
 
         ${verTodasLink}
-        ${detalhesHtml ? `<div class="row g-2">${detalhesHtml}</div>` : `<div class="alert alert-info text-center">Voce ainda nao fez nenhuma solicitacao de encomenda.</div>`}
+        ${detalhesHtml ? `<div class="row g-2">${detalhesHtml}</div>` : `<div class="alert alert-info text-center">Você ainda não fez nenhuma solicitação de encomenda.</div>`}
     `;
     bindCardsEncomendaLocal();
 }

@@ -182,7 +182,7 @@ class Solicitacao(models.Model):
     def clean(self):
         super().clean()
         if self.tipo == "encomenda" and not self.descricao_item:
-            raise ValidationError({"descricao_item": "Informe a descriÃ§Ã£o do item."})
+            raise ValidationError({"descricao_item": "Informe a descrição do item."})
     
     def _otimizar_foto_encomenda(self):
         if not self.foto_encomenda:
@@ -220,7 +220,6 @@ class Solicitacao(models.Model):
             self.status = novo_status
             self.save()
 
-            # ðŸ”” Passageiro â€” feedback da aÃ§Ã£o
             if self.solicitante:
                 Notificacao.objects.create(
                     usuario=self.solicitante,
@@ -231,15 +230,14 @@ class Solicitacao(models.Model):
                         else "Viagem cancelada"
                     ),
                     mensagem=(
-                        "Voce cancelou a encomenda."
+                        "Você cancelou a encomenda."
                         if self.tipo == "encomenda"
-                        else "Voce cancelou a viagem."
+                        else "Você cancelou a viagem."
                     ),
                     solicitacao=self,
                     carona=self.carona,
                 )
 
-            # ðŸ”” Motorista â€” passageiro cancelou
             Notificacao.objects.create(
                 usuario=self.carona.motorista,
                 tipo="passageiro_cancelou",
@@ -308,13 +306,13 @@ from django.conf import settings
 class Notificacao(models.Model):
 
     TIPOS = (
-        ("solicitacao_recebida", "SolicitaÃ§Ã£o recebida"),
-        ("solicitacao_recusada", "SolicitaÃ§Ã£o recusada"),
+        ("solicitacao_recebida", "Solicitação recebida"),
+        ("solicitacao_recusada", "Solicitação recusada"),
 
         ("viagem_aceita", "Viagem confirmada"),
         ("viagem_atualizada", "Viagem atualizada"),
         ("viagem_cancelada", "Viagem cancelada"),
-        ("viagem_concluida", "Viagem concluÃ­da"),
+        ("viagem_concluida", "Viagem concluída"),
         ("passageiro_cancelou", "Passageiro cancelou"),
     )
 

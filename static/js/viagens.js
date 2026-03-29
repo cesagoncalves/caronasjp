@@ -35,7 +35,7 @@ function renderViagensLocal() {
 
     if (!lista.length) {
         container.innerHTML = `
-            <div class="alert alert-info text-center">Voce ainda nao tem viagens ativas.</div>
+            <div class="alert alert-info text-center">Você ainda não tem viagens ativas.</div>
         `;
         return;
     }

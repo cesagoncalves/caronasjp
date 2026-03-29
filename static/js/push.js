@@ -53,23 +53,23 @@ async function enablePushFlow(publicKey, subscribeUrl, statusEl) {
 
     if (Notification.permission === "denied") {
         if (statusEl) {
-            statusEl.textContent = "Permissao negada. Ative nas configuracoes do navegador.";
+            statusEl.textContent = "Permissão negada. Ative nas configurações do navegador.";
         }
         return false;
     }
 
-    if (statusEl) statusEl.textContent = "Preparando notificacoes...";
+    if (statusEl) statusEl.textContent = "Preparando notificações...";
     const permission = await Notification.requestPermission();
     if (permission !== "granted") {
         if (statusEl) {
-            statusEl.textContent = "Permissao negada. Voce pode ativar depois no navegador.";
+            statusEl.textContent = "Permissão negada. Você pode ativar depois no navegador.";
         }
         return false;
     }
 
     const registration = await registerServiceWorker();
     if (!registration) {
-        if (statusEl) statusEl.textContent = "Nao foi possivel registrar o service worker.";
+        if (statusEl) statusEl.textContent = "Não foi possível registrar o service worker.";
         return false;
     }
 
@@ -85,7 +85,7 @@ async function enablePushFlow(publicKey, subscribeUrl, statusEl) {
         return false;
     }
 
-    if (statusEl) statusEl.textContent = "Notificacoes ativadas!";
+    if (statusEl) statusEl.textContent = "Notificações ativadas!";
     return true;
 }
 

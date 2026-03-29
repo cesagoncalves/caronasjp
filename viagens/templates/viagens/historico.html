@@ -102,15 +102,15 @@ data-page="historico-local"
                 <div class="mt-2">
                     {% if item.categoria == 'encomenda' %}
                         {% if item.papel == 'motorista' %}
-                            <span class="badge bg-warning text-dark"><i class="bi bi-truck me-1"></i> Voce entregou encomenda</span>
+                            <span class="badge bg-warning text-dark"><i class="bi bi-truck me-1"></i> Você entregou encomenda</span>
                         {% else %}
-                            <span class="badge bg-warning text-dark"><i class="bi bi-box-seam me-1"></i> Voce enviou encomenda</span>
+                            <span class="badge bg-warning text-dark"><i class="bi bi-box-seam me-1"></i> Você enviou encomenda</span>
                         {% endif %}
                     {% else %}
                         {% if item.papel == 'motorista' %}
-                            <span class="badge bg-primary"><i class="bi bi-car-front-fill"></i> Voce foi motorista</span>
+                            <span class="badge bg-primary"><i class="bi bi-car-front-fill"></i> Você foi motorista</span>
                         {% else %}
-                            <span class="badge bg-success"><i class="bi bi-person-fill"></i> Voce foi passageiro</span>
+                            <span class="badge bg-success"><i class="bi bi-person-fill"></i> Você foi passageiro</span>
                         {% endif %}
                     {% endif %}
                 </div>
