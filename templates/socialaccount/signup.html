@@ -2,10 +2,10 @@
 
 {% block content %}
 <div class="container d-flex justify-content-center align-items-center" style="min-height: 70vh;">
-    <div class="card card-soft shadow-lg p-4" style="width: 100%; max-width: 520px;">
+    <div class="card card-soft shadow-lg p-4" style="width: 100%; max-width: 560px;">
         <h3 class="text-center mb-2">Finalizar cadastro</h3>
         <p class="text-muted text-center mb-4">
-            Confirme seus dados para concluir o acesso.
+            Precisamos de alguns dados para finalizar seu cadastro.
         </p>
 
         <form method="post" class="vstack gap-3">
@@ -13,28 +13,55 @@
             <input type="hidden" name="migrar_dados_dispositivo" id="migrar_dados_dispositivo" value="0">
             <input type="hidden" name="uuid_local_migracao" id="uuid_local_migracao" value="">
             <input type="hidden" name="solicitacoes_ids_migracao" id="solicitacoes_ids_migracao" value="">
-            {% for field in form %}
-                <div>
-                    <label class="form-label">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.errors %}
-                        <div class="text-danger small mt-1">{{ field.errors }}</div>
-                    {% endif %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger mb-0">
+                    {{ form.non_field_errors|join:", " }}
                 </div>
-            {% endfor %}
+            {% endif %}
+
+            {% if form.email %}
+            <div>
+                <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <div class="text-danger small mt-1">{{ form.email.errors|join:", " }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if form.nome_completo %}
+            <div>
+                <label class="form-label" for="{{ form.nome_completo.id_for_label }}">Nome completo</label>
+                {{ form.nome_completo }}
+                {% if form.nome_completo.errors %}
+                    <div class="text-danger small mt-1">{{ form.nome_completo.errors|join:", " }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if form.telefone %}
+            <div>
+                <label class="form-label" for="{{ form.telefone.id_for_label }}">Telefone</label>
+                {{ form.telefone }}
+                {% if form.telefone.errors %}
+                    <div class="text-danger small mt-1">{{ form.telefone.errors|join:", " }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
 
             <div class="alert alert-light border d-none mb-0" id="migracaoBox">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" value="1" id="migracaoCheck">
                     <label class="form-check-label fw-semibold" for="migracaoCheck">
-                        Importar solicitacoes feitas neste dispositivo para esta conta
+                        Importar solicitações feitas neste dispositivo para esta conta
                     </label>
                 </div>
                 <div class="small text-muted mt-2" id="migracaoResumo"></div>
             </div>
 
             <button type="submit" class="btn btn-primary w-100">
-                Concluir
+                Salvar e continuar
             </button>
         </form>
 
@@ -87,7 +114,7 @@
         }
 
         box.classList.remove("d-none");
-        resumo.textContent = `${ids.length} solicitacao(oes) pronta(s) para importacao.`;
+        resumo.textContent = `${ids.length} solicitação(ões) pronta(s) para importação.`;
 
         const syncInputs = () => {
             const ativo = check.checked;

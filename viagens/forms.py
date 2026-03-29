@@ -31,7 +31,7 @@ class CaronaForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 3,
-                    "placeholder": "Ex: Nao levo animais, saida pontual, posso parar no caminho...",
+                    "placeholder": "Ex: Não levo animais, saída pontual, posso parar no caminho...",
                 }
             ),
         }
@@ -45,7 +45,7 @@ class CaronaForm(forms.ModelForm):
         if user:
             self.fields["veiculo"].queryset = Veiculo.objects.filter(motorista=user)
 
-        self.fields["veiculo"].empty_label = "Selecione um veiculo"
+        self.fields["veiculo"].empty_label = "Selecione um veículo"
 
         for field in self.fields.values():
             field.widget.attrs.setdefault("class", "form-control")
@@ -63,7 +63,7 @@ class CaronaForm(forms.ModelForm):
             cleaned_data["valor"] = None
 
         if not veiculo:
-            self.add_error("veiculo", "Selecione um veiculo para oferecer carona.")
+            self.add_error("veiculo", "Selecione um veículo para oferecer carona.")
 
         return cleaned_data
 
@@ -86,28 +86,28 @@ class SolicitacaoForm(forms.ModelForm):
             "nome_solicitante": forms.TextInput(attrs={"class": "form-control"}),
             "telefone_solicitante": forms.TextInput(attrs={"class": "form-control"}),
             "endereco_solicitante": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Rua, numero, bairro"}
+                attrs={"class": "form-control", "placeholder": "Rua, número, bairro"}
             ),
             "endereco_destino_solicitante": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Rua, numero, bairro"}
+                attrs={"class": "form-control", "placeholder": "Rua, número, bairro"}
             ),
             "quantidade": forms.NumberInput(attrs={"class": "form-control"}),
             "malas": forms.Select(attrs={"class": "form-select"}),
             "observacoes": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3, "placeholder": "Ex: mochila, mala grande, etc."}
+                attrs={"class": "form-control", "rows": 3, "placeholder": "Ex: Mochila, mala grande, etc."}
             ),
         }
 
     def clean_endereco_solicitante(self):
         endereco = (self.cleaned_data.get("endereco_solicitante") or "").strip()
         if not endereco:
-            raise forms.ValidationError("Informe o endereco para embarque.")
+            raise forms.ValidationError("Informe o endereço para embarque.")
         return endereco
 
     def clean_endereco_destino_solicitante(self):
         endereco = (self.cleaned_data.get("endereco_destino_solicitante") or "").strip()
         if not endereco:
-            raise forms.ValidationError("Informe o endereco de destino.")
+            raise forms.ValidationError("Informe o endereço de destino.")
         return endereco
 
 
@@ -127,36 +127,36 @@ class EncomendaForm(forms.ModelForm):
             "nome_solicitante": forms.TextInput(attrs={"class": "form-control"}),
             "telefone_solicitante": forms.TextInput(attrs={"class": "form-control"}),
             "endereco_solicitante": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Rua, numero, bairro"}
+                attrs={"class": "form-control", "placeholder": "Rua, número, bairro"}
             ),
             "endereco_destino_solicitante": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Rua, numero, bairro"}
+                attrs={"class": "form-control", "placeholder": "Rua, número, bairro"}
             ),
             "descricao_item": forms.Textarea(
                 attrs={"class": "form-control", "rows": 4, "placeholder": "Descreva o item da encomenda"}
             ),
             "foto_encomenda": forms.FileInput(attrs={"class": "form-control"}),
             "observacoes": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3, "placeholder": "Ex: fragil, manter em pe, entregar ate 18h..."}
+                attrs={"class": "form-control", "rows": 3, "placeholder": "Ex: Frágil, manter em pé, entregar até 18h..."}
             ),
         }
 
     def clean_descricao_item(self):
         descricao = (self.cleaned_data.get("descricao_item") or "").strip()
         if not descricao:
-            raise forms.ValidationError("Informe a descricao do item.")
+            raise forms.ValidationError("Informe a descrição do item.")
         return descricao
 
     def clean_endereco_solicitante(self):
         endereco = (self.cleaned_data.get("endereco_solicitante") or "").strip()
         if not endereco:
-            raise forms.ValidationError("Informe o endereco de coleta/entrega.")
+            raise forms.ValidationError("Informe o endereço de coleta/entrega.")
         return endereco
 
     def clean_endereco_destino_solicitante(self):
         endereco = (self.cleaned_data.get("endereco_destino_solicitante") or "").strip()
         if not endereco:
-            raise forms.ValidationError("Informe o endereco de entrega.")
+            raise forms.ValidationError("Informe o endereço de entrega.")
         return endereco
 
 
@@ -178,5 +178,5 @@ class VeiculoForm(forms.ModelForm):
         if tipo in ["carro", "moto"]:
             for campo in ["marca", "modelo", "cor", "ano"]:
                 if not cleaned.get(campo):
-                    self.add_error(campo, "Campo obrigatorio para carro ou moto")
+                    self.add_error(campo, "Campo obrigatório para carro ou moto")
         return cleaned

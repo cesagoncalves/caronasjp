@@ -100,6 +100,9 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIALACCOUNT_ADAPTER = "usuarios.adapters.CustomSocialAccountAdapter"
+SOCIALACCOUNT_FORMS = {
+    "signup": "usuarios.forms.SocialFinalizeSignupForm",
+}
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
