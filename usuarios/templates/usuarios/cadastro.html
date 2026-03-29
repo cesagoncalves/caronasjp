@@ -92,7 +92,7 @@
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" value="1" id="migracaoCheck">
                     <label class="form-check-label fw-semibold" for="migracaoCheck">
-                        Vincular as solicitacoes deste dispositivo a minha nova conta
+                        Vincular as solicitações deste dispositivo à minha nova conta
                     </label>
                 </div>
                 <div class="small text-muted mt-2" id="migracaoResumo"></div>
@@ -104,7 +104,7 @@
             </button>
 
             <a href="{% url 'login' %}" class="btn btn-outline-secondary w-100">
-                Ja tenho uma conta
+                Já tenho uma conta
             </a>
         </form>
 
@@ -160,7 +160,7 @@
         }
 
         box.classList.remove("d-none");
-        resumo.textContent = `${ids.length} solicitacao(oes) encontrada(s) neste dispositivo.`;
+        resumo.textContent = `${ids.length} solicitação(ões) encontrada(s) neste dispositivo.`;
 
         const syncInputs = () => {
             const ativo = check.checked;

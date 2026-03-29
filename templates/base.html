@@ -210,17 +210,12 @@
         display: block;
         padding-top: var(--cropper-padding, 100%);
     }
-    .cropper-image {
+    .cropper-canvas {
         position: absolute;
         inset: 0;
-        margin: auto;
-        max-width: none;
-        user-select: none;
-        -webkit-user-drag: none;
         cursor: grab;
-        transform-origin: center center;
     }
-    .cropper-image.dragging {
+    .cropper-canvas.dragging {
         cursor: grabbing;
     }
 
@@ -1035,7 +1030,7 @@
             </div>
             <div class="modal-body">
                 <div id="cropperStage" class="cropper-stage" style="--cropper-padding:100%;">
-                    <img id="cropperImage" class="cropper-image" alt="Recorte">
+                    <canvas id="cropperCanvas" class="cropper-canvas" aria-label="Recorte"></canvas>
                 </div>
                 <div class="mt-3">
                     <label for="cropperZoom" class="form-label small text-muted mb-1">Zoom</label>
@@ -1297,108 +1292,160 @@ document.addEventListener("DOMContentLoaded", () => {
         if (cropperReady) return true;
         const modalEl = document.getElementById("modalImageCropper");
         const stage = document.getElementById("cropperStage");
-        const img = document.getElementById("cropperImage");
+        const canvas = document.getElementById("cropperCanvas");
         const zoom = document.getElementById("cropperZoom");
         const btnApply = document.getElementById("btnCropperApply");
-        if (!modalEl || !stage || !img || !zoom || !btnApply || !window.bootstrap) return false;
+        if (!modalEl || !stage || !canvas || !zoom || !btnApply || !window.bootstrap) return false;
 
         const modal = new bootstrap.Modal(modalEl);
         cropState = {
-            modalEl, modal, stage, img, zoom, btnApply,
+            modalEl, modal, stage, canvas, zoom, btnApply,
             resolve: null, reject: null, options: null,
-            imageEl: null, imgW: 0, imgH: 0, baseScale: 1, zoomLevel: 1, x: 0, y: 0,
-            dragging: false, startX: 0, startY: 0, originX: 0, originY: 0
+            imageEl: null, imgW: 0, imgH: 0, zoomLevel: 1,
+            baseSrcW: 0, baseSrcH: 0,
+            srcW: 0, srcH: 0, centerX: 0, centerY: 0,
+            dragging: false, pointerId: null, lastX: 0, lastY: 0
         };
 
-        const effectiveScale = () => cropState.baseScale * cropState.zoomLevel;
+        const ctx = canvas.getContext("2d");
+
+        const clampCropCenter = () => {
+            const halfW = cropState.srcW / 2;
+            const halfH = cropState.srcH / 2;
+            cropState.centerX = clamp(cropState.centerX, halfW, cropState.imgW - halfW);
+            cropState.centerY = clamp(cropState.centerY, halfH, cropState.imgH - halfH);
+        };
+
+        const applyZoom = () => {
+            cropState.zoomLevel = clamp(Number(cropState.zoom.value || 1), 1, 8);
+            cropState.srcW = cropState.baseSrcW / cropState.zoomLevel;
+            cropState.srcH = cropState.baseSrcH / cropState.zoomLevel;
+            clampCropCenter();
+        };
+
+        const syncCanvasSize = () => {
+            const frameW = cropState.stage.clientWidth;
+            const frameH = cropState.stage.clientHeight;
+            if (!frameW || !frameH) return;
+            const dpr = window.devicePixelRatio || 1;
+            const targetW = Math.round(frameW * dpr);
+            const targetH = Math.round(frameH * dpr);
+            if (canvas.width !== targetW || canvas.height !== targetH) {
+                canvas.width = targetW;
+                canvas.height = targetH;
+            }
+            canvas.style.width = `${frameW}px`;
+            canvas.style.height = `${frameH}px`;
+        };
 
         const render = () => {
-            if (!cropState) return;
-            cropState.img.style.transform = `translate(${cropState.x}px, ${cropState.y}px) scale(${effectiveScale()})`;
+            if (!cropState || !cropState.imageEl) return;
+            syncCanvasSize();
+            if (!canvas.width || !canvas.height) return;
+            const srcX = cropState.centerX - (cropState.srcW / 2);
+            const srcY = cropState.centerY - (cropState.srcH / 2);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(
+                cropState.imageEl,
+                srcX, srcY, cropState.srcW, cropState.srcH,
+                0, 0, canvas.width, canvas.height
+            );
         };
 
-        const clampPosition = () => {
-            const frameW = cropState.stage.clientWidth;
-            const frameH = cropState.stage.clientHeight;
-            const scaledW = cropState.imgW * effectiveScale();
-            const scaledH = cropState.imgH * effectiveScale();
-            const maxX = Math.max(0, (scaledW - frameW) / 2);
-            const maxY = Math.max(0, (scaledH - frameH) / 2);
-            cropState.x = clamp(cropState.x, -maxX, maxX);
-            cropState.y = clamp(cropState.y, -maxY, maxY);
-        };
-
-        const updateZoomBounds = () => {
-            const frameW = cropState.stage.clientWidth;
-            const frameH = cropState.stage.clientHeight;
-            cropState.baseScale = Math.max(frameW / cropState.imgW, frameH / cropState.imgH);
-            cropState.zoomLevel = 1;
+        const updateInitialCrop = () => {
+            const aspect = cropState.options?.aspectRatio || 1;
+            const imageRatio = cropState.imgW / cropState.imgH;
+            if (imageRatio >= aspect) {
+                cropState.baseSrcH = cropState.imgH;
+                cropState.baseSrcW = cropState.imgH * aspect;
+            } else {
+                cropState.baseSrcW = cropState.imgW;
+                cropState.baseSrcH = cropState.imgW / aspect;
+            }
+            cropState.centerX = cropState.imgW / 2;
+            cropState.centerY = cropState.imgH / 2;
             cropState.zoom.min = "1";
-            cropState.zoom.max = "4";
+            cropState.zoom.max = "8";
             cropState.zoom.step = "0.01";
             cropState.zoom.value = "1";
-            cropState.x = 0;
-            cropState.y = 0;
-            clampPosition();
+            applyZoom();
             render();
         };
 
         zoom.addEventListener("input", () => {
-            cropState.zoomLevel = Number(cropState.zoom.value || 1);
-            clampPosition();
+            applyZoom();
             render();
         });
 
-        stage.addEventListener("pointerdown", (e) => {
+        canvas.addEventListener("pointerdown", (e) => {
+            if (!cropState.imageEl) return;
             e.preventDefault();
             cropState.dragging = true;
-            cropState.startX = e.clientX;
-            cropState.startY = e.clientY;
-            cropState.originX = cropState.x;
-            cropState.originY = cropState.y;
-            cropState.img.classList.add("dragging");
+            cropState.pointerId = e.pointerId;
+            cropState.lastX = e.clientX;
+            cropState.lastY = e.clientY;
+            canvas.classList.add("dragging");
+            canvas.setPointerCapture(e.pointerId);
         });
 
-        window.addEventListener("pointermove", (e) => {
-            if (!cropState.dragging) return;
-            cropState.x = cropState.originX + (e.clientX - cropState.startX);
-            cropState.y = cropState.originY + (e.clientY - cropState.startY);
-            clampPosition();
+        canvas.addEventListener("pointermove", (e) => {
+            if (!cropState.dragging || e.pointerId !== cropState.pointerId) return;
+            const dx = e.clientX - cropState.lastX;
+            const dy = e.clientY - cropState.lastY;
+            cropState.lastX = e.clientX;
+            cropState.lastY = e.clientY;
+
+            const stageW = cropState.stage.clientWidth || 1;
+            const stageH = cropState.stage.clientHeight || 1;
+            cropState.centerX -= dx * (cropState.srcW / stageW);
+            cropState.centerY -= dy * (cropState.srcH / stageH);
+            clampCropCenter();
             render();
         });
 
-        window.addEventListener("pointerup", () => {
+        const stopDrag = (e) => {
             if (!cropState.dragging) return;
+            if (e && cropState.pointerId !== null && e.pointerId !== cropState.pointerId) return;
             cropState.dragging = false;
-            cropState.img.classList.remove("dragging");
-        });
+            cropState.pointerId = null;
+            canvas.classList.remove("dragging");
+        };
+        canvas.addEventListener("pointerup", stopDrag);
+        canvas.addEventListener("pointercancel", stopDrag);
+        canvas.addEventListener("lostpointercapture", stopDrag);
+
+        stage.addEventListener("wheel", (e) => {
+            if (!cropState.imageEl) return;
+            e.preventDefault();
+            const current = Number(cropState.zoom.value || 1);
+            const delta = e.deltaY < 0 ? 0.08 : -0.08;
+            const next = clamp(current + delta, 1, 8);
+            cropState.zoom.value = next.toFixed(2);
+            applyZoom();
+            render();
+        }, { passive: false });
 
         btnApply.addEventListener("click", async () => {
             if (!cropState.imageEl || !cropState.resolve) return;
-            const frameW = cropState.stage.clientWidth;
-            const frameH = cropState.stage.clientHeight;
             const aspect = cropState.options.aspectRatio || 1;
             const outW = cropState.options.outputWidth || 1000;
             const outH = Math.round(outW / aspect);
-            const scale = effectiveScale();
+            const srcX = cropState.centerX - (cropState.srcW / 2);
+            const srcY = cropState.centerY - (cropState.srcH / 2);
 
-            const srcW = frameW / scale;
-            const srcH = frameH / scale;
-            const srcXRaw = (cropState.imgW - srcW) / 2 - (cropState.x / scale);
-            const srcYRaw = (cropState.imgH - srcH) / 2 - (cropState.y / scale);
-            const srcX = clamp(srcXRaw, 0, Math.max(0, cropState.imgW - srcW));
-            const srcY = clamp(srcYRaw, 0, Math.max(0, cropState.imgH - srcH));
-
-            const canvas = document.createElement("canvas");
-            canvas.width = outW;
-            canvas.height = outH;
-            const ctx = canvas.getContext("2d");
+            const outCanvas = document.createElement("canvas");
+            outCanvas.width = outW;
+            outCanvas.height = outH;
+            const ctx = outCanvas.getContext("2d");
             ctx.drawImage(
                 cropState.imageEl,
-                srcX, srcY, srcW, srcH,
+                srcX, srcY, cropState.srcW, cropState.srcH,
                 0, 0, outW, outH
             );
-            canvas.toBlob((blob) => {
+            outCanvas.toBlob((blob) => {
                 if (!blob) {
                     cropState.resolve(null);
                     cropState.resolve = null;
@@ -1420,6 +1467,8 @@ document.addEventListener("DOMContentLoaded", () => {
             cropState.reject = null;
             cropState.options = null;
             cropState.imageEl = null;
+            cropState.dragging = false;
+            cropState.pointerId = null;
         });
 
         window.openImageCropper = (file, options = {}) => {
@@ -1443,9 +1492,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         cropState.imageEl = imageEl;
                         cropState.imgW = imageEl.width;
                         cropState.imgH = imageEl.height;
-                        cropState.img.src = imageEl.src;
                         const onShown = () => {
-                            updateZoomBounds();
+                            updateInitialCrop();
                             modalEl.removeEventListener("shown.bs.modal", onShown);
                         };
                         modalEl.addEventListener("shown.bs.modal", onShown);
@@ -1458,6 +1506,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 reader.readAsDataURL(file);
             });
         };
+
+        window.addEventListener("resize", () => {
+            if (!cropState?.imageEl) return;
+            render();
+        });
 
         cropperReady = true;
         return true;
