@@ -82,7 +82,13 @@
                     <div class="{% if user == carona.motorista %}col-6 col-md-3{% else %}col-4{% endif %}">
                         <div class="border rounded-3 p-3 h-100">
                             <i class="bi bi-calendar-event fs-3 text-primary"></i>
-                            <p class="fw-bold mb-0 text-center w-100">{{ carona.data|friendly_date }}</p>
+                            <p class="fw-bold mb-0 text-center w-100 text-nowrap">
+                                {% if user == carona.motorista %}
+                                    {{ carona.data|friendly_date }}
+                                {% else %}
+                                    {{ carona.data|date:"d/m" }}
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
 
@@ -186,10 +192,14 @@
             {% endif %}
 
             {% if carona.motorista.telefone %}
-            <a href="tel:{{ carona.motorista.telefone }}"
+            {% with telefone=carona.motorista.telefone|default:"" %}
+            <a href="https://wa.me/{{ telefone|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}"
+               target="_blank"
+               rel="noopener"
                class="text-decoration-none text-primary fw-semibold small">
-                <i class="bi bi-telephone-fill me-1"></i>{{ carona.motorista.telefone }}
+                <i class="bi bi-whatsapp me-1"></i>{{ telefone }}
             </a>
+            {% endwith %}
             {% endif %}
 
         </div>

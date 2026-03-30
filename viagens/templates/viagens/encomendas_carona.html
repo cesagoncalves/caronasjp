@@ -24,7 +24,25 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between flex-wrap mb-2">
                         <div>
-                            <h5 class="mb-0">{{ e.solicitante.nome_curto|default:e.nome_solicitante }}</h5>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                {% if e.solicitante and e.solicitante.foto %}
+                                    <img src="{{ e.solicitante.foto.url }}"
+                                         class="rounded-circle js-foto-zoom"
+                                         data-src="{{ e.solicitante.foto.url }}"
+                                         data-nome="{{ e.solicitante.nome_curto|default:e.nome_solicitante }}"
+                                         width="36" height="36"
+                                         style="object-fit: cover; cursor: zoom-in;"
+                                         onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
+                                {% else %}
+                                    <img src="{% static 'img/avatar_padrao.jpg' %}"
+                                         class="rounded-circle js-foto-zoom"
+                                         data-src="{% static 'img/avatar_padrao.jpg' %}"
+                                         data-nome="{{ e.solicitante.nome_curto|default:e.nome_solicitante }}"
+                                         width="36" height="36"
+                                         style="object-fit: cover; cursor: zoom-in;">
+                                {% endif %}
+                                <h5 class="mb-0">{{ e.solicitante.nome_curto|default:e.nome_solicitante }}</h5>
+                            </div>
                             {% with telefone=e.telefone_solicitante|default:"" %}
                                 <div class="small">
                                     <a href="https://wa.me/{{ telefone|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}" target="_blank" rel="noopener" class="text-decoration-none">

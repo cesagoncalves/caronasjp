@@ -49,7 +49,7 @@ class CaronaForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 3,
-                    "placeholder": "Ex: Nao levo animais, saida pontual, posso parar no caminho...",
+                    "placeholder": "Ex: Não levo animais, saída pontual, posso parar no caminho...",
                 }
             ),
         }

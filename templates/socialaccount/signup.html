@@ -32,7 +32,7 @@
 
             {% if form.nome_completo %}
             <div>
-                <label class="form-label" for="{{ form.nome_completo.id_for_label }}">Nome completo</label>
+                <label class="form-label" for="{{ form.nome_completo.id_for_label }}">Nome</label>
                 {{ form.nome_completo }}
                 {% if form.nome_completo.errors %}
                     <div class="text-danger small mt-1">{{ form.nome_completo.errors|join:", " }}</div>

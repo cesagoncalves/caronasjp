@@ -38,7 +38,25 @@
 <div class="d-flex justify-content-between align-items-start flex-wrap gap-1 mb-1">
 
 <div>
+<div class="d-flex align-items-center gap-2 mb-1">
+{% if e.solicitante and e.solicitante.foto %}
+<img src="{{ e.solicitante.foto.url }}"
+class="rounded-circle js-foto-zoom"
+data-src="{{ e.solicitante.foto.url }}"
+data-nome="{{ e.solicitante.nome_curto|default:e.nome_solicitante }}"
+width="34" height="34"
+style="object-fit:cover;cursor:zoom-in;"
+onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
+{% else %}
+<img src="{% static 'img/avatar_padrao.jpg' %}"
+class="rounded-circle js-foto-zoom"
+data-src="{% static 'img/avatar_padrao.jpg' %}"
+data-nome="{{ e.solicitante.nome_curto|default:e.nome_solicitante }}"
+width="34" height="34"
+style="object-fit:cover;cursor:zoom-in;">
+{% endif %}
 <h5 class="mb-0">{{ e.solicitante.nome_curto|default:e.nome_solicitante }}</h5>
+</div>
 
 {% with telefone=e.telefone_solicitante|default:"" %}
 <div class="small">
@@ -219,9 +237,25 @@ style="cursor:pointer;">
 
 <div>
 
-<h6 class="mb-0">
-{{ e.solicitante.nome_curto|default:e.nome_solicitante }}
-</h6>
+<div class="d-flex align-items-center gap-2 mb-0">
+{% if e.solicitante and e.solicitante.foto %}
+<img src="{{ e.solicitante.foto.url }}"
+class="rounded-circle js-foto-zoom"
+data-src="{{ e.solicitante.foto.url }}"
+data-nome="{{ e.solicitante.nome_curto|default:e.nome_solicitante }}"
+width="34" height="34"
+style="object-fit:cover;cursor:zoom-in;"
+onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
+{% else %}
+<img src="{% static 'img/avatar_padrao.jpg' %}"
+class="rounded-circle js-foto-zoom"
+data-src="{% static 'img/avatar_padrao.jpg' %}"
+data-nome="{{ e.solicitante.nome_curto|default:e.nome_solicitante }}"
+width="34" height="34"
+style="object-fit:cover;cursor:zoom-in;">
+{% endif %}
+<span>{{ e.solicitante.nome_curto|default:e.nome_solicitante }}</span>
+</div>
 
 <div class="text-muted small">
 {{ e.carona.origem }} -> {{ e.carona.destino }}

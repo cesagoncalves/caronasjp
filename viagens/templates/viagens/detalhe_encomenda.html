@@ -15,7 +15,25 @@
         <div class="card-body p-4">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
                 <div>
-                    <h5 class="mb-1">{{ encomenda.solicitante.nome_curto|default:encomenda.nome_solicitante }}</h5>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        {% if encomenda.solicitante and encomenda.solicitante.foto %}
+                            <img src="{{ encomenda.solicitante.foto.url }}"
+                                 class="rounded-circle js-foto-zoom"
+                                 data-src="{{ encomenda.solicitante.foto.url }}"
+                                 data-nome="{{ encomenda.solicitante.nome_curto|default:encomenda.nome_solicitante }}"
+                                 width="40" height="40"
+                                 style="object-fit: cover; cursor: zoom-in;"
+                                 onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
+                        {% else %}
+                            <img src="{% static 'img/avatar_padrao.jpg' %}"
+                                 class="rounded-circle js-foto-zoom"
+                                 data-src="{% static 'img/avatar_padrao.jpg' %}"
+                                 data-nome="{{ encomenda.solicitante.nome_curto|default:encomenda.nome_solicitante }}"
+                                 width="40" height="40"
+                                 style="object-fit: cover; cursor: zoom-in;">
+                        {% endif %}
+                        <h5 class="mb-0">{{ encomenda.solicitante.nome_curto|default:encomenda.nome_solicitante }}</h5>
+                    </div>
                     {% with telefone=encomenda.telefone_solicitante|default:"" %}
                         <div class="small">
                             <a href="https://wa.me/{{ telefone|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}" target="_blank" rel="noopener" class="text-decoration-none">
