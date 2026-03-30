@@ -9,6 +9,10 @@
 .ativos-scroll::-webkit-scrollbar { height: 8px; }
 .ativos-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,.2); border-radius: 99px; }
 .ativo-card { min-width: 260px; max-width: 290px; scroll-snap-align: start; cursor: pointer; }
+.ativo-card-pronta {
+    background: linear-gradient(145deg, #f2f3f5 0%, #e7e9ed 100%) !important;
+    border: 1px solid #d7dce3 !important;
+}
 .ativo-arrow { position: absolute; top: 42%; transform: translateY(-50%); z-index: 3; }
 .ativo-prev { left: -10px; }
 .ativo-next { right: -10px; }
@@ -183,7 +187,7 @@
 
         <div class="ativos-scroll" id="ativos-scroll">
             {% for d in destaques_ativos %}
-            <div class="card border-0 shadow-sm rounded-4 ativo-card"
+            <div class="card border-0 shadow-sm rounded-4 ativo-card {% if 'motorista' in d.tipos and d.carona.esta_concluida and d.carona.status == 'ativa' %}ativo-card-pronta{% endif %}"
                  data-bs-toggle="modal"
                  data-bs-target="#modalCarona{{ d.carona.id }}"
                  style="background: linear-gradient(145deg, #f7fbff 0%, #edf5ff 100%);">
@@ -195,6 +199,11 @@
                             {% if tipo == 'motorista' %}Motorista{% elif tipo == 'passageiro' %}Passageiro{% elif tipo == 'entregar_encomenda' %}Entregar encomenda(s){% else %}Envio de encomenda(s){% endif %}
                             </span>
                         {% endfor %}
+                        {% if 'motorista' in d.tipos and d.carona.esta_concluida and d.carona.status == 'ativa' %}
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">
+                                <i class="bi bi-flag-fill me-1"></i>Pode concluir
+                            </span>
+                        {% endif %}
                     </div>
 
                     <div class="fw-semibold">{{ d.carona.origem }} -> {{ d.carona.destino }}</div>

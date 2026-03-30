@@ -474,18 +474,24 @@
             <!-- FOOTER -->
             <div class="modal-footer justify-content-center flex-wrap gap-2">
                 {% if user == carona.motorista %}
-                    <div class="d-flex flex-wrap gap-2 justify-content-center w-100">
+                    <div class="row g-2 w-100">
                         {% if carona.esta_concluida and carona.status == 'ativa' %}
-                        <a href="{% url 'concluir_carona' carona.id %}" class="btn btn-outline-success">
-                            <i class="bi bi-check-circle"></i> Marcar como concluida
-                        </a>
+                        <div class="col-12 col-md-4 d-grid">
+                            <a href="{% url 'concluir_carona' carona.id %}" class="btn btn-success">
+                                <i class="bi bi-check-circle me-1"></i> Concluir viagem
+                            </a>
+                        </div>
                         {% endif %}
-                        <a href="{% url 'editar_carona' carona.id %}" class="btn btn-outline-primary">
-                            <i class="bi bi-pencil-square"></i> Editar
-                        </a>
-                        <a href="{% url 'excluir_carona' carona.id %}" class="btn btn-outline-danger">
-                            <i class="bi bi-trash"></i> Excluir
-                        </a>
+                        <div class="col-12 {% if carona.esta_concluida and carona.status == 'ativa' %}col-md-4{% else %}col-md-6{% endif %} d-grid">
+                            <a href="{% url 'editar_carona' carona.id %}" class="btn btn-outline-primary">
+                                <i class="bi bi-pencil-square me-1"></i> Editar
+                            </a>
+                        </div>
+                        <div class="col-12 {% if carona.esta_concluida and carona.status == 'ativa' %}col-md-4{% else %}col-md-6{% endif %} d-grid">
+                            <a href="{% url 'excluir_carona' carona.id %}" class="btn btn-outline-danger">
+                                <i class="bi bi-trash me-1"></i> Excluir
+                            </a>
+                        </div>
                     </div>
                 {% else %}
                     <div class="d-flex flex-wrap gap-2 justify-content-center w-100">

@@ -1,6 +1,24 @@
 from django import forms
+import re
 
 from .models import Carona, Solicitacao, Veiculo
+
+
+def _normalizar_telefone_br(telefone):
+    base = (telefone or "").strip()
+    if not base:
+        raise forms.ValidationError("Informe um telefone para contato.")
+
+    digitos = re.sub(r"\D", "", base)
+    if digitos.startswith("55") and len(digitos) in (12, 13):
+        digitos = digitos[2:]
+
+    if len(digitos) not in (10, 11):
+        raise forms.ValidationError("Informe um telefone valido com DDD.")
+
+    if len(digitos) == 11:
+        return f"({digitos[:2]}) {digitos[2:7]}-{digitos[7:]}"
+    return f"({digitos[:2]}) {digitos[2:6]}-{digitos[6:]}"
 
 
 class CaronaForm(forms.ModelForm):
@@ -31,7 +49,7 @@ class CaronaForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 3,
-                    "placeholder": "Ex: Não levo animais, saída pontual, posso parar no caminho...",
+                    "placeholder": "Ex: Nao levo animais, saida pontual, posso parar no caminho...",
                 }
             ),
         }
@@ -45,7 +63,7 @@ class CaronaForm(forms.ModelForm):
         if user:
             self.fields["veiculo"].queryset = Veiculo.objects.filter(motorista=user)
 
-        self.fields["veiculo"].empty_label = "Selecione um veículo"
+        self.fields["veiculo"].empty_label = "Selecione um veiculo"
 
         for field in self.fields.values():
             field.widget.attrs.setdefault("class", "form-control")
@@ -63,7 +81,7 @@ class CaronaForm(forms.ModelForm):
             cleaned_data["valor"] = None
 
         if not veiculo:
-            self.add_error("veiculo", "Selecione um veículo para oferecer carona.")
+            self.add_error("veiculo", "Selecione um veiculo para oferecer carona.")
 
         return cleaned_data
 
@@ -86,10 +104,10 @@ class SolicitacaoForm(forms.ModelForm):
             "nome_solicitante": forms.TextInput(attrs={"class": "form-control"}),
             "telefone_solicitante": forms.TextInput(attrs={"class": "form-control"}),
             "endereco_solicitante": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Rua, número, bairro"}
+                attrs={"class": "form-control", "placeholder": "Rua, numero, bairro"}
             ),
             "endereco_destino_solicitante": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Rua, número, bairro"}
+                attrs={"class": "form-control", "placeholder": "Rua, numero, bairro"}
             ),
             "quantidade": forms.NumberInput(attrs={"class": "form-control"}),
             "malas": forms.Select(attrs={"class": "form-select"}),
@@ -101,14 +119,17 @@ class SolicitacaoForm(forms.ModelForm):
     def clean_endereco_solicitante(self):
         endereco = (self.cleaned_data.get("endereco_solicitante") or "").strip()
         if not endereco:
-            raise forms.ValidationError("Informe o endereço para embarque.")
+            raise forms.ValidationError("Informe o endereco para embarque.")
         return endereco
 
     def clean_endereco_destino_solicitante(self):
         endereco = (self.cleaned_data.get("endereco_destino_solicitante") or "").strip()
         if not endereco:
-            raise forms.ValidationError("Informe o endereço de destino.")
+            raise forms.ValidationError("Informe o endereco de destino.")
         return endereco
+
+    def clean_telefone_solicitante(self):
+        return _normalizar_telefone_br(self.cleaned_data.get("telefone_solicitante"))
 
 
 class EncomendaForm(forms.ModelForm):
@@ -127,37 +148,40 @@ class EncomendaForm(forms.ModelForm):
             "nome_solicitante": forms.TextInput(attrs={"class": "form-control"}),
             "telefone_solicitante": forms.TextInput(attrs={"class": "form-control"}),
             "endereco_solicitante": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Rua, número, bairro"}
+                attrs={"class": "form-control", "placeholder": "Rua, numero, bairro"}
             ),
             "endereco_destino_solicitante": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Rua, número, bairro"}
+                attrs={"class": "form-control", "placeholder": "Rua, numero, bairro"}
             ),
             "descricao_item": forms.Textarea(
                 attrs={"class": "form-control", "rows": 4, "placeholder": "Descreva o item da encomenda"}
             ),
             "foto_encomenda": forms.FileInput(attrs={"class": "form-control"}),
             "observacoes": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3, "placeholder": "Ex: Frágil, manter em pé, entregar até 18h..."}
+                attrs={"class": "form-control", "rows": 3, "placeholder": "Ex: Fragil, manter em pe, entregar ate 18h..."}
             ),
         }
 
     def clean_descricao_item(self):
         descricao = (self.cleaned_data.get("descricao_item") or "").strip()
         if not descricao:
-            raise forms.ValidationError("Informe a descrição do item.")
+            raise forms.ValidationError("Informe a descricao do item.")
         return descricao
 
     def clean_endereco_solicitante(self):
         endereco = (self.cleaned_data.get("endereco_solicitante") or "").strip()
         if not endereco:
-            raise forms.ValidationError("Informe o endereço de coleta/entrega.")
+            raise forms.ValidationError("Informe o endereco de coleta/entrega.")
         return endereco
 
     def clean_endereco_destino_solicitante(self):
         endereco = (self.cleaned_data.get("endereco_destino_solicitante") or "").strip()
         if not endereco:
-            raise forms.ValidationError("Informe o endereço de entrega.")
+            raise forms.ValidationError("Informe o endereco de entrega.")
         return endereco
+
+    def clean_telefone_solicitante(self):
+        return _normalizar_telefone_br(self.cleaned_data.get("telefone_solicitante"))
 
 
 class VeiculoForm(forms.ModelForm):
@@ -178,5 +202,5 @@ class VeiculoForm(forms.ModelForm):
         if tipo in ["carro", "moto"]:
             for campo in ["marca", "modelo", "cor", "ano"]:
                 if not cleaned.get(campo):
-                    self.add_error(campo, "Campo obrigatório para carro ou moto")
+                    self.add_error(campo, "Campo obrigatorio para carro ou moto")
         return cleaned
