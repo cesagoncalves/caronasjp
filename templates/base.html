@@ -29,6 +29,12 @@
     body {
         padding-top: var(--navbar-offset) !important;
         overflow-y: scroll;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .site-main {
+        flex: 1 0 auto;
     }
     .navbar {
         margin-top: 0 !important;
@@ -1054,9 +1060,11 @@
 </div>
 
 
-<div class="container mb-5 pt-3">
-    {% block content %}{% endblock %}
-</div>
+<main class="site-main">
+    <div class="container mb-5 pt-3">
+        {% block content %}{% endblock %}
+    </div>
+</main>
 
 <footer class="site-footer py-3 mt-2">
     <div class="container text-center small text-muted">

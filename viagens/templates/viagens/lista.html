@@ -21,16 +21,6 @@
     100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
 }
 
-#fotoMotoristaAmpliada {
-    transition: transform .2s ease;
-    transform-origin: center center;
-    touch-action: manipulation;
-}
-
-#fotoMotoristaAmpliada.zoom-2 {
-    transform: scale(2);
-}
-
 .card-carona-disponivel {
     font-size: 1.35rem;
 }
@@ -89,6 +79,7 @@
     width: 40px;
     height: 40px;
     object-fit: cover;
+    cursor: zoom-in;
 }
 .card-carona-disponivel .valor-linha {
     margin-top: 6px;
@@ -415,13 +406,13 @@
                 <div class="motorista-foto-slot">
                     {% if carona.motorista.foto %}
                         <img src="{{ carona.motorista.foto.url }}"
-                             class="rounded-circle shadow-sm js-foto-motorista"
+                             class="rounded-circle shadow-sm js-foto-motorista js-foto-zoom"
                              data-src="{{ carona.motorista.foto.url }}"
                              data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
                              onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
                     {% else %}
                         <img src="{% static 'img/avatar_padrao.jpg' %}"
-                             class="rounded-circle shadow-sm js-foto-motorista"
+                             class="rounded-circle shadow-sm js-foto-motorista js-foto-zoom"
                              data-src="{% static 'img/avatar_padrao.jpg' %}"
                              data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}">
                     {% endif %}
@@ -448,17 +439,6 @@
 {% empty %}
 <div class="alert alert-info text-center">Não há caronas no momento.</div>
 {% endfor %}
-</div>
-
-<div class="modal fade" id="modalFotoMotorista" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow rounded-4">
-            <div class="modal-body text-center p-3">
-                <img id="fotoMotoristaAmpliada" src="" class="img-fluid rounded-3 img-zoom-preview" alt="Foto do motorista">
-                <p id="nomeMotoristaFoto" class="mt-2 mb-0 fw-semibold"></p>
-            </div>
-        </div>
-    </div>
 </div>
 
 <script>
@@ -593,11 +573,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     {% endif %}
 
-    const modalFotoEl = document.getElementById("modalFotoMotorista");
-    const imgAmpliada = document.getElementById("fotoMotoristaAmpliada");
-    const nomeFoto = document.getElementById("nomeMotoristaFoto");
-    const modalFoto = modalFotoEl ? new bootstrap.Modal(modalFotoEl) : null;
-
     document.querySelectorAll(".js-foto-motorista").forEach((img) => {
         ["mousedown", "touchstart"].forEach((evtName) => {
             img.addEventListener(evtName, (event) => {
@@ -605,24 +580,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 event.stopPropagation();
             });
         });
-
-        img.addEventListener("click", (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            event.stopImmediatePropagation();
-            if (!modalFoto || !imgAmpliada || !nomeFoto) return;
-
-            imgAmpliada.src = img.dataset.src || img.src;
-            imgAmpliada.classList.remove("zoom-2");
-            nomeFoto.textContent = img.dataset.nome || "";
-            modalFoto.show();
-        });
     });
 
     document.querySelectorAll(".card-clickable[data-modal-target]").forEach((card) => {
         card.addEventListener("click", (event) => {
             if (
-                event.target.closest(".js-foto-motorista") ||
+                event.target.closest(".js-foto-motorista, .js-foto-zoom") ||
                 event.target.closest("a,button,form,input,select,textarea,label")
             ) {
                 return;
@@ -636,12 +599,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             modal.show();
         });
     });
-
-    if (imgAmpliada) {
-        imgAmpliada.addEventListener("click", () => {
-            imgAmpliada.classList.toggle("zoom-2");
-        });
-    }
 
     function atualizarTextoFiltro() {
         if (!filtrosCollapse || !toggleFiltrosTexto) return;
