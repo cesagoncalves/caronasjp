@@ -1251,15 +1251,6 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.show();
     };
 
-    ["mousedown", "touchstart"].forEach((evtName) => {
-        document.addEventListener(evtName, (event) => {
-            const img = event.target.closest(".js-foto-zoom");
-            if (!img) return;
-            event.preventDefault();
-            event.stopPropagation();
-        });
-    });
-
     document.addEventListener("click", (event) => {
         const img = event.target.closest(".js-foto-zoom");
         if (!img) return;

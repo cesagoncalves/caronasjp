@@ -32,6 +32,10 @@ async function cancelarEncomendaLocal(id, token) {
     if (!confirm("Tem certeza que deseja cancelar esta encomenda?")) return;
 
     try {
+        const listaAtual = getSolicitacoes();
+        const itemAtual = listaAtual.find((s) => String(s.id) === String(id));
+        const eraPendente = String(itemAtual?.status || "").toLowerCase() === "pendente";
+
         const resp = await fetch(`/cancelar-solicitacao-publica/${id}/`, {
             method: "POST",
             headers: {
@@ -46,11 +50,13 @@ async function cancelarEncomendaLocal(id, token) {
             return;
         }
 
-        const lista = getSolicitacoes().map(s =>
-            String(s.id) === String(id)
-                ? { ...s, status: "cancelada", visto_solicitacao: true }
-                : s
-        );
+        const lista = eraPendente
+            ? getSolicitacoes().filter((s) => String(s.id) !== String(id))
+            : getSolicitacoes().map((s) =>
+                String(s.id) === String(id)
+                    ? { ...s, status: "cancelada", visto_solicitacao: true }
+                    : s
+            );
         saveSolicitacoes(lista);
         renderEncomendasLocal();
         atualizarNavbar();

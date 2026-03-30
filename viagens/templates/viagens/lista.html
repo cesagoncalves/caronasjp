@@ -573,15 +573,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     {% endif %}
 
-    document.querySelectorAll(".js-foto-motorista").forEach((img) => {
-        ["mousedown", "touchstart"].forEach((evtName) => {
-            img.addEventListener(evtName, (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-            });
-        });
-    });
-
     document.querySelectorAll(".card-clickable[data-modal-target]").forEach((card) => {
         card.addEventListener("click", (event) => {
             if (

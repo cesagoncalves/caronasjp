@@ -1117,6 +1117,10 @@ def cancelar_solicitacao(request, id):
         return redirect(destino)
 
     with transaction.atomic():
+        # Encomenda pendente cancelada pelo passageiro nao deve ficar no banco.
+        if s.tipo == "encomenda" and s.status == "pendente":
+            s.delete()
+            return redirect("minhas_encomendas_passageiro")
 
         if s.status == "pendente":
             destino = (
@@ -1155,6 +1159,10 @@ def cancelar_solicitacao_publica(request, id):
         return HttpResponseBadRequest("Carona nao esta ativa")
 
     with transaction.atomic():
+        # Para visitante, encomenda pendente cancelada tambem e removida do banco.
+        if solicitacao.tipo == "encomenda" and solicitacao.status == "pendente":
+            solicitacao.delete()
+            return HttpResponse(status=204)
 
         if solicitacao.status == "pendente":
             solicitacao.delete()

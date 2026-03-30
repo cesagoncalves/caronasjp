@@ -160,7 +160,7 @@
 
             {% if carona.motorista.foto %}
                 <img src="{{ carona.motorista.foto.url }}"
-                     class="rounded-circle js-foto-motorista mb-1"
+                     class="rounded-circle js-foto-motorista js-foto-zoom mb-1"
                      data-src="{{ carona.motorista.foto.url }}"
                      data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
                      width="64" height="64"
@@ -168,7 +168,7 @@
                      onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
             {% else %}
                 <img src="{% static 'img/avatar_padrao.jpg' %}"
-                     class="rounded-circle js-foto-motorista mb-1"
+                     class="rounded-circle js-foto-motorista js-foto-zoom mb-1"
                      data-src="{% static 'img/avatar_padrao.jpg' %}"
                      data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
                      width="64" height="64"
@@ -270,7 +270,7 @@
                                                         <div class="flex-shrink-0">
                                                             {% if solicitacao.solicitante and solicitacao.solicitante.foto %}
                                                                 <img src="{{ solicitacao.solicitante.foto.url }}"
-                                                                     class="rounded-circle js-foto-motorista"
+                                                                     class="rounded-circle js-foto-motorista js-foto-zoom"
                                                                      data-src="{{ solicitacao.solicitante.foto.url }}"
                                                                      data-nome="{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}"
                                                                      width="48" height="48"
@@ -278,7 +278,7 @@
                                                                      onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
                                                             {% else %}
                                                                 <img src="{% static 'img/avatar_padrao.jpg' %}"
-                                                                     class="rounded-circle js-foto-motorista"
+                                                                     class="rounded-circle js-foto-motorista js-foto-zoom"
                                                                      data-src="{% static 'img/avatar_padrao.jpg' %}"
                                                                      data-nome="{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}"
                                                                      width="48" height="48"
@@ -335,7 +335,7 @@
                                                     <div class="flex-shrink-0">
                                                         {% if solicitacao.solicitante and solicitacao.solicitante.foto %}
                                                             <img src="{{ solicitacao.solicitante.foto.url }}"
-                                                                 class="rounded-circle js-foto-motorista"
+                                                                 class="rounded-circle js-foto-motorista js-foto-zoom"
                                                                  data-src="{{ solicitacao.solicitante.foto.url }}"
                                                                  data-nome="{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}"
                                                                  width="48" height="48"
@@ -343,7 +343,7 @@
                                                                  onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
                                                         {% else %}
                                                             <img src="{% static 'img/avatar_padrao.jpg' %}"
-                                                                 class="rounded-circle js-foto-motorista"
+                                                                 class="rounded-circle js-foto-motorista js-foto-zoom"
                                                                  data-src="{% static 'img/avatar_padrao.jpg' %}"
                                                                  data-nome="{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}"
                                                                  width="48" height="48"
