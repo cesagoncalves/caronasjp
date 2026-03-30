@@ -36,4 +36,6 @@ urlpatterns = [
     path("notificacoes/marcar-lidas/", views.marcar_notificacoes_como_lidas, name="marcar_notificacoes_como_lidas"),
     path("notificacoes/limpar/", views.limpar_notificacoes, name="limpar_notificacoes"),
     path("notificacoes/abrir/<int:notificacao_id>/", views.abrir_notificacao, name="abrir_notificacao"),
+    path("termos-de-uso/", views.termos_uso, name="termos_uso"),
+    path("politica-de-privacidade/", views.politica_privacidade, name="politica_privacidade"),
 ]

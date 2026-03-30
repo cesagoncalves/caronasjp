@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.db import transaction
 from django.utils.html import format_html
 from django.core.paginator import Paginator
+from django.utils.dateparse import parse_date
 from difflib import SequenceMatcher
 import re
 import unicodedata
@@ -1348,12 +1349,37 @@ def concluir_carona(request, carona_id):
 
 def historico_viagens(request):
     tipo = request.GET.get('tipo', 'todas')
+    data_inicial_raw = (request.GET.get("data_inicial") or "").strip()
+    data_final_raw = (request.GET.get("data_final") or "").strip()
+    data_inicial = parse_date(data_inicial_raw) if data_inicial_raw else None
+    data_final = parse_date(data_final_raw) if data_final_raw else None
+    if data_inicial and data_final and data_inicial > data_final:
+        data_inicial, data_final = data_final, data_inicial
+
+    filtro_data_carona = Q()
+    if data_inicial:
+        filtro_data_carona &= Q(data__gte=data_inicial)
+    if data_final:
+        filtro_data_carona &= Q(data__lte=data_final)
+
+    filtro_data_encomenda = Q()
+    if data_inicial:
+        filtro_data_encomenda &= Q(carona__data__gte=data_inicial)
+    if data_final:
+        filtro_data_encomenda &= Q(carona__data__lte=data_final)
+
+    filtro_data_qs = ""
+    if data_inicial:
+        filtro_data_qs += f"&data_inicial={data_inicial.isoformat()}"
+    if data_final:
+        filtro_data_qs += f"&data_final={data_final.isoformat()}"
+
     caronas = Carona.objects.none()
     historico_itens = []
     solicitacoes = None
 
     if request.user.is_authenticated:
-        base_filter = Q(status='concluida')
+        base_filter = Q(status='concluida') & filtro_data_carona
 
         if tipo == 'motorista':
             filtro = base_filter & Q(motorista=request.user)
@@ -1404,6 +1430,7 @@ def historico_viagens(request):
                     Q(carona__motorista=request.user) |
                     Q(solicitante=request.user)
                 )
+                .filter(filtro_data_encomenda)
                 .distinct()
                 .order_by('-carona__data', '-carona__hora', '-data_solicitacao')
             )
@@ -1438,7 +1465,18 @@ def historico_viagens(request):
         'historico_itens': historico_itens,
         'solicitacoes': solicitacoes,
         'tipo': tipo,
+        "data_inicial": data_inicial.isoformat() if data_inicial else "",
+        "data_final": data_final.isoformat() if data_final else "",
+        "filtro_data_qs": filtro_data_qs,
     })
+
+
+def termos_uso(request):
+    return render(request, "viagens/termos_uso.html")
+
+
+def politica_privacidade(request):
+    return render(request, "viagens/politica_privacidade.html")
 
 def api_estado_caronas(request):
     ids = request.GET.get("ids", "")

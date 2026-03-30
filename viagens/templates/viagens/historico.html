@@ -63,13 +63,39 @@ data-page="historico-local"
 
 {% if user.is_authenticated %}
 
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end justify-content-center">
+            <input type="hidden" name="tipo" value="{{ tipo|default:'todas' }}">
+            <div class="col-12 col-md-4">
+                <label for="id_data_inicial" class="form-label small text-muted mb-1">Data inicial</label>
+                <input type="date" id="id_data_inicial" name="data_inicial" class="form-control" value="{{ data_inicial }}">
+            </div>
+            <div class="col-12 col-md-4">
+                <label for="id_data_final" class="form-label small text-muted mb-1">Data final</label>
+                <input type="date" id="id_data_final" name="data_final" class="form-control" value="{{ data_final }}">
+            </div>
+            <div class="col-12 col-md-auto d-grid">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel me-1"></i>Filtrar data
+                </button>
+            </div>
+            <div class="col-12 col-md-auto d-grid">
+                <a href="?tipo={{ tipo|default:'todas' }}" class="btn btn-outline-secondary">
+                    Limpar data
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card shadow-sm mb-4">
     <div class="card-body text-center">
         <div class="btn-group flex-wrap">
-            <a href="?tipo=todas" class="btn btn-filtro btn-filtro--todas {% if tipo == 'todas' %}is-active{% endif %}">Todas</a>
-            <a href="?tipo=motorista" class="btn btn-filtro btn-filtro--motorista {% if tipo == 'motorista' %}is-active{% endif %}">Motorista</a>
-            <a href="?tipo=passageiro" class="btn btn-filtro btn-filtro--passageiro {% if tipo == 'passageiro' %}is-active{% endif %}">Passageiro</a>
-            <a href="?tipo=encomenda" class="btn btn-filtro btn-filtro--encomenda {% if tipo == 'encomenda' %}is-active{% endif %}">Encomenda</a>
+            <a href="?tipo=todas{{ filtro_data_qs }}" class="btn btn-filtro btn-filtro--todas {% if tipo == 'todas' %}is-active{% endif %}">Todas</a>
+            <a href="?tipo=motorista{{ filtro_data_qs }}" class="btn btn-filtro btn-filtro--motorista {% if tipo == 'motorista' %}is-active{% endif %}">Motorista</a>
+            <a href="?tipo=passageiro{{ filtro_data_qs }}" class="btn btn-filtro btn-filtro--passageiro {% if tipo == 'passageiro' %}is-active{% endif %}">Passageiro</a>
+            <a href="?tipo=encomenda{{ filtro_data_qs }}" class="btn btn-filtro btn-filtro--encomenda {% if tipo == 'encomenda' %}is-active{% endif %}">Encomenda</a>
         </div>
     </div>
 </div>
@@ -124,6 +150,25 @@ data-page="historico-local"
 {% endif %}
 
 {% else %}
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <div class="row g-2 align-items-end justify-content-center">
+            <div class="col-12 col-md-4">
+                <label for="filtro-data-inicial-local" class="form-label small text-muted mb-1">Data inicial</label>
+                <input type="date" id="filtro-data-inicial-local" class="form-control" value="{{ data_inicial }}">
+            </div>
+            <div class="col-12 col-md-4">
+                <label for="filtro-data-final-local" class="form-label small text-muted mb-1">Data final</label>
+                <input type="date" id="filtro-data-final-local" class="form-control" value="{{ data_final }}">
+            </div>
+            <div class="col-12 col-md-auto d-grid">
+                <button type="button" id="limpar-data-historico-local" class="btn btn-outline-secondary">
+                    Limpar data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="card shadow-sm mb-4">
     <div class="card-body text-center">
         <div class="btn-group flex-wrap" id="filtros-historico-local">

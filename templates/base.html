@@ -84,6 +84,14 @@
         flex: 1 1 200px;
         min-width: 180px;
     }
+    .site-footer {
+        border-top: 1px solid #e9ecef;
+        background: #f8f9fa;
+    }
+    .site-footer a {
+        text-decoration: none;
+        font-weight: 600;
+    }
     h1, h2,
     .modal-title {
         text-align: center;
@@ -1049,6 +1057,16 @@
 <div class="container mb-5 pt-3">
     {% block content %}{% endblock %}
 </div>
+
+<footer class="site-footer py-3 mt-2">
+    <div class="container text-center small text-muted">
+        <span>Caronas JP</span>
+        <span class="mx-2">•</span>
+        <a href="{% url 'termos_uso' %}" class="text-muted">Termos de Uso</a>
+        <span class="mx-2">•</span>
+        <a href="{% url 'politica_privacidade' %}" class="text-muted">Politica de Privacidade</a>
+    </div>
+</footer>
 
 {% if messages %}
 <div class="modal fade" id="messageModal" tabindex="-1">

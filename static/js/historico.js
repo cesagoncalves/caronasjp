@@ -1,6 +1,16 @@
 console.log("historico.js carregado");
 
 let filtroHistoricoLocal = "todas";
+let dataInicialHistoricoLocal = "";
+let dataFinalHistoricoLocal = "";
+
+function dentroDoFiltroData(dataIso) {
+    const data = String(dataIso || "").slice(0, 10);
+    if (!data) return !dataInicialHistoricoLocal && !dataFinalHistoricoLocal;
+    if (dataInicialHistoricoLocal && data < dataInicialHistoricoLocal) return false;
+    if (dataFinalHistoricoLocal && data > dataFinalHistoricoLocal) return false;
+    return true;
+}
 
 function atualizarBotoesFiltroHistorico() {
     document.querySelectorAll("#filtros-historico-local [data-tipo]").forEach((btn) => {
@@ -15,9 +25,9 @@ function renderHistoricoLocal() {
         .sort((a, b) => new Date(b.data_solicitacao) - new Date(a.data_solicitacao));
 
     const lista = listaBase.filter((s) => {
-        if (filtroHistoricoLocal === "todas") return true;
         const tipo = (s.tipo || "carona").toLowerCase();
-        return tipo === filtroHistoricoLocal;
+        const passouTipo = filtroHistoricoLocal === "todas" || tipo === filtroHistoricoLocal;
+        return passouTipo && dentroDoFiltroData(s.carona_data);
     });
 
     const container = document.getElementById("lista-historico");
@@ -55,6 +65,37 @@ function renderHistoricoLocal() {
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (document.body.dataset.page !== "historico-local") return;
+
+    const campoDataInicial = document.getElementById("filtro-data-inicial-local");
+    const campoDataFinal = document.getElementById("filtro-data-final-local");
+    const btnLimparData = document.getElementById("limpar-data-historico-local");
+
+    dataInicialHistoricoLocal = (campoDataInicial?.value || "").trim();
+    dataFinalHistoricoLocal = (campoDataFinal?.value || "").trim();
+
+    if (campoDataInicial) {
+        campoDataInicial.addEventListener("change", () => {
+            dataInicialHistoricoLocal = (campoDataInicial.value || "").trim();
+            renderHistoricoLocal();
+        });
+    }
+
+    if (campoDataFinal) {
+        campoDataFinal.addEventListener("change", () => {
+            dataFinalHistoricoLocal = (campoDataFinal.value || "").trim();
+            renderHistoricoLocal();
+        });
+    }
+
+    if (btnLimparData) {
+        btnLimparData.addEventListener("click", () => {
+            dataInicialHistoricoLocal = "";
+            dataFinalHistoricoLocal = "";
+            if (campoDataInicial) campoDataInicial.value = "";
+            if (campoDataFinal) campoDataFinal.value = "";
+            renderHistoricoLocal();
+        });
+    }
 
     const filtros = document.getElementById("filtros-historico-local");
     if (filtros) {
