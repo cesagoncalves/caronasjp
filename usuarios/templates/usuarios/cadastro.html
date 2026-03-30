@@ -98,6 +98,19 @@
                 <div class="small text-muted mt-2" id="migracaoResumo"></div>
             </div>
 
+            <div class="mb-3">
+                <div class="form-check">
+                    {{ form.aceite_termos }}
+                    <label class="form-check-label" for="{{ form.aceite_termos.id_for_label }}">
+                        Li e concordo com os
+                        <a href="{% url 'termos_uso' %}" target="_blank" rel="noopener">Termos de Uso</a>.
+                    </label>
+                </div>
+                {% if form.aceite_termos.errors %}
+                    <div class="text-danger small mt-1">{{ form.aceite_termos.errors|join:", " }}</div>
+                {% endif %}
+            </div>
+
             <button type="submit" class="btn btn-success w-100 mb-3">
                 <i class="bi bi-check-circle-fill me-1"></i>
                 Criar Conta

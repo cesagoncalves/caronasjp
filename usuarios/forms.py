@@ -27,9 +27,18 @@ class ContatoValidationMixin:
 
 
 class UsuarioCreationForm(ContatoValidationMixin, UserCreationForm):
+    aceite_termos = forms.BooleanField(
+        required=True,
+        label="Li e concordo com os termos de uso",
+        error_messages={
+            "required": "Voce precisa concordar com os Termos de Uso para criar a conta.",
+        },
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["nome_completo"].required = True
+        self.fields["aceite_termos"].widget.attrs.update({"class": "form-check-input"})
 
     class Meta(UserCreationForm.Meta):
         model = Usuario

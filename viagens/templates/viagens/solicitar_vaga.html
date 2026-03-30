@@ -78,8 +78,38 @@
         </div>
     </div>
 </div>
+{% if not user.is_authenticated %}
+<div class="modal fade" id="modalTermosVisitanteVaga" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow-sm">
+            <div class="modal-header">
+                <h5 class="modal-title">Termos de Uso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Para continuar, confirme seu aceite:</p>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="aceiteTermosVisitanteVaga">
+                    <label class="form-check-label" for="aceiteTermosVisitanteVaga">
+                        Li e aceito os
+                        <a href="{% url 'termos_uso' %}" target="_blank" rel="noopener">Termos de Uso</a>.
+                    </label>
+                </div>
+                <div class="small text-danger mt-2 d-none" id="erroAceiteTermosVaga">
+                    Marque o aceite para enviar sua solicitacao.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Agora nao</button>
+                <button type="button" class="btn btn-primary" id="btnAceitarTermosVisitanteVaga">Continuar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 <script>
 (function () {
+    const TERMOS_VISITANTE_KEY = "visitante_aceitou_termos_uso";
     let uuid = localStorage.getItem("uuid_local");
 
     if (!uuid) {
@@ -122,12 +152,56 @@
     }
 
     const form = document.querySelector("form");
+    let envioLiberadoPorAceite = false;
+
+    const salvarCampos = () => {
+        if (campoOrigem) localStorage.setItem(origemKey, campoOrigem.value || "");
+        if (campoDestino) localStorage.setItem(destinoKey, campoDestino.value || "");
+        if (campoNome) localStorage.setItem(nomeKey, campoNome.value || "");
+        if (campoTelefone) localStorage.setItem(telefoneKey, campoTelefone.value || "");
+    };
+
+    const visitanteJaAceitouTermos = () => localStorage.getItem(TERMOS_VISITANTE_KEY) === "1";
+
+    {% if not user.is_authenticated %}
+    const modalEl = document.getElementById("modalTermosVisitanteVaga");
+    const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+    const aceiteCheck = document.getElementById("aceiteTermosVisitanteVaga");
+    const erroAceite = document.getElementById("erroAceiteTermosVaga");
+    const btnAceitar = document.getElementById("btnAceitarTermosVisitanteVaga");
+
+    if (btnAceitar) {
+        btnAceitar.addEventListener("click", () => {
+            if (!aceiteCheck || !aceiteCheck.checked) {
+                if (erroAceite) erroAceite.classList.remove("d-none");
+                return;
+            }
+            localStorage.setItem(TERMOS_VISITANTE_KEY, "1");
+            envioLiberadoPorAceite = true;
+            if (modal) modal.hide();
+            if (form) form.requestSubmit();
+        });
+    }
+
+    if (aceiteCheck) {
+        aceiteCheck.addEventListener("change", () => {
+            if (aceiteCheck.checked && erroAceite) erroAceite.classList.add("d-none");
+        });
+    }
+    {% endif %}
+
     if (form) {
-        form.addEventListener("submit", () => {
-            if (campoOrigem) localStorage.setItem(origemKey, campoOrigem.value || "");
-            if (campoDestino) localStorage.setItem(destinoKey, campoDestino.value || "");
-            if (campoNome) localStorage.setItem(nomeKey, campoNome.value || "");
-            if (campoTelefone) localStorage.setItem(telefoneKey, campoTelefone.value || "");
+        form.addEventListener("submit", (event) => {
+            salvarCampos();
+            {% if not user.is_authenticated %}
+            if (!envioLiberadoPorAceite && !visitanteJaAceitouTermos()) {
+                event.preventDefault();
+                if (aceiteCheck) aceiteCheck.checked = false;
+                if (erroAceite) erroAceite.classList.add("d-none");
+                if (modal) modal.show();
+                return;
+            }
+            {% endif %}
         });
     }
 })();
