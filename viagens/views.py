@@ -1632,7 +1632,6 @@ def minhas_caronas_view(request):
         ).count()
         passageiros_confirmados_total = carona.passageiros_aceitos.aggregate(total=Sum("quantidade"))["total"] or 0
         carona.passageiros_confirmados = passageiros_confirmados_total
-        carona.vagas_restantes = max((carona.vagas or 0) - passageiros_confirmados_total, 0)
 
     caronas_recentes = (
         Carona.objects
