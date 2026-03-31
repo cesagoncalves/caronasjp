@@ -492,6 +492,10 @@ def criar_carona(request):
 @login_required
 def editar_carona(request, carona_id):
     carona = get_object_or_404(Carona, id=carona_id)
+    vagas_ocupadas_aceitas = carona.solicitacoes.filter(
+        status="aceita",
+        tipo="carona",
+    ).aggregate(total=Sum("quantidade"))["total"] or 0
 
     if carona.motorista != request.user:
         return HttpResponseForbidden("Você não pode editar esta carona.")
@@ -586,6 +590,7 @@ def editar_carona(request, carona_id):
             "form": form,
             "carona": carona,
             "veiculo_form": veiculo_form,
+            "vagas_ocupadas_aceitas": vagas_ocupadas_aceitas,
         }
     )
 
@@ -887,10 +892,41 @@ def gerenciar_solicitacoes(request):
         solicitacao__tipo="carona",
     ).update(lida=True)
 
-    solicitacoes = Solicitacao.objects.filter(
+    solicitacoes = Solicitacao.objects.select_related("carona", "solicitante").filter(
         carona__motorista=request.user,
         status='pendente'
     ).order_by('-data_solicitacao')
+
+    carona_ids = list({s.carona_id for s in solicitacoes})
+    vagas_ocupadas_map = {
+        item["carona_id"]: (item["total"] or 0)
+        for item in (
+            Solicitacao.objects.filter(
+                carona_id__in=carona_ids,
+                tipo="carona",
+                status="aceita",
+            )
+            .values("carona_id")
+            .annotate(total=Sum("quantidade"))
+        )
+    }
+    encomendas_confirmadas_map = {
+        item["carona_id"]: item["total"]
+        for item in (
+            Solicitacao.objects.filter(
+                carona_id__in=carona_ids,
+                tipo="encomenda",
+                status="aceita",
+            )
+            .values("carona_id")
+            .annotate(total=Count("id"))
+        )
+    }
+
+    for s in solicitacoes:
+        ocupadas = vagas_ocupadas_map.get(s.carona_id, 0)
+        s.vagas_restantes_carona = max((s.carona.vagas or 0) - ocupadas, 0)
+        s.encomendas_confirmadas_carona = encomendas_confirmadas_map.get(s.carona_id, 0)
     
     return render(request, "viagens/gerenciar_solicitacoes.html", {
         "solicitacoes": solicitacoes,
@@ -1494,7 +1530,45 @@ def api_estado_caronas(request):
         carona_ids = [i for i in ids.split(",") if i.isdigit()]
         caronas = Carona.objects.filter(id__in=carona_ids)
 
+        vagas_ocupadas_map = {
+            item["carona_id"]: (item["total"] or 0)
+            for item in (
+                Solicitacao.objects.filter(
+                    carona_id__in=carona_ids,
+                    tipo="carona",
+                    status="aceita",
+                )
+                .values("carona_id")
+                .annotate(total=Sum("quantidade"))
+            )
+        }
+        passageiros_confirmados_map = {
+            item["carona_id"]: (item["total"] or 0)
+            for item in (
+                Solicitacao.objects.filter(
+                    carona_id__in=carona_ids,
+                    tipo="carona",
+                    status="aceita",
+                )
+                .values("carona_id")
+                .annotate(total=Sum("quantidade"))
+            )
+        }
+        encomendas_confirmadas_map = {
+            item["carona_id"]: item["total"]
+            for item in (
+                Solicitacao.objects.filter(
+                    carona_id__in=carona_ids,
+                    tipo="encomenda",
+                    status="aceita",
+                )
+                .values("carona_id")
+                .annotate(total=Count("id"))
+            )
+        }
+
         for c in caronas:
+            ocupadas = vagas_ocupadas_map.get(c.id, 0)
             result.append({
                 "id": c.id,
                 "origem": c.origem,
@@ -1502,7 +1576,10 @@ def api_estado_caronas(request):
                 "data": c.data.strftime("%Y-%m-%d"),
                 "hora": c.hora.strftime("%H:%M"),
                 "motorista_nome": c.motorista.nome_curto or c.motorista.nome_completo,
-                "status": c.status
+                "status": c.status,
+                "vagas_restantes": max((c.vagas or 0) - ocupadas, 0),
+                "passageiros_confirmados": passageiros_confirmados_map.get(c.id, 0),
+                "encomendas_confirmadas": encomendas_confirmadas_map.get(c.id, 0),
             })
 
     return JsonResponse({ "result": result })
@@ -1553,6 +1630,9 @@ def minhas_caronas_view(request):
             tipo='encomenda',
             status='aceita'
         ).count()
+        passageiros_confirmados_total = carona.passageiros_aceitos.aggregate(total=Sum("quantidade"))["total"] or 0
+        carona.passageiros_confirmados = passageiros_confirmados_total
+        carona.vagas_restantes = max((carona.vagas or 0) - passageiros_confirmados_total, 0)
 
     caronas_recentes = (
         Carona.objects

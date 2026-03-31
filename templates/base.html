@@ -662,6 +662,12 @@
                         </li>
 
                         <li>
+                            <a class="dropdown-item" href="{% url 'meus_veiculos' %}">
+                                Meus Veículos
+                            </a>
+                        </li>
+
+                        <li>
                             <a class="dropdown-item
                                 {% if qtd_eventos_motorista > 0 %}fw-bold text-warning{% endif %}"
                                 href="{% url 'minhas_caronas' %}">
@@ -673,12 +679,6 @@
                                         {{ qtd_eventos_motorista }}
                                     </span>
                                 {% endif %}
-                            </a>
-                        </li>
-
-                        <li>
-                            <a class="dropdown-item" href="{% url 'meus_veiculos' %}">
-                                Meus Veículos
                             </a>
                         </li>
 
@@ -940,13 +940,13 @@
             </button>
             <div class="collapse mobile-submenu" id="menuMotoristaMobile">
                 <a class="list-group-item list-group-item-action border-0" href="{% url 'criar_carona' %}">Oferecer Carona</a>
+                <a class="list-group-item list-group-item-action border-0" href="{% url 'meus_veiculos' %}">Meus Veículos</a>
                 <a class="list-group-item list-group-item-action border-0 {% if qtd_eventos_motorista > 0 %}text-warning fw-bold{% endif %}" href="{% url 'minhas_caronas' %}">
                     Minhas Caronas
                     {% if qtd_eventos_motorista > 0 %}
                         <span class="badge bg-danger ms-1">{{ qtd_eventos_motorista }}</span>
                     {% endif %}
                 </a>
-                <a class="list-group-item list-group-item-action border-0" href="{% url 'meus_veiculos' %}">Meus Veículos</a>
                 <a class="list-group-item list-group-item-action border-0 {% if qtd_eventos_motorista_encomendas > 0 %}text-warning fw-bold{% endif %}" href="{% url 'minhas_encomendas' %}">
                     Minhas Encomendas
                     {% if qtd_eventos_motorista_encomendas > 0 %}

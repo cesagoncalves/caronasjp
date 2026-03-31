@@ -46,6 +46,14 @@
                     <div class="mb-3">
                         <label class="form-label">Quantidade de vagas</label>
                         {{ form.vagas }}
+                        <div class="mt-2">
+                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle"
+                                  id="badge-vagas-restantes"
+                                  data-ocupadas="{{ vagas_ocupadas_aceitas }}">
+                                <i class="bi bi-people-fill me-1"></i>
+                                {{ carona.vagas_restantes }} vaga(s) restante(s)
+                            </span>
+                        </div>
                     </div>
 
                     <!-- Tipo de valor -->
@@ -109,6 +117,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const tipoValor = document.getElementById("id_tipo_valor");
     const campoValor = document.getElementById("campo-valor");
     const inputValor = document.getElementById("id_valor");
+    const inputVagas = document.getElementById("id_vagas");
+    const badgeVagas = document.getElementById("badge-vagas-restantes");
     const inputData = document.getElementById("id_data");
     if (!tipoValor || !campoValor || !inputValor) return;
     if (inputData) {
@@ -123,8 +133,18 @@ document.addEventListener("DOMContentLoaded", () => {
         inputValor.disabled = !mostrar;
     }
 
+    function atualizarBadgeVagas() {
+        if (!badgeVagas || !inputVagas) return;
+        const ocupadas = Number(badgeVagas.dataset.ocupadas || 0);
+        const total = Number(inputVagas.value || 0);
+        const restantes = Math.max(total - ocupadas, 0);
+        badgeVagas.innerHTML = `<i class="bi bi-people-fill me-1"></i>${restantes} vaga(s) restante(s)`;
+    }
+
     tipoValor.addEventListener("change", atualizarCampoValor);
+    if (inputVagas) inputVagas.addEventListener("input", atualizarBadgeVagas);
     atualizarCampoValor();
+    atualizarBadgeVagas();
 });
 </script>
 

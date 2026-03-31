@@ -13,13 +13,17 @@
                     <!-- Conteúdo da carona -->
                     <div class="card-body">
                         {% include "viagens/partials/card_carona_info.html" %}
-                        <div class="mb-2">
-                            {% if carona.encomendas_para_entregar > 0 %}
-                                <div class="d-flex align-items-center gap-2 text-muted">
-                                    <i class="bi bi-box-seam text-primary"></i>
-                                    <span class="fw-semibold">{{ carona.encomendas_para_entregar }} encomenda(s)</span>
-                                </div>
-                            {% endif %}
+                        <div class="mb-2 d-flex flex-wrap gap-2">
+                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle"
+                                  data-carona-passageiros="{{ carona.id }}">
+                                <i class="bi bi-people-fill me-1"></i>
+                                {{ carona.passageiros_confirmados }} passageiro(s)
+                            </span>
+                            <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle"
+                                  data-carona-encomendas="{{ carona.id }}">
+                                <i class="bi bi-box-seam me-1"></i>
+                                {{ carona.encomendas_ativas }} encomenda(s)
+                            </span>
                         </div>
 
                         <!-- Botões Editar / Excluir -->
@@ -32,8 +36,12 @@
                                 <i class="bi bi-eye"></i> Ver detalhes
                             </button>
 
+                            <a href="{% url 'passageiros_carona' carona.id %}" class="btn btn-outline-info w-100 mb-2 py-2 fs-6" onclick="event.stopPropagation()">
+                                <i class="bi bi-people"></i> Passageiros
+                            </a>
+
                             <a href="{% url 'encomendas_carona' carona.id %}" class="btn btn-outline-secondary w-100 mb-2 py-2 fs-6" onclick="event.stopPropagation()">
-                                <i class="bi bi-box-seam"></i> Encomendas da carona
+                                <i class="bi bi-box-seam"></i> Encomendas
                                 {% if carona.encomendas_pendentes > 0 %}
                                     <span class="badge bg-danger ms-2">{{ carona.encomendas_pendentes }}</span>
                                 {% endif %}
@@ -86,5 +94,44 @@
         <div class="alert alert-info text-center">Voce ainda nao tem caronas cadastradas.</div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const cards = Array.from(document.querySelectorAll("[data-carona-passageiros]"));
+    if (!cards.length) return;
+
+    const ids = [...new Set(cards.map((el) => el.dataset.caronaPassageiros).filter(Boolean))];
+    if (!ids.length) return;
+
+    const atualizarBadges = async () => {
+        try {
+            const resp = await fetch(`/api/estado-caronas/?ids=${ids.join(",")}`);
+            if (!resp.ok) return;
+            const data = await resp.json();
+            const mapa = {};
+            (data.result || []).forEach((item) => { mapa[String(item.id)] = item; });
+
+            document.querySelectorAll("[data-carona-passageiros]").forEach((el) => {
+                const id = String(el.dataset.caronaPassageiros || "");
+                const item = mapa[id];
+                if (!item) return;
+                const qtd = Number(item.passageiros_confirmados || 0);
+                el.innerHTML = `<i class="bi bi-people-fill me-1"></i>${qtd} passageiro(s)`;
+            });
+
+            document.querySelectorAll("[data-carona-encomendas]").forEach((el) => {
+                const id = String(el.dataset.caronaEncomendas || "");
+                const item = mapa[id];
+                if (!item) return;
+                const qtd = Number(item.encomendas_confirmadas || 0);
+                el.innerHTML = `<i class="bi bi-box-seam me-1"></i>${qtd} encomenda(s)`;
+            });
+        } catch (e) {}
+    };
+
+    atualizarBadges();
+    setInterval(atualizarBadges, 30000);
+});
+</script>
 
 {% endblock %}
