@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load filters %}
 
 {% block content %}
 <div class="container mt-4">
@@ -25,7 +26,7 @@
 
                     {% with telefone=s.solicitante.telefone|default:s.telefone_solicitante %}
                     <div class="fw-semibold">
-                        <a href="https://wa.me/{{ telefone|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}" target="_blank" rel="noopener" class="text-decoration-none">
+                        <a href="https://wa.me/{{ telefone|whatsapp_br }}" target="_blank" rel="noopener" class="text-decoration-none">
                             <i class="bi bi-whatsapp me-1"></i>{{ telefone }}
                         </a>
                     </div>

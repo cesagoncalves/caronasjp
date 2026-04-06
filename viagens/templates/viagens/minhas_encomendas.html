@@ -60,7 +60,7 @@ style="object-fit:cover;cursor:zoom-in;">
 
 {% with telefone=e.telefone_solicitante|default:"" %}
 <div class="small">
-<a href="https://wa.me/{{ telefone|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}"
+<a href="https://wa.me/{{ telefone|whatsapp_br }}"
 target="_blank"
 rel="noopener"
 class="text-decoration-none">
@@ -264,7 +264,7 @@ style="object-fit:cover;cursor:zoom-in;">
 {% with telefone=e.telefone_solicitante|default:"" %}
 <div class="small">
 
-<a href="https://wa.me/{{ telefone|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}"
+<a href="https://wa.me/{{ telefone|whatsapp_br }}"
 target="_blank"
 rel="noopener"
 class="text-decoration-none">

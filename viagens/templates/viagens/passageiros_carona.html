@@ -31,7 +31,7 @@
                             <div>
                                 <h5 class="mb-1">{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}</h5>
                             <div class="small mb-1">
-                                <a href="https://wa.me/{{ solicitacao.telefone_solicitante|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}" target="_blank" rel="noopener" class="text-decoration-none">
+                                <a href="https://wa.me/{{ solicitacao.telefone_solicitante|whatsapp_br }}" target="_blank" rel="noopener" class="text-decoration-none">
                                     <i class="bi bi-whatsapp me-1"></i>{{ solicitacao.telefone_solicitante }}
                                 </a>
                             </div>
@@ -86,7 +86,7 @@
                             <div>
                                 <h5 class="mb-1">{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}</h5>
                             <div class="small mb-1">
-                                <a href="https://wa.me/{{ solicitacao.telefone_solicitante|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}" target="_blank" rel="noopener" class="text-decoration-none">
+                                <a href="https://wa.me/{{ solicitacao.telefone_solicitante|whatsapp_br }}" target="_blank" rel="noopener" class="text-decoration-none">
                                     <i class="bi bi-whatsapp me-1"></i>{{ solicitacao.telefone_solicitante }}
                                 </a>
                             </div>

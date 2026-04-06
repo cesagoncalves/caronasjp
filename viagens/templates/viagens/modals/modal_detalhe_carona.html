@@ -193,7 +193,7 @@
 
             {% if carona.motorista.telefone %}
             {% with telefone=carona.motorista.telefone|default:"" %}
-            <a href="https://wa.me/{{ telefone|cut:' '|cut:'-'|cut:'('|cut:')'|cut:'+' }}"
+            <a href="https://wa.me/{{ telefone|whatsapp_br }}"
                target="_blank"
                rel="noopener"
                class="text-decoration-none text-primary fw-semibold small">
@@ -305,7 +305,7 @@
                                                                 {% endif %}
                                                             </p>
 
-                                                            <a href="tel:{{ solicitacao.telefone_solicitante }}" class="text-decoration-none text-primary small d-inline-block mb-1">
+                                                            <a href="tel:{{ solicitacao.telefone_solicitante|tel_br }}" class="text-decoration-none text-primary small d-inline-block mb-1">
                                                                 <i class="bi bi-telephone-fill me-1"></i>{{ solicitacao.telefone_solicitante }}
                                                             </a>
 
@@ -370,7 +370,7 @@
                                                             {% endif %}
                                                         </p>
 
-                                                        <a href="tel:{{ solicitacao.telefone_solicitante }}" class="text-decoration-none text-primary small d-inline-block mb-1">
+                                                        <a href="tel:{{ solicitacao.telefone_solicitante|tel_br }}" class="text-decoration-none text-primary small d-inline-block mb-1">
                                                             <i class="bi bi-telephone-fill me-1"></i>{{ solicitacao.telefone_solicitante }}
                                                         </a>
 

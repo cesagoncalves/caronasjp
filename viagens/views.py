@@ -20,6 +20,21 @@ import json
 from django.utils import timezone
 
 
+def _telefone_br_digitos(valor):
+    digitos = re.sub(r"\D", "", str(valor or ""))
+    if not digitos:
+        return ""
+    if digitos.startswith("00"):
+        digitos = digitos[2:]
+    if digitos.startswith("0") and len(digitos) > 11:
+        digitos = digitos[1:]
+    if digitos.startswith("55"):
+        return digitos
+    if len(digitos) in (10, 11):
+        return f"55{digitos}"
+    return digitos
+
+
 def _destino_notificacao(notificacao):
     solicitacao = notificacao.solicitacao
     carona = notificacao.carona or (solicitacao.carona if solicitacao else None)
@@ -780,9 +795,7 @@ def solicitar_encomenda(request, carona_id):
                 })
 
             telefone_motorista = (carona.motorista.telefone or "").strip()
-            telefone_digitos = "".join(ch for ch in telefone_motorista if ch.isdigit())
-            if telefone_digitos and len(telefone_digitos) in (10, 11):
-                telefone_digitos = f"55{telefone_digitos}"
+            telefone_digitos = _telefone_br_digitos(telefone_motorista)
 
             if telefone_digitos:
                 messages.success(

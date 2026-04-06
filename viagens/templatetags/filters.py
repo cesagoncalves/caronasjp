@@ -1,7 +1,32 @@
 from django import template
 from datetime import datetime, date, timedelta
+import re
 
 register = template.Library()
+
+
+def _telefone_br_digitos(valor):
+    if valor is None:
+        return ""
+    digitos = re.sub(r"\D", "", str(valor))
+    if not digitos:
+        return ""
+
+    if digitos.startswith("00"):
+        digitos = digitos[2:]
+    if digitos.startswith("0") and len(digitos) > 11:
+        digitos = digitos[1:]
+
+    if digitos.startswith("55"):
+        resto = digitos[2:]
+        if len(resto) in (10, 11):
+            return digitos
+        return digitos
+
+    if len(digitos) in (10, 11):
+        return f"55{digitos}"
+
+    return digitos
 
 @register.filter
 def friendly_datetime(value):
@@ -48,3 +73,22 @@ def friendly_date_time(date_obj, time_obj):
         return ""
     dt = datetime.combine(date_obj, time_obj)
     return friendly_datetime(dt)
+
+
+@register.filter
+def whatsapp_br(valor):
+    """
+    Retorna telefone em apenas digitos para URL do WhatsApp, sempre com 55 quando aplicavel.
+    """
+    return _telefone_br_digitos(valor)
+
+
+@register.filter
+def tel_br(valor):
+    """
+    Retorna telefone para href tel:, priorizando formato internacional BR.
+    """
+    digitos = _telefone_br_digitos(valor)
+    if not digitos:
+        return ""
+    return f"+{digitos}"

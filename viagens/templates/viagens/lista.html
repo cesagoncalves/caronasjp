@@ -130,6 +130,34 @@
 .filtro-tipo-grid .btn {
     width: 100%;
 }
+.banner-eletronica {
+    border: 1px solid rgba(25, 135, 84, 0.2);
+    border-radius: 16px;
+    background: linear-gradient(145deg, #f7fff9 0%, #edf8f1 100%);
+}
+.banner-eletronica .logo-slot {
+    width: 92px;
+    height: 92px;
+    border-radius: 14px;
+    border: 1px dashed #9ad3b0;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex: 0 0 92px;
+}
+.banner-eletronica .logo-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+.banner-eletronica .logo-slot .placeholder {
+    color: #6c757d;
+    font-size: .8rem;
+    text-align: center;
+    padding: 6px;
+}
 @media (max-width: 575.98px) {
     .card-carona-disponivel .carona-grid {
         grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
@@ -166,8 +194,35 @@
     .filtro-tipo-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+    .banner-eletronica .logo-slot {
+        width: 78px;
+        height: 78px;
+        flex-basis: 78px;
+    }
 }
 </style>
+
+<div class="banner-eletronica shadow-sm p-3 mb-3">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="logo-slot">
+            <img src="{% static 'img/ads/eletronica-automotiva-logo.png' %}"
+                 alt="Logo Eletronica automotiva"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        </div>
+        <div class="flex-grow-1">
+            <div class="fw-bold fs-5">Eletrônica automotiva</div>
+            <div class="text-muted small">
+                Conserto de Módulos de Injeção Eletrônica, painéis de Instrumentos, etc.
+            </div>
+        </div>
+        <a href="https://wa.me/5599984608404"
+           target="_blank"
+           rel="noopener"
+           class="btn btn-success">
+            <i class="bi bi-whatsapp me-1"></i> Entrar em contato
+        </a>
+    </div>
+</div>
 
 <div class="mb-4" id="ativos-agora-section" {% if not user.is_authenticated or destaques_ativos|length == 0 %}style="display:none;"{% endif %}>
     <div class="d-flex justify-content-between align-items-center mb-2">
