@@ -15,6 +15,22 @@
 
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Corrija os campos abaixo:</strong>
+                    <ul class="mb-0 mt-2 ps-3">
+                        {% for erro in form.non_field_errors %}
+                            <li>{{ erro }}</li>
+                        {% endfor %}
+                        {% for field in form %}
+                            {% for erro in field.errors %}
+                                <li><strong>{{ field.label }}:</strong> {{ erro }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
                 <input type="hidden" name="uuid_local" id="uuid_local">
 
                 <div class="mb-3">
@@ -25,6 +41,9 @@
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Telefone</label>
                     {{ form.telefone_solicitante }}
+                    {% if form.telefone_solicitante.errors %}
+                        <div class="text-danger small mt-1">{{ form.telefone_solicitante.errors|join:", " }}</div>
+                    {% endif %}
                 </div>
 
                 <div class="mb-3">
