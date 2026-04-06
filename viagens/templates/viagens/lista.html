@@ -161,6 +161,14 @@
 .banner-eletronica .banner-texto {
     flex: 1 1 280px;
 }
+.banner-eletronica .banner-lista {
+    margin: 0;
+    padding-left: 1.1rem;
+}
+.banner-eletronica .banner-lista li {
+    margin-bottom: 2px;
+    font-size: 0.92rem;
+}
 @media (max-width: 575.98px) {
     .card-carona-disponivel .carona-grid {
         grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
@@ -210,6 +218,11 @@
         flex-basis: 100%;
         text-align: center;
     }
+    .banner-eletronica .banner-lista {
+        text-align: left;
+        display: inline-block;
+        padding-left: 1rem;
+    }
     .banner-eletronica .btn {
         width: 100%;
         max-width: 280px;
@@ -222,15 +235,18 @@
     <div class="banner-inner">
         <div class="logo-slot">
             <img src="/static/img/ads/eletronica-automotiva-logo.png"
-                 alt="Logo Eletronica automotiva"
+                 alt="Logo JC Eletrônico e Comércio LTDA"
                  onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
             <i class="bi bi-tools text-success fs-2" style="display:none;"></i>
         </div>
         <div class="banner-texto">
-            <div class="fw-bold fs-5">Eletrônica automotiva</div>
-            <div class="text-muted small">
-                Conserto de Módulos de Injeção Eletrônica, painéis de Instrumentos, etc.
-            </div>
+            <div class="fw-bold fs-5">JC Eletrônico e Comércio LTDA</div>
+            <ul class="text-muted small banner-lista mt-1">
+                <li>Suporte em TI</li>
+                <li>Desenvolvimento de Aplicativos</li>
+                <li>Eletronica Automotiva (Conserto de Módulos de Injeção Eletrônica, Painéis de Instrumentos, etc.)</li>
+                <li>Venda de Peças e Acessórios</li>
+            </ul>
         </div>
         <a href="https://wa.me/5599984608404"
            target="_blank"
