@@ -106,6 +106,74 @@ class ChecklistTests(TestCase):
         self.carona.save()
         self.assertEqual(self.client.get(reverse("solicitar_encomenda", args=[self.carona.pk])).status_code, 400)
 
+    def test_motorista_pode_bloquear_e_reabrir_encomendas(self):
+        url_status = reverse("definir_status_encomendas", args=[self.carona.pk])
+        url_encomenda = reverse("solicitar_encomenda", args=[self.carona.pk])
+        self.client.force_login(self.motorista)
+
+        self.assertEqual(self.client.get(url_status).status_code, 405)
+        self.assertEqual(self.client.post(url_status, {"estado": "bloquear"}).status_code, 302)
+        self.carona.refresh_from_db()
+        self.assertFalse(self.carona.encomendas_abertas)
+
+        self.client.logout()
+        self.assertEqual(self.client.get(url_encomenda).status_code, 400)
+
+        self.client.force_login(self.motorista)
+        self.assertEqual(self.client.post(url_status, {"estado": "abrir"}).status_code, 302)
+        self.carona.refresh_from_db()
+        self.assertTrue(self.carona.encomendas_abertas)
+
+    def test_observacoes_do_motorista_exigem_confirmacao_nas_duas_solicitacoes(self):
+        self.carona.observacoes = "Chegar dez minutos antes e levar documento."
+        self.carona.save(update_fields=["observacoes"])
+        self.client.force_login(self.passageiro)
+
+        dados_contato = {
+            "nome_solicitante": "Passageiro",
+            "telefone_solicitante": "11922222222",
+            "endereco_solicitante": "Rua A, 10",
+            "endereco_destino_solicitante": "Rua B, 20",
+        }
+        url_vaga = reverse("solicitar_vaga", args=[self.carona.pk])
+        response = self.client.post(url_vaga, {**dados_contato, "quantidade": 1, "malas": 0})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Este campo é obrigatório")
+        self.assertFalse(Solicitacao.objects.filter(carona=self.carona, tipo="carona").exists())
+
+        response = self.client.post(url_vaga, {
+            **dados_contato,
+            "quantidade": 1,
+            "malas": 0,
+            "ciente_observacoes": "on",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Solicitacao.objects.filter(carona=self.carona, tipo="carona").exists())
+
+        url_encomenda = reverse("solicitar_encomenda", args=[self.carona.pk])
+        response = self.client.post(url_encomenda, {**dados_contato, "descricao_item": "Uma caixa"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Chegar dez minutos antes")
+        self.assertFalse(Solicitacao.objects.filter(carona=self.carona, tipo="encomenda").exists())
+
+        response = self.client.post(url_encomenda, {
+            **dados_contato,
+            "descricao_item": "Uma caixa",
+            "ciente_observacoes": "on",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Solicitacao.objects.filter(carona=self.carona, tipo="encomenda").exists())
+
+    def test_outro_usuario_nao_altera_status_das_encomendas(self):
+        self.client.force_login(self.outro)
+        response = self.client.post(
+            reverse("definir_status_encomendas", args=[self.carona.pk]),
+            {"estado": "bloquear"},
+        )
+        self.assertEqual(response.status_code, 404)
+        self.carona.refresh_from_db()
+        self.assertTrue(self.carona.encomendas_abertas)
+
     def form_carona(self, **kwargs):
         dados = dict(origem="Origem", destino="Destino", data=self.carona.data.isoformat(), hora="12:00", modalidade="ambos", vagas=4, tipo_valor="dinheiro", valor=20, veiculo=self.veiculo.pk)
         dados.update(kwargs)
@@ -183,6 +251,40 @@ class ChecklistTests(TestCase):
         for name in ["minhas_viagens", "minhas_solicitacoes", "minhas_encomendas_passageiro"]:
             self.assertEqual(self.client.get(reverse(name)).status_code, 200)
 
+    def test_filtros_de_servico_respeitam_modalidade_e_bloqueio(self):
+        somente_carona = Carona.objects.create(
+            motorista=self.motorista, veiculo=self.veiculo, origem="A", destino="B",
+            data=self.carona.data, hora=time(13), vagas=2, modalidade="carona",
+            tipo_valor="gratuita",
+        )
+        somente_encomenda = Carona.objects.create(
+            motorista=self.motorista, veiculo=self.veiculo, origem="C", destino="D",
+            data=self.carona.data, hora=time(14), vagas=0, modalidade="encomenda",
+            tipo_valor="combinar",
+        )
+
+        response = self.client.get(reverse("lista_caronas"), {"servicos": "carona"})
+        ids = {carona.pk for carona in response.context["caronas"]}
+        self.assertIn(self.carona.pk, ids)
+        self.assertIn(somente_carona.pk, ids)
+        self.assertNotIn(somente_encomenda.pk, ids)
+
+        somente_encomenda.encomendas_abertas = False
+        somente_encomenda.save(update_fields=["encomendas_abertas"])
+        response = self.client.get(reverse("lista_caronas"), {"servicos": "encomenda"})
+        ids = {carona.pk for carona in response.context["caronas"]}
+        self.assertIn(self.carona.pk, ids)
+        self.assertNotIn(somente_carona.pk, ids)
+        self.assertNotIn(somente_encomenda.pk, ids)
+
+    def test_card_exibe_tags_e_badge_voce(self):
+        self.client.force_login(self.motorista)
+        response = self.client.get(reverse("lista_caronas"))
+        self.assertContains(response, ">Carona</span>")
+        self.assertContains(response, "Envio de encomendas")
+        self.assertNotContains(response, "Carona disponível")
+        self.assertContains(response, '<span class="badge bg-primary text-white">Você</span>', html=True)
+
     def test_dinheiro_e_padrao_em_nova_viagem(self):
         self.assertEqual(CaronaForm(user=self.motorista)["tipo_valor"].value(), "dinheiro")
 
@@ -245,6 +347,7 @@ class ChecklistTests(TestCase):
         self.assertContains(response, "Passageiro")
         self.assertContains(response, "Caixa de livros")
         self.assertContains(response, "Remetente")
+        self.assertContains(response, "Origem -> Destino", count=1)
 
     def test_rotulo_de_status_concluida_esta_correto(self):
         self.carona.status = "concluida"

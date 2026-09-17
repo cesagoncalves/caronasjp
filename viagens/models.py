@@ -14,6 +14,7 @@ class Carona(models.Model):
         choices=(("ambos", "Passageiros e encomendas"), ("carona", "Somente passageiros"), ("encomenda", "Somente encomendas")),
         default="ambos",
     )
+    encomendas_abertas = models.BooleanField(default=True)
 
     @property
     def aceita_passageiros(self):
@@ -22,6 +23,10 @@ class Carona(models.Model):
     @property
     def aceita_encomendas(self):
         return self.modalidade in ("ambos", "encomenda")
+
+    @property
+    def recebe_encomendas(self):
+        return self.aceita_encomendas and self.encomendas_abertas
 
     STATUS_CHOICES = (
         ('ativa', 'Ativa'),

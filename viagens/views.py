@@ -239,6 +239,8 @@ def lista_caronas(request):
     motorista = request.GET.get('motorista')
     tipos = request.GET.getlist("tipos")
     tipos_validos = [t for t in tipos if t in {"carro", "moto", "van", "onibus"}]
+    servicos = request.GET.getlist("servicos")
+    servicos_validos = [s for s in servicos if s in {"carona", "encomenda"}]
     vagas_min_valor = None
     if vagas_min:
         try:
@@ -257,6 +259,16 @@ def lista_caronas(request):
         )
     if tipos_validos:
         caronas = caronas.filter(veiculo__tipo__in=tipos_validos)
+    if servicos_validos:
+        filtro_servicos = Q()
+        if "carona" in servicos_validos:
+            filtro_servicos |= Q(modalidade__in=["ambos", "carona"])
+        if "encomenda" in servicos_validos:
+            filtro_servicos |= Q(
+                modalidade__in=["ambos", "encomenda"],
+                encomendas_abertas=True,
+            )
+        caronas = caronas.filter(filtro_servicos)
 
     if origem or destino:
         caronas = [
@@ -297,6 +309,14 @@ def lista_caronas(request):
         }
         nomes = [labels_tipos[t] for t in tipos_validos]
         partes_resumo.append(f"tipo {_juntar_itens_humanos(nomes)}")
+    if servicos_validos:
+        labels_servicos = {
+            "carona": "carona",
+            "encomenda": "envio de encomendas",
+        }
+        partes_resumo.append(
+            f"aceitando {_juntar_itens_humanos([labels_servicos[s] for s in servicos_validos])}"
+        )
 
     resumo_filtros = ""
     if partes_resumo:
@@ -409,6 +429,7 @@ def lista_caronas(request):
         "vagas_min": vagas_min_valor or "",
         'motorista': motorista or "",
         "tipos_selecionados": tipos_validos,
+        "servicos_selecionados": servicos_validos,
         "resumo_filtros": resumo_filtros,
         "destaques_ativos": destaques_ativos,
         "destaque_modais_extras": destaque_modais_extras,
@@ -671,9 +692,14 @@ def solicitar_vaga(request, carona_id):
         total=Sum("quantidade")
     )["total"] or 0
     vagas_restantes = carona.vagas - vagas_ocupadas
+    exigir_ciencia_observacoes = bool((carona.observacoes or "").strip())
 
     if request.method == "POST":
-        form = SolicitacaoForm(request.POST, vagas_disponiveis=vagas_restantes)
+        form = SolicitacaoForm(
+            request.POST,
+            vagas_disponiveis=vagas_restantes,
+            exigir_ciencia_observacoes=exigir_ciencia_observacoes,
+        )
 
         if form.is_valid():
             quantidade_pedida = form.cleaned_data["quantidade"]
@@ -701,12 +727,6 @@ def solicitar_vaga(request, carona_id):
             if not request.user.is_authenticated:
                 form.instance.uuid_local = uuid_local
             solicitacao = form.save()
-            print(
-                "DEBUG SOLICITAÇÃO:",
-                solicitacao.id,
-                solicitacao.uuid_local,
-                solicitacao.solicitante
-            )
 
             Notificacao.objects.create(
                 usuario=carona.motorista,
@@ -748,14 +768,17 @@ def solicitar_vaga(request, carona_id):
                 .order_by("-data_solicitacao")
                 .first()
             )
-            form = SolicitacaoForm(vagas_disponiveis=vagas_restantes, initial={
+            form = SolicitacaoForm(vagas_disponiveis=vagas_restantes, exigir_ciencia_observacoes=exigir_ciencia_observacoes, initial={
                 "nome_solicitante": request.user.nome_completo or request.user.email,
                 "telefone_solicitante": request.user.telefone,
                 "endereco_solicitante": getattr(ultima, "endereco_solicitante", "") or "",
                 "endereco_destino_solicitante": getattr(ultima, "endereco_destino_solicitante", "") or "",
             })
         else:
-            form = SolicitacaoForm(vagas_disponiveis=vagas_restantes)
+            form = SolicitacaoForm(
+                vagas_disponiveis=vagas_restantes,
+                exigir_ciencia_observacoes=exigir_ciencia_observacoes,
+            )
 
     return render(request, "viagens/solicitar_vaga.html", {
         "form": form,
@@ -770,9 +793,16 @@ def solicitar_encomenda(request, carona_id):
     carona = get_object_or_404(Carona.objects.select_for_update(), id=carona_id)
     if not carona.aceita_encomendas or carona.status != "ativa" or carona.esta_concluida:
         return HttpResponseBadRequest("Esta viagem não está disponível para encomendas.")
+    if not carona.encomendas_abertas:
+        return HttpResponseBadRequest("Esta viagem está sem espaço para novas encomendas.")
+    exigir_ciencia_observacoes = bool((carona.observacoes or "").strip())
 
     if request.method == "POST":
-        form = EncomendaForm(request.POST, request.FILES)
+        form = EncomendaForm(
+            request.POST,
+            request.FILES,
+            exigir_ciencia_observacoes=exigir_ciencia_observacoes,
+        )
 
         if form.is_valid():
             if request.user.is_authenticated:
@@ -843,14 +873,16 @@ def solicitar_encomenda(request, carona_id):
                 .order_by("-data_solicitacao")
                 .first()
             )
-            form = EncomendaForm(initial={
+            form = EncomendaForm(exigir_ciencia_observacoes=exigir_ciencia_observacoes, initial={
                 "nome_solicitante": request.user.nome_completo or request.user.email,
                 "telefone_solicitante": request.user.telefone,
                 "endereco_solicitante": getattr(ultima, "endereco_solicitante", "") or "",
                 "endereco_destino_solicitante": getattr(ultima, "endereco_destino_solicitante", "") or "",
             })
         else:
-            form = EncomendaForm()
+            form = EncomendaForm(
+                exigir_ciencia_observacoes=exigir_ciencia_observacoes,
+            )
 
     return render(request, "viagens/solicitar_encomenda.html", {
         "form": form,
@@ -1504,6 +1536,34 @@ def concluir_carona(request, carona_id):
     return redirect('lista_caronas')
 
 
+@login_required
+@require_POST
+@transaction.atomic
+def definir_status_encomendas(request, carona_id):
+    carona = get_object_or_404(
+        Carona.objects.select_for_update(),
+        id=carona_id,
+        motorista=request.user,
+        status="ativa",
+    )
+    if not carona.aceita_encomendas:
+        return HttpResponseBadRequest("Esta viagem não aceita encomendas.")
+
+    estado = request.POST.get("estado")
+    if estado not in {"abrir", "bloquear"}:
+        return HttpResponseBadRequest("Estado de encomendas inválido.")
+
+    carona.encomendas_abertas = estado == "abrir"
+    carona.save(update_fields=["encomendas_abertas"])
+    messages.success(
+        request,
+        "Novas encomendas foram reabertas."
+        if carona.encomendas_abertas
+        else "Novas encomendas foram bloqueadas.",
+    )
+    return redirect(request.META.get("HTTP_REFERER", "lista_caronas"))
+
+
 def historico_viagens(request):
     tipo = request.GET.get('tipo', 'todas')
     data_inicial_raw = (request.GET.get("data_inicial") or "").strip()
@@ -1518,12 +1578,6 @@ def historico_viagens(request):
         filtro_data_carona &= Q(data__gte=data_inicial)
     if data_final:
         filtro_data_carona &= Q(data__lte=data_final)
-
-    filtro_data_encomenda = Q()
-    if data_inicial:
-        filtro_data_encomenda &= Q(carona__data__gte=data_inicial)
-    if data_final:
-        filtro_data_encomenda &= Q(carona__data__lte=data_final)
 
     filtro_data_qs = ""
     if data_inicial:
@@ -1547,14 +1601,24 @@ def historico_viagens(request):
                 solicitacoes__tipo='carona'
             )
         elif tipo == 'encomenda':
-            filtro = Q(pk__in=[])
+            filtro = base_filter & (
+                Q(
+                    motorista=request.user,
+                    solicitacoes__status='aceita',
+                    solicitacoes__tipo='encomenda',
+                ) |
+                Q(
+                    solicitacoes__solicitante=request.user,
+                    solicitacoes__status='aceita',
+                    solicitacoes__tipo='encomenda',
+                )
+            )
         else:
             filtro = base_filter & (
                 Q(motorista=request.user) |
                 Q(
                     solicitacoes__solicitante=request.user,
                     solicitacoes__status='aceita',
-                    solicitacoes__tipo='carona'
                 )
             )
 
@@ -1579,47 +1643,27 @@ def historico_viagens(request):
         )
 
         for carona in caronas:
-            passageiros = [
-                solicitacao
-                for solicitacao in carona.solicitacoes_historico
-                if solicitacao.tipo == 'carona'
+            eh_motorista = carona.motorista_id == request.user.id
+            passageiros_aceitos = [
+                s for s in carona.solicitacoes_historico if s.tipo == 'carona'
+            ]
+            encomendas_aceitas = [
+                s for s in carona.solicitacoes_historico if s.tipo == 'encomenda'
+            ]
+            foi_passageiro = any(
+                s.solicitante_id == request.user.id for s in passageiros_aceitos
+            )
+            minhas_encomendas = [
+                s for s in encomendas_aceitas if s.solicitante_id == request.user.id
             ]
             historico_itens.append({
-                'categoria': 'carona',
                 'carona': carona,
-                'descricao_item': '',
-                'foto_encomenda': None,
-                'papel': 'motorista' if carona.motorista_id == request.user.id else 'passageiro',
-                'passageiros': passageiros,
+                'eh_motorista': eh_motorista,
+                'foi_passageiro': foi_passageiro,
+                'passageiros': passageiros_aceitos if eh_motorista else [],
+                'encomendas': encomendas_aceitas if eh_motorista else minhas_encomendas,
+                'enviou_encomenda': bool(minhas_encomendas),
             })
-
-        if tipo in ['todas', 'encomenda']:
-            encomendas = (
-                Solicitacao.objects
-                .select_related('carona', 'carona__motorista', 'solicitante')
-                .filter(
-                    tipo='encomenda',
-                    status='aceita',
-                    carona__status='concluida',
-                )
-                .filter(
-                    Q(carona__motorista=request.user) |
-                    Q(solicitante=request.user)
-                )
-                .filter(filtro_data_encomenda)
-                .distinct()
-                .order_by('-carona__data', '-carona__hora', '-data_solicitacao')
-            )
-
-            for e in encomendas:
-                historico_itens.append({
-                    'categoria': 'encomenda',
-                    'carona': e.carona,
-                    'descricao_item': e.descricao_item or '',
-                    'foto_encomenda': e.foto_encomenda,
-                    'papel': 'motorista' if e.carona.motorista_id == request.user.id else 'passageiro',
-                    'solicitacao': e,
-                })
 
         historico_itens.sort(
             key=lambda item: (item['carona'].data, item['carona'].hora),

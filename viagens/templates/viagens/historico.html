@@ -75,6 +75,17 @@ data-page="historico-local"
     flex: 0 0 42px;
     object-fit: cover;
 }
+.historico-secao {
+    margin-top: 1rem;
+    padding-top: .85rem;
+    border-top: 1px solid var(--bs-border-color);
+}
+.historico-encomenda {
+    padding: .75rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: .85rem;
+    background: var(--bs-light);
+}
 </style>
 
 <h2 class="mb-4 text-center">
@@ -134,95 +145,75 @@ data-page="historico-local"
                     {{ item.carona.data|friendly_date_time:item.carona.hora }}
                 </p>
 
-                {% if item.categoria == 'carona' %}
-                    {% if item.papel == 'motorista' and item.passageiros %}
-                        <div class="mt-3 mb-2">
-                            <div class="small fw-semibold text-muted mb-2">Passageiros</div>
-                            <div class="historico-pessoas">
-                                {% for solicitacao in item.passageiros %}
-                                    <div class="historico-pessoa">
-                                        {% if solicitacao.solicitante and solicitacao.solicitante.foto %}
-                                            <img src="{{ solicitacao.solicitante.foto.url }}" class="rounded-circle js-foto-zoom" alt="Foto de {{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}" data-nome="{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}" onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
-                                        {% else %}
-                                            <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" alt="Foto padrão">
-                                        {% endif %}
-                                        <div class="text-truncate">
-                                            <div class="fw-semibold text-truncate">{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}</div>
-                                            <div class="small text-muted">{{ solicitacao.quantidade }} vaga{{ solicitacao.quantidade|pluralize }}</div>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% elif item.papel == 'passageiro' %}
-                        <div class="historico-pessoas mt-3 mb-2">
-                            <div class="historico-pessoa">
-                                {% if item.carona.motorista.foto %}
-                                    <img src="{{ item.carona.motorista.foto.url }}" class="rounded-circle js-foto-zoom" alt="Foto de {{ item.carona.motorista.nome_curto }}" data-nome="{{ item.carona.motorista.nome_curto }}" onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
-                                {% else %}
-                                    <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" alt="Foto padrão">
-                                {% endif %}
-                                <div>
-                                    <div class="small text-muted">Motorista</div>
-                                    <div class="fw-semibold">{{ item.carona.motorista.nome_curto|default:item.carona.motorista.email }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                {% elif item.categoria == 'encomenda' %}
+                {% if not item.eh_motorista %}
                     <div class="historico-pessoas mt-3 mb-2">
                         <div class="historico-pessoa">
-                            {% if item.papel == 'motorista' %}
-                                {% if item.solicitacao.solicitante and item.solicitacao.solicitante.foto %}
-                                    <img src="{{ item.solicitacao.solicitante.foto.url }}" class="rounded-circle js-foto-zoom" alt="Foto de {{ item.solicitacao.solicitante.nome_curto|default:item.solicitacao.nome_solicitante }}" data-nome="{{ item.solicitacao.solicitante.nome_curto|default:item.solicitacao.nome_solicitante }}" onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
-                                {% else %}
-                                    <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" alt="Foto padrão">
-                                {% endif %}
-                                <div>
-                                    <div class="small text-muted">Remetente</div>
-                                    <div class="fw-semibold">{{ item.solicitacao.solicitante.nome_curto|default:item.solicitacao.nome_solicitante }}</div>
-                                </div>
+                            {% if item.carona.motorista.foto %}
+                                <img src="{{ item.carona.motorista.foto.url }}" class="rounded-circle js-foto-zoom" alt="Foto de {{ item.carona.motorista.nome_curto }}" data-nome="{{ item.carona.motorista.nome_curto }}" onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
                             {% else %}
-                                {% if item.carona.motorista.foto %}
-                                    <img src="{{ item.carona.motorista.foto.url }}" class="rounded-circle js-foto-zoom" alt="Foto de {{ item.carona.motorista.nome_curto }}" data-nome="{{ item.carona.motorista.nome_curto }}" onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
-                                {% else %}
-                                    <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" alt="Foto padrão">
-                                {% endif %}
-                                <div>
-                                    <div class="small text-muted">Motorista</div>
-                                    <div class="fw-semibold">{{ item.carona.motorista.nome_curto|default:item.carona.motorista.email }}</div>
-                                </div>
+                                <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" alt="Foto padrão">
                             {% endif %}
+                            <div>
+                                <div class="small text-muted">Motorista</div>
+                                <div class="fw-semibold">{{ item.carona.motorista.nome_curto|default:item.carona.motorista.email }}</div>
+                            </div>
                         </div>
                     </div>
                 {% endif %}
 
-                {% if item.categoria == 'encomenda' and item.descricao_item %}
-                    <p class="mb-2"><strong>Item:</strong> {{ item.descricao_item }}</p>
+                {% if item.passageiros %}
+                    <div class="historico-secao">
+                        <div class="small fw-semibold text-muted mb-2"><i class="bi bi-people-fill me-1"></i>Passageiros</div>
+                        <div class="historico-pessoas">
+                            {% for solicitacao in item.passageiros %}
+                                <div class="historico-pessoa">
+                                    {% if solicitacao.solicitante and solicitacao.solicitante.foto %}
+                                        <img src="{{ solicitacao.solicitante.foto.url }}" class="rounded-circle js-foto-zoom" alt="Foto de {{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}" data-nome="{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}" onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
+                                    {% else %}
+                                        <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" alt="Foto padrão">
+                                    {% endif %}
+                                    <div class="text-truncate">
+                                        <div class="fw-semibold text-truncate">{{ solicitacao.solicitante.nome_curto|default:solicitacao.nome_solicitante }}</div>
+                                        <div class="small text-muted">{{ solicitacao.quantidade }} vaga{{ solicitacao.quantidade|pluralize }}</div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                 {% endif %}
 
-                {% if item.categoria == 'encomenda' and item.foto_encomenda %}
-                    <img src="{{ item.foto_encomenda.url }}"
-                         class="img-fluid rounded border mb-2 d-block js-foto-zoom"
-                         style="max-height: 220px; object-fit: cover; cursor: zoom-in;"
-                         alt="Foto da encomenda"
-                         data-nome="Foto da encomenda">
+                {% if item.encomendas %}
+                    <div class="historico-secao">
+                        <div class="small fw-semibold text-muted mb-2"><i class="bi bi-box-seam me-1"></i>Encomendas</div>
+                        <div class="d-grid gap-2">
+                            {% for encomenda in item.encomendas %}
+                                <div class="historico-encomenda">
+                                    <div class="historico-pessoa border-0 bg-transparent p-0 mb-2">
+                                        {% if encomenda.solicitante and encomenda.solicitante.foto %}
+                                            <img src="{{ encomenda.solicitante.foto.url }}" class="rounded-circle js-foto-zoom" alt="Foto de {{ encomenda.solicitante.nome_curto|default:encomenda.nome_solicitante }}" data-nome="{{ encomenda.solicitante.nome_curto|default:encomenda.nome_solicitante }}" onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
+                                        {% else %}
+                                            <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" alt="Foto padrão">
+                                        {% endif %}
+                                        <div>
+                                            <div class="small text-muted">Remetente</div>
+                                            <div class="fw-semibold">{{ encomenda.solicitante.nome_curto|default:encomenda.nome_solicitante }}</div>
+                                        </div>
+                                    </div>
+                                    {% if encomenda.descricao_item %}<p class="mb-2"><strong>Item:</strong> {{ encomenda.descricao_item }}</p>{% endif %}
+                                    {% if encomenda.foto_encomenda %}
+                                        <img src="{{ encomenda.foto_encomenda.url }}" class="img-fluid rounded border d-block js-foto-zoom" style="max-height: 220px; object-fit: cover; cursor: zoom-in;" alt="Foto da encomenda" data-nome="Foto da encomenda">
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                 {% endif %}
 
-                <div class="mt-2">
-                    {% if item.categoria == 'encomenda' %}
-                        {% if item.papel == 'motorista' %}
-                            <span class="badge bg-warning text-dark"><i class="bi bi-truck me-1"></i> Você entregou encomenda</span>
-                        {% else %}
-                            <span class="badge bg-warning text-dark"><i class="bi bi-box-seam me-1"></i> Você enviou encomenda</span>
-                        {% endif %}
-                    {% else %}
-                        {% if item.papel == 'motorista' %}
-                            <span class="badge bg-primary"><i class="bi bi-car-front-fill"></i> Você foi motorista</span>
-                        {% else %}
-                            <span class="badge bg-success"><i class="bi bi-person-fill"></i> Você foi passageiro</span>
-                        {% endif %}
-                    {% endif %}
+                <div class="mt-3 d-flex flex-wrap gap-2">
+                    {% if item.eh_motorista %}<span class="badge bg-primary"><i class="bi bi-car-front-fill me-1"></i>Você foi motorista</span>{% endif %}
+                    {% if item.foi_passageiro %}<span class="badge bg-success"><i class="bi bi-person-fill me-1"></i>Você foi passageiro</span>{% endif %}
+                    {% if item.eh_motorista and item.encomendas %}<span class="badge bg-warning text-dark"><i class="bi bi-truck me-1"></i>Você entregou encomenda</span>{% endif %}
+                    {% if item.enviou_encomenda %}<span class="badge bg-warning text-dark"><i class="bi bi-box-seam me-1"></i>Você enviou encomenda</span>{% endif %}
                 </div>
             </div>
         </div>

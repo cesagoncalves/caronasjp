@@ -41,10 +41,13 @@
 .card-carona-disponivel .carona-card-topo {
     display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 17px;
 }
-.card-carona-disponivel .carona-status {
+.card-carona-disponivel .carona-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+.card-carona-disponivel .carona-tag {
     display: inline-flex; align-items: center; gap: 9px; padding: 9px 14px;
     border-radius: 14px; background: #d9f7e6; color: #087b3f; font-weight: 700;
 }
+.card-carona-disponivel .carona-tag-encomenda { background: #e8f1ff; color: #1457a6; }
+.card-carona-disponivel .carona-tag-encomenda.fechada { background: #f0f1f3; color: #667085; }
 .card-carona-disponivel .carona-publicada { color: #6c7788; font-size: .88rem; text-align: right; }
 .card-carona-disponivel .carona-conteudo {
     display: grid; grid-template-columns: 1fr; gap: 17px;
@@ -111,6 +114,7 @@
     grid-template-columns: repeat(4, minmax(88px, 1fr));
     gap: 8px;
 }
+.filtro-servico-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .filtro-tipo-grid .btn {
     width: 100%;
 }
@@ -157,7 +161,9 @@
     .card-carona-disponivel { border-radius: 19px; }
     .card-carona-disponivel .carona-card-body { padding: 17px 16px 16px; }
     .card-carona-disponivel .carona-card-topo { align-items: flex-start; margin-bottom: 19px; }
-    .card-carona-disponivel .carona-status { padding: 8px 11px; font-size: .88rem; }
+    .card-carona-disponivel .carona-tag { padding: 8px 11px; font-size: .82rem; }
+    .card-carona-disponivel .carona-card-topo.tem-duas-tags { flex-wrap: wrap; }
+    .card-carona-disponivel .carona-card-topo.tem-duas-tags .carona-publicada { flex-basis: 100%; max-width: none; text-align: left; }
     .card-carona-disponivel .carona-publicada { font-size: .76rem; max-width: 120px; }
     .card-carona-disponivel .carona-conteudo { grid-template-columns: 1fr; gap: 20px; }
     .card-carona-disponivel .carona-lateral {
@@ -332,7 +338,7 @@
         aria-expanded="false"
         aria-controls="filtrosCollapse">
     <i class="bi bi-funnel me-1"></i> <span id="toggleFiltrosTexto">Mostrar filtros</span>
-    {% if origem or destino or data or motorista or hora or vagas_min or tipos_selecionados %}
+    {% if origem or destino or data or motorista or hora or vagas_min or tipos_selecionados or servicos_selecionados %}
         <span class="badge bg-primary ms-2">Ativos</span>
     {% endif %}
 </button>
@@ -370,6 +376,14 @@
         </div>
     </div>
     <div class="mt-3 pt-3 border-top">
+        <div class="small fw-semibold text-muted mb-2">O que você procura?</div>
+        <div class="filtro-servico-grid mb-3">
+            <input class="btn-check" type="checkbox" name="servicos" value="carona" id="filtro_servico_carona" {% if "carona" in servicos_selecionados %}checked{% endif %}>
+            <label class="btn btn-outline-success" for="filtro_servico_carona"><i class="bi bi-people-fill me-1"></i>Carona</label>
+            <input class="btn-check" type="checkbox" name="servicos" value="encomenda" id="filtro_servico_encomenda" {% if "encomenda" in servicos_selecionados %}checked{% endif %}>
+            <label class="btn btn-outline-primary" for="filtro_servico_encomenda"><i class="bi bi-box-seam me-1"></i>Envio de encomendas</label>
+        </div>
+        <div class="small fw-semibold text-muted mb-2">Tipo de veículo</div>
         <div class="filtro-tipo-grid">
             <input class="btn-check" type="checkbox" name="tipos" value="carro" id="filtro_tipo_carro" {% if "carro" in tipos_selecionados %}checked{% endif %}>
             <label class="btn btn-outline-primary text-center" for="filtro_tipo_carro">
@@ -414,12 +428,13 @@
      style="cursor:pointer;">
 
     <div class="card-body carona-card-body">
-        <div class="carona-card-topo">
-            <div class="carona-status">
-                {% if carona.modalidade == "encomenda" %}
-                    <i class="bi bi-box-seam-fill"></i> Encomenda disponível
-                {% else %}
-                    <i class="bi bi-car-front-fill"></i> Carona disponível
+        <div class="carona-card-topo {% if carona.modalidade == 'ambos' %}tem-duas-tags{% endif %}">
+            <div class="carona-tags">
+                {% if carona.aceita_passageiros %}
+                    <span class="carona-tag"><i class="bi bi-car-front-fill"></i>Carona</span>
+                {% endif %}
+                {% if carona.aceita_encomendas %}
+                    <span class="carona-tag carona-tag-encomenda {% if not carona.encomendas_abertas %}fechada{% endif %}"{% if not carona.encomendas_abertas %} title="Novas encomendas bloqueadas"{% endif %}><i class="bi bi-box-seam-fill"></i>Envio de encomendas</span>
                 {% endif %}
             </div>
             <div class="carona-publicada">
@@ -466,8 +481,11 @@
 
                 <div class="carona-disponibilidade">
                     {% if not carona.aceita_passageiros %}
-                        <i class="bi bi-box-seam-fill"></i>
-                        Esta viagem aceita encomendas
+                        {% if carona.encomendas_abertas %}
+                            <i class="bi bi-box-seam-fill"></i>Esta viagem aceita encomendas
+                        {% else %}
+                            <i class="bi bi-slash-circle-fill"></i>Sem espaço para encomendas
+                        {% endif %}
                     {% elif carona.vagas_restantes > 0 %}
                         <i class="bi bi-people-fill"></i>
                         {% if carona.vagas_restantes == 1 %}
@@ -501,7 +519,7 @@
                         <div class="motorista-label">Motorista</div>
                         <div class="motorista-nome">
                         {% if carona.motorista == request.user %}
-                            Você
+                            <span class="badge bg-primary text-white">Você</span>
                         {% else %}
                             {{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}
                         {% endif %}

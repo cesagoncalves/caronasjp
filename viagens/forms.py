@@ -114,10 +114,19 @@ class CaronaForm(forms.ModelForm):
 
 class SolicitacaoForm(forms.ModelForm):
     quantidade = forms.IntegerField(min_value=1)
+    ciente_observacoes = forms.BooleanField(
+        required=False,
+        label="Li e estou ciente das observações do motorista.",
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
 
-    def __init__(self, *args, vagas_disponiveis=None, **kwargs):
+    def __init__(self, *args, vagas_disponiveis=None, exigir_ciencia_observacoes=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.vagas_disponiveis = vagas_disponiveis
+        if exigir_ciencia_observacoes:
+            self.fields["ciente_observacoes"].required = True
+        else:
+            self.fields.pop("ciente_observacoes", None)
         self.fields["quantidade"].widget.attrs.update({"class": "form-control", "min": 1})
         if vagas_disponiveis is not None:
             self.fields["quantidade"].widget.attrs["max"] = vagas_disponiveis
@@ -172,6 +181,19 @@ class SolicitacaoForm(forms.ModelForm):
 
 
 class EncomendaForm(forms.ModelForm):
+    ciente_observacoes = forms.BooleanField(
+        required=False,
+        label="Li e estou ciente das observações do motorista.",
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
+
+    def __init__(self, *args, exigir_ciencia_observacoes=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        if exigir_ciencia_observacoes:
+            self.fields["ciente_observacoes"].required = True
+        else:
+            self.fields.pop("ciente_observacoes", None)
+
     class Meta:
         model = Solicitacao
         fields = [

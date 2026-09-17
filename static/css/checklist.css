@@ -14,6 +14,7 @@
 .js-acoes-participacao > a,
 .js-acoes-participacao > button { width:100%; }
 .js-acoes-participacao > form .btn { width:100%; height:100%; }
+.aviso-encomendas-fechadas { min-height:44px; width:100%; text-align:center; }
 .acoes-encomenda { align-items:center; flex-wrap:nowrap!important; }
 .acoes-encomenda form { display:flex; margin:0; }
 .acoes-encomenda .btn { width:44px; height:44px; min-width:44px!important; min-height:44px!important; padding:0!important; }
