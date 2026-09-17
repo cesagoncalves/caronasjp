@@ -461,6 +461,7 @@ def criar_carona(request):
                         data=data_rep,
                         hora=carona_base.hora,
                         vagas=carona_base.vagas,
+                        modalidade=carona_base.modalidade,
                         motorista=request.user,
                         tipo_valor=carona_base.tipo_valor,
                         valor=carona_base.valor,
@@ -505,8 +506,9 @@ def criar_carona(request):
 
 
 @login_required
+@transaction.atomic
 def editar_carona(request, carona_id):
-    carona = get_object_or_404(Carona, id=carona_id)
+    carona = get_object_or_404(Carona.objects.select_for_update(), id=carona_id)
     vagas_ocupadas_aceitas = carona.solicitacoes.filter(
         status="aceita",
         tipo="carona",
@@ -524,6 +526,7 @@ def editar_carona(request, carona_id):
         "vagas": carona.vagas,
         "valor": carona.valor_exibicao,  
         "veiculo_id": carona.veiculo_id,
+        "modalidade": carona.modalidade,
     }
 
     if request.method == "POST":
@@ -538,6 +541,8 @@ def editar_carona(request, carona_id):
             form.save()
 
             alteracoes = []
+            if estado_antigo["modalidade"] != carona.modalidade:
+                alteracoes.append("Modalidade")
 
             if estado_antigo["origem"] != carona.origem:
                 alteracoes.append("Origem")
@@ -613,9 +618,10 @@ def editar_carona(request, carona_id):
 
 
 @login_required
+@transaction.atomic
 def excluir_carona(request, carona_id):
     carona = get_object_or_404(
-        Carona,
+        Carona.objects.select_for_update(),
         id=carona_id,
         motorista=request.user
     )
@@ -623,7 +629,7 @@ def excluir_carona(request, carona_id):
     passageiros_aceitos = carona.solicitacoes.filter(status='aceita').exists()
 
     if request.method == "POST":
-        if passageiros_aceitos:
+        if carona.status == "ativa":
             carona.status = 'cancelada'
             carona.save()
 
@@ -641,8 +647,6 @@ def excluir_carona(request, carona_id):
             carona.solicitacoes.filter(
                 status__in=['aceita', 'pendente']
             ).update(status='cancelada')
-        else:
-            carona.delete()
 
         return redirect("minhas_caronas")
 
@@ -652,8 +656,16 @@ def excluir_carona(request, carona_id):
     })
 
 
+@transaction.atomic
 def solicitar_vaga(request, carona_id):
-    carona = get_object_or_404(Carona, id=carona_id)
+    carona = get_object_or_404(Carona.objects.select_for_update(), id=carona_id)
+    if not carona.aceita_passageiros or carona.status != "ativa" or carona.esta_concluida:
+        return HttpResponseBadRequest("Esta viagem não está disponível para passageiros.")
+    if request.user.is_authenticated and carona.motorista_id == request.user.id:
+        return HttpResponseForbidden("Você é o motorista desta viagem.")
+    if request.user.is_authenticated and carona.solicitacoes.filter(solicitante=request.user, tipo="carona", status__in=["pendente", "aceita"]).exists():
+        messages.info(request, "Você já participa desta viagem. Use Editar vagas nos detalhes.")
+        return redirect("lista_caronas")
 
     vagas_ocupadas = carona.solicitacoes.filter(status="aceita", tipo="carona").aggregate(
         total=Sum("quantidade")
@@ -661,7 +673,7 @@ def solicitar_vaga(request, carona_id):
     vagas_restantes = carona.vagas - vagas_ocupadas
 
     if request.method == "POST":
-        form = SolicitacaoForm(request.POST)
+        form = SolicitacaoForm(request.POST, vagas_disponiveis=vagas_restantes)
 
         if form.is_valid():
             quantidade_pedida = form.cleaned_data["quantidade"]
@@ -736,14 +748,14 @@ def solicitar_vaga(request, carona_id):
                 .order_by("-data_solicitacao")
                 .first()
             )
-            form = SolicitacaoForm(initial={
+            form = SolicitacaoForm(vagas_disponiveis=vagas_restantes, initial={
                 "nome_solicitante": request.user.nome_completo or request.user.email,
                 "telefone_solicitante": request.user.telefone,
                 "endereco_solicitante": getattr(ultima, "endereco_solicitante", "") or "",
                 "endereco_destino_solicitante": getattr(ultima, "endereco_destino_solicitante", "") or "",
             })
         else:
-            form = SolicitacaoForm()
+            form = SolicitacaoForm(vagas_disponiveis=vagas_restantes)
 
     return render(request, "viagens/solicitar_vaga.html", {
         "form": form,
@@ -753,8 +765,11 @@ def solicitar_vaga(request, carona_id):
 
 
 
+@transaction.atomic
 def solicitar_encomenda(request, carona_id):
-    carona = get_object_or_404(Carona, id=carona_id)
+    carona = get_object_or_404(Carona.objects.select_for_update(), id=carona_id)
+    if not carona.aceita_encomendas or carona.status != "ativa" or carona.esta_concluida:
+        return HttpResponseBadRequest("Esta viagem não está disponível para encomendas.")
 
     if request.method == "POST":
         form = EncomendaForm(request.POST, request.FILES)
@@ -842,8 +857,12 @@ def solicitar_encomenda(request, carona_id):
         "carona": carona,
     })
 @login_required
+@transaction.atomic
 def aceitar_solicitacao(request, solicitacao_id):
     solicitacao = get_object_or_404(Solicitacao, id=solicitacao_id)
+    carona = get_object_or_404(Carona.objects.select_for_update(), pk=solicitacao.carona_id)
+    solicitacao.refresh_from_db()
+    solicitacao.carona = carona
 
     if solicitacao.carona.motorista != request.user:
         return redirect("lista_caronas")
@@ -851,6 +870,11 @@ def aceitar_solicitacao(request, solicitacao_id):
     if solicitacao.status == "aceita":
         messages.info(request, "Essa solicitacao ja foi aceita.")
         return redirect("gerenciar_solicitacoes")
+
+    if solicitacao.status != "pendente" or carona.status != "ativa" or carona.esta_concluida:
+        return HttpResponseBadRequest("Esta solicitação não pode mais ser aceita.")
+    if (solicitacao.tipo == "carona" and not carona.aceita_passageiros) or (solicitacao.tipo == "encomenda" and not carona.aceita_encomendas):
+        return HttpResponseBadRequest("Modalidade não disponível nesta viagem.")
 
     if solicitacao.tipo == "carona":
         vagas_ocupadas = solicitacao.carona.solicitacoes.filter(
@@ -887,7 +911,7 @@ def aceitar_solicitacao(request, solicitacao_id):
 
     messages.success(
         request,
-        "Solicitacao aceita com sucesso!"
+        "Solicitação aceita com sucesso!"
         if solicitacao.tipo == "carona"
         else "Encomenda aceita com sucesso!"
     )
@@ -1132,6 +1156,8 @@ def minhas_viagens(request):
         viagens_ativas = viagens_base.filter(
             carona__status='ativa'
         ).order_by('carona__data', 'carona__hora', '-data_solicitacao')
+        for reserva in viagens_ativas:
+            reserva.carona.minha_solicitacao_ativa = reserva
         viagens_recentes = viagens_base.order_by("-data_solicitacao")[:6]
 
 
@@ -1149,6 +1175,7 @@ def minhas_viagens(request):
 
 @login_required
 @require_POST
+@transaction.atomic
 def cancelar_solicitacao(request, id):
     s = get_object_or_404(
         Solicitacao,
@@ -1156,7 +1183,9 @@ def cancelar_solicitacao(request, id):
         solicitante=request.user
     )
 
-    if s.carona.status != "ativa":
+    carona = get_object_or_404(Carona.objects.select_for_update(), pk=s.carona_id)
+    s.refresh_from_db()
+    if carona.status != "ativa":
         messages.warning(request, "Esta viagem ja foi concluida e nao pode ser cancelada.")
         destino = (
             "minhas_encomendas_passageiro"
@@ -1192,6 +1221,7 @@ def cancelar_solicitacao(request, id):
     return redirect("minhas_solicitacoes")
 
 @require_POST
+@transaction.atomic
 def cancelar_solicitacao_publica(request, id):
     token = request.POST.get("token")
 
@@ -1204,7 +1234,9 @@ def cancelar_solicitacao_publica(request, id):
         token_cancelamento=token
     )
 
-    if solicitacao.carona.status != "ativa":
+    carona = get_object_or_404(Carona.objects.select_for_update(), pk=solicitacao.carona_id)
+    solicitacao.refresh_from_db()
+    if carona.status != "ativa":
         return HttpResponseBadRequest("Carona nao esta ativa")
 
     with transaction.atomic():
@@ -1223,6 +1255,45 @@ def cancelar_solicitacao_publica(request, id):
 
     return HttpResponseBadRequest("Solicitação não pode ser cancelada")
 
+
+
+@require_POST
+@transaction.atomic
+def editar_vagas(request, solicitacao_id):
+    from django.utils.crypto import constant_time_compare
+
+    solicitacao = get_object_or_404(Solicitacao, pk=solicitacao_id, tipo="carona")
+    if solicitacao.solicitante_id:
+        autorizado = request.user.is_authenticated and request.user.pk == solicitacao.solicitante_id
+    else:
+        autorizado = constant_time_compare(str(solicitacao.token_cancelamento), request.POST.get("token", ""))
+    if not autorizado:
+        return JsonResponse({"erro": "Você não pode editar esta solicitação."}, status=403)
+    carona = get_object_or_404(Carona.objects.select_for_update(), pk=solicitacao.carona_id)
+    solicitacao.refresh_from_db()
+    if carona.status != "ativa" or carona.esta_concluida or not carona.aceita_passageiros or solicitacao.status not in ("pendente", "aceita"):
+        return JsonResponse({"erro": "Esta participação não pode mais ser editada."}, status=400)
+    try:
+        quantidade = int(request.POST.get("quantidade", ""))
+    except (ValueError, TypeError):
+        return JsonResponse({"erro": "Informe uma quantidade inteira de vagas."}, status=400)
+    ocupadas = carona.solicitacoes.filter(tipo="carona", status="aceita").exclude(pk=solicitacao.pk).aggregate(total=Sum("quantidade"))["total"] or 0
+    disponiveis = max(carona.vagas - ocupadas, 0)
+    if quantidade < 1 or quantidade > disponiveis:
+        return JsonResponse({"erro": f"Escolha entre 1 e {disponiveis} vagas.", "max": disponiveis}, status=400)
+    anterior = solicitacao.quantidade
+    if quantidade != anterior:
+        if solicitacao.status == "aceita" and quantidade > anterior:
+            solicitacao.status = "pendente"
+        solicitacao.quantidade = quantidade
+        solicitacao.save(update_fields=["quantidade", "status"])
+        Notificacao.objects.create(
+            usuario=carona.motorista, tipo="solicitacao_recebida",
+            titulo="Quantidade de vagas alterada",
+            mensagem=f"{solicitacao.nome_solicitante} alterou de {anterior} para {quantidade} vaga(s).",
+            carona=carona, solicitacao=solicitacao,
+        )
+    return JsonResponse({"quantidade": solicitacao.quantidade, "status": solicitacao.status})
 
 
 def api_status_solicitacoes(request):

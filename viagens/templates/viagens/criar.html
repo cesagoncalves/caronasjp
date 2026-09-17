@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% load static %}
 {% block content %}
 
 <div class="row justify-content-center">
@@ -33,6 +34,11 @@
                     {% endif %}
 
                     <div class="mb-3">
+                        <label for="id_modalidade" class="form-label fw-semibold">O que você vai transportar?</label>
+                        {{ form.modalidade }}
+                        <div class="form-text">Escolha passageiros, encomendas ou ambos.</div>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Origem</label>
                         {{ form.origem }}
                         {% if form.origem.errors %}<div class="text-danger small mt-1">{{ form.origem.errors|join:", " }}</div>{% endif %}
@@ -48,11 +54,11 @@
                         <label class="form-label">Data e Hora</label>
                         <div class="row g-2">
                             <div class="col-md-6">
-                                {{ form.data }}
+                                <label class="small text-muted" for="id_data"><i class="bi bi-calendar-event me-1"></i>Data</label><div class="input-group"><span class="input-group-text" aria-hidden="true"><i class="bi bi-calendar-event"></i></span>{{ form.data }}</div>
                                 {% if form.data.errors %}<div class="text-danger small mt-1">{{ form.data.errors|join:", " }}</div>{% endif %}
                             </div>
                             <div class="col-md-6">
-                                {{ form.hora }}
+                                <label class="small text-muted" for="id_hora"><i class="bi bi-clock me-1"></i>Hora</label><div class="input-group"><span class="input-group-text" aria-hidden="true"><i class="bi bi-clock"></i></span>{{ form.hora }}</div>
                                 {% if form.hora.errors %}<div class="text-danger small mt-1">{{ form.hora.errors|join:", " }}</div>{% endif %}
                             </div>
                         </div>
@@ -85,7 +91,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Valor da passagem</label>
+                        <label for="id_tipo_valor" class="form-label fw-semibold"><i class="bi bi-cash-coin me-1"></i>Valor da passagem: selecione uma opção</label>
                         {{ form.tipo_valor }}
                         {% if form.tipo_valor.errors %}<div class="text-danger small mt-1">{{ form.tipo_valor.errors|join:", " }}</div>{% endif %}
                     </div>
@@ -244,5 +250,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
+<script src="{% static 'js/modalidade.js' %}"></script>
 {% endblock %}
 

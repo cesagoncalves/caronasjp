@@ -1,0 +1,28 @@
+.fechar-publicidade { position:absolute; top:10px; right:10px; z-index:1; padding:12px; }
+.banner-eletronica .banner-inner { padding-top:24px; }
+.solicitacoes-motorista .flex-grow-1, .detalhe-carona .flex-grow-1 { min-width:0; overflow-wrap:anywhere; }
+.solicitacoes-motorista .badge, .detalhe-carona .badge,
+[data-page="encomendas-local"] .badge { max-width:100%; white-space:normal; line-height:1.4; overflow-wrap:anywhere; }
+.detalhe-carona .list-group-item > .d-flex { flex-wrap:wrap; }
+.detalhe-carona .list-group-item .flex-shrink-0.d-flex { margin-left:auto; }
+.js-acoes-participacao .btn { min-height:44px; }
+.card-viagem, .card-solicitacao, [data-page="encomendas-local"] #lista-encomendas .card {
+    border:1px solid #dce7f4!important; border-left:4px solid #0d6efd!important;
+    border-radius:18px!important; box-shadow:0 4px 18px #1735570d!important; overflow:hidden;
+}
+.card-viagem .card-body, .card-solicitacao .card-body,
+[data-page="encomendas-local"] #lista-encomendas .card-body { padding:20px!important; }
+.viagem-header, .solicitacao-head { flex-wrap:wrap; align-items:flex-start; gap:12px; }
+.viagem-rota, .solicitacao-rota { font-size:1.08rem; color:#15385d; overflow-wrap:anywhere; }
+.viagem-meta, .solicitacao-meta { margin-top:6px; }
+.card-viagem .btn, .card-solicitacao .btn { min-height:44px; display:inline-flex; align-items:center; justify-content:center; }
+[data-page="encomendas-local"] #lista-encomendas .d-flex { flex-wrap:wrap; }
+@media (max-width:575.98px) {
+    .detalhe-carona .modal-body { padding:16px!important; }
+    .detalhe-carona .list-group-item .flex-grow-1 { flex-basis:calc(100% - 80px); }
+    .detalhe-carona .list-group-item .flex-shrink-0.d-flex { width:100%; }
+    .detalhe-carona .list-group-item .flex-shrink-0.d-flex .btn { flex:1; }
+    .js-acoes-participacao > .btn, .js-acoes-participacao > form { width:100%; }
+    .js-acoes-participacao > form .btn { width:100%; }
+    .card-viagem .card-body, .card-solicitacao .card-body { padding:16px!important; }
+}

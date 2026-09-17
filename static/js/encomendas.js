@@ -134,9 +134,9 @@ function renderEncomendasLocal() {
                         <span class="badge ${badgeInfoEncomenda(e).klass}">${badgeInfoEncomenda(e).label}</span>
                     </div>
                     <p class="mb-1"><strong>Rota:</strong> ${(e.carona_origem || "-")} -> ${(e.carona_destino || "-")}</p>
-                    <p class="mb-1"><strong>Descricao:</strong> ${e.descricao_item || "-"}</p>
-                    ${e.observacoes ? `<p class="mb-1"><strong>Observacoes:</strong> ${e.observacoes}</p>` : ""}
-                    <p class="text-muted small mb-1">Solicitada em ${e.data_solicitacao || "-"}</p>
+                    <p class="mb-1"><strong>Descrição:</strong> ${e.descricao_item || "-"}</p>
+                    ${e.observacoes ? `<p class="mb-1"><strong>Observações:</strong> ${e.observacoes}</p>` : ""}
+                    <p class="text-muted small mb-1">Solicitada em ${formatarDataLocal(e.data_solicitacao, true)}</p>
                     ${podeCancelarEncomenda(e) ? `
                         <button type="button" class="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-1"
                             onclick="cancelarEncomendaLocal(${e.id}, '${e.token_cancelamento}')">
@@ -185,7 +185,7 @@ function renderEncomendasLocal() {
                 <div class="d-flex justify-content-between align-items-start gap-1 mb-1">
                     <div>
                         <div class="fw-semibold">${v.origem || "-"} -> ${v.destino || "-"}</div>
-                        <div class="text-muted small">${v.data || "-"} ${v.hora ? "as " + v.hora : ""}</div>
+                        <div class="text-muted small">${formatarDataLocal(v.data)} ${v.hora ? "às " + v.hora : ""}</div>
                     </div>
                     ${v.encomendas_ativas > 0 ? `<span class="badge bg-success">${v.encomendas_ativas} encomenda(s)</span>` : ""}
                 </div>
@@ -210,8 +210,8 @@ function renderEncomendasLocal() {
                         </div>
                         <span class="badge ${badgeInfoEncomenda(e).klass}">${badgeInfoEncomenda(e).label}</span>
                     </div>
-                    <p class="mb-1"><strong>Descricao:</strong> ${e.descricao_item || "-"}</p>
-                    <p class="text-muted small mb-1">Solicitada em ${e.data_solicitacao || "-"}</p>
+                    <p class="mb-1"><strong>Descrição:</strong> ${e.descricao_item || "-"}</p>
+                    <p class="text-muted small mb-1">Solicitada em ${formatarDataLocal(e.data_solicitacao, true)}</p>
                     ${podeCancelarEncomenda(e) ? `
                         <button type="button" class="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-1 mt-1"
                             onclick="cancelarEncomendaLocal(${e.id}, '${e.token_cancelamento}')">
@@ -266,13 +266,13 @@ function renderEncomendasCaronaLocal() {
 
     const tituloOrigem = lista[0].carona_origem || "-";
     const tituloDestino = lista[0].carona_destino || "-";
-    const tituloData = lista[0].carona_data || "-";
+    const tituloData = formatarDataLocal(lista[0].carona_data);
     const tituloHora = (lista[0].carona_hora || "").slice(0, 5);
 
     container.innerHTML = `
         <div class="alert alert-light border">
             <strong>${tituloOrigem} -> ${tituloDestino}</strong>
-            em ${tituloData} ${tituloHora ? "as " + tituloHora : ""}
+            em ${tituloData} ${tituloHora ? "às " + tituloHora : ""}
         </div>
         ${lista.map(e => `
             <div class="card border-0 shadow-sm rounded-3 mb-3">
@@ -280,11 +280,11 @@ function renderEncomendasCaronaLocal() {
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
                         <div>
                             <div class="fw-semibold">${e.carona_origem || "-"} -> ${e.carona_destino || "-"}</div>
-                            <div class="text-muted small">Solicitada em ${e.data_solicitacao || "-"}</div>
+                            <div class="text-muted small">Solicitada em ${formatarDataLocal(e.data_solicitacao, true)}</div>
                         </div>
                         ${(e.status !== "aceita" || String(e.carona_status || "").toLowerCase() === "concluida") ? `<span class="badge ${badgeInfoEncomenda(e).klass}">${badgeInfoEncomenda(e).label}</span>` : ""}
                     </div>
-                    <p class="mb-2"><strong>Descricao:</strong> ${e.descricao_item || "-"}</p>
+                    <p class="mb-2"><strong>Descrição:</strong> ${e.descricao_item || "-"}</p>
                     ${e.endereco_solicitante ? `<p class="mb-1 small text-muted"><i class="bi bi-geo-alt-fill me-1"></i>Coleta: ${e.endereco_solicitante}</p>` : ""}
                     ${e.endereco_destino_solicitante ? `<p class="mb-2 small text-muted"><i class="bi bi-signpost-2-fill me-1"></i>Entrega: ${e.endereco_destino_solicitante}</p>` : ""}
                     ${podeCancelarEncomenda(e) ? `
@@ -320,7 +320,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         await sincronizarSolicitacoes();
     }
     if (typeof hidratarCaronas === "function") {
-        await hidratarCaronas();
+        await Promise.allSettled([hidratarCaronas()]);
     }
     marcarEncomendasComoVistas();
     if (page === "encomendas-carona-local") {

@@ -469,6 +469,7 @@
     }
     </style>
 
+<link rel="stylesheet" href="{% static 'css/checklist.css' %}">
 </head>
 
 
@@ -502,7 +503,7 @@
                 <ul class="dropdown-menu dropdown-menu-end notificacoes-dropdown"
                     aria-labelledby="dropdownNotificacoesMobile">
                     <li class="notificacoes-header">
-                        Notificacoes
+                        Notificações
                     </li>
 
                     <div class="notificacoes-lista">
@@ -519,13 +520,13 @@
                     {% if PUSH_CAN_ENABLE %}
                     <li class="px-2 pb-2">
                         <button id="btnPermitirNotificacoesMobile" type="button" class="btn btn-primary btn-sm w-100">
-                            Permitir notificacoes
+                            Permitir notificações
                         </button>
                     </li>
                     {% endif %}
                     <li class="px-2 pb-2">
                         <button id="btnLimparNotificacoesMobile" type="button" class="btn btn-outline-danger btn-sm w-100">
-                            Limpar notificacoes
+                            Limpar notificações
                         </button>
                     </li>
                 </ul>
@@ -799,13 +800,13 @@
                 {% if PUSH_CAN_ENABLE %}
                 <li class="px-2 pb-2">
                     <button id="btnPermitirNotificacoes" type="button" class="btn btn-primary btn-sm w-100">
-                        Permitir notificacoes
+                        Permitir notificações
                     </button>
                 </li>
                 {% endif %}
                 <li class="px-2 pb-2">
                     <button id="btnLimparNotificacoes" type="button" class="btn btn-outline-danger btn-sm w-100">
-                        Limpar notificacoes
+                        Limpar notificações
                     </button>
                 </li>
             </ul>
@@ -1072,7 +1073,7 @@
         <span class="mx-2">•</span>
         <a href="{% url 'termos_uso' %}" class="text-muted">Termos de Uso</a>
         <span class="mx-2">•</span>
-        <a href="{% url 'politica_privacidade' %}" class="text-muted">Politica de Privacidade</a>
+        <a href="{% url 'politica_privacidade' %}" class="text-muted">Política de Privacidade</a>
     </div>
 </footer>
 
@@ -1124,18 +1125,19 @@
         <div class="modal-content card-soft p-3">
             <div class="modal-body text-center">
                 <div class="push-pill mb-3">
-                    <i class="bi bi-bell-fill"></i> Notificacoes
+                    <i class="bi bi-bell-fill"></i> Notificações
                 </div>
+                <span class="badge rounded-pill bg-success mb-2">Recomendado</span>
                 <h5 class="mb-2">Quer receber alertas no celular e no computador?</h5>
                 <p class="text-muted mb-4">
-                    Enviamos avisos quando houver respostas e atualizacoes das suas caronas.
+                    Enviamos avisos quando houver respostas e atualizações das suas caronas.
                 </p>
                 <div class="d-grid gap-2">
                     <button type="button" class="btn btn-primary" data-action="enable">
-                        Ativar notificacoes
+                        Ativar notificações
                     </button>
                     <button type="button" class="btn btn-outline-secondary" data-action="later">
-                        Agora nao
+                        Agora não
                     </button>
                 </div>
                 <div class="text-muted small mt-3" data-role="status"></div>
@@ -1148,7 +1150,7 @@
     <div class="card card-soft shadow-lg p-3">
         <div class="d-flex justify-content-between align-items-start gap-2">
             <div>
-                <div class="fw-semibold" id="pushToastTitle">Nova notificacao</div>
+                <div class="fw-semibold" id="pushToastTitle">Nova notificação</div>
                 <div class="text-muted small" id="pushToastBody"></div>
             </div>
             <button type="button" class="btn btn-sm btn-light" id="pushToastClose">
@@ -1245,7 +1247,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (modalPaiAbertoId) {
             bootstrap.Modal.getOrCreateInstance(modalPai).hide();
         }
-        imgAmpliada.src = img.dataset.src || img.src;
+        imgAmpliada.onerror = () => { imgAmpliada.onerror = null; imgAmpliada.src = "{% static 'img/avatar_padrao.jpg' %}"; };
+        imgAmpliada.src = img.currentSrc || img.src || "{% static 'img/avatar_padrao.jpg' %}";
         imgAmpliada.classList.remove("zoom-2");
         titulo.textContent = img.dataset.nome || img.alt || "Imagem";
         modal.show();
@@ -1283,7 +1286,8 @@ document.addEventListener("DOMContentLoaded", () => {
         img.addEventListener("click", (event) => {
             event.preventDefault();
             event.stopPropagation();
-            imgAmpliada.src = img.dataset.src || img.src;
+            imgAmpliada.onerror = () => { imgAmpliada.onerror = null; imgAmpliada.src = "{% static 'img/avatar_padrao.jpg' %}"; };
+        imgAmpliada.src = img.currentSrc || img.src || "{% static 'img/avatar_padrao.jpg' %}";
             nomeEl.textContent = img.dataset.nome || "";
             imgAmpliada.classList.remove("zoom-2");
             modal.show();
@@ -1638,6 +1642,8 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 {% endif %}
 
+{% include 'viagens/modals/modal_editar_vagas.html' %}
+<script src="{% static 'js/participacao.js' %}"></script>
 </body>
 </html>
 

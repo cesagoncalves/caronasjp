@@ -35,7 +35,7 @@ function renderSolicitacoesLocal() {
 
     if (!lista.length) {
         container.innerHTML = `
-            <div class="alert alert-info text-center">Voce ainda nao tem solicitacoes.</div>`;
+            <div class="alert alert-info text-center">Você ainda não tem solicitações.</div>`;
         return;
     }
 
@@ -44,7 +44,7 @@ function renderSolicitacoesLocal() {
     lista.forEach((s) => {
         const badgeClass = classeStatus(s.status);
         const statusLabel = labelStatus(s.status);
-        const dataHora = `${formatarDataBr(s.carona_data)}${s.carona_hora ? ` as ${s.carona_hora}` : ""}`;
+        const dataHora = `${formatarDataBr(s.carona_data)}${s.carona_hora ? ` às ${s.carona_hora}` : ""}`;
 
         container.innerHTML += `
             <div class="card card-solicitacao mb-3">
@@ -66,7 +66,7 @@ function renderSolicitacoesLocal() {
                         ${String(s.status).toLowerCase() === "pendente" ? `
                             <button class="btn btn-danger btn-sm"
                                 onclick="cancelarSolicitacaoPublica(${s.id}, '${s.token_cancelamento}')">
-                                Cancelar solicitacao
+                                Cancelar solicitação
                             </button>
                         ` : ""}
                     </div>
@@ -76,7 +76,7 @@ function renderSolicitacoesLocal() {
 }
 
 async function cancelarSolicitacaoPublica(id, token) {
-    if (!confirm("Tem certeza que deseja cancelar esta solicitacao?")) return;
+    if (!confirm("Tem certeza que deseja cancelar esta solicitação?")) return;
 
     try {
         const resp = await fetch(`/cancelar-solicitacao-publica/${id}/`, {
@@ -127,8 +127,10 @@ document.addEventListener("DOMContentLoaded", marcarSolicitacoesComoVistas);
 document.addEventListener("DOMContentLoaded", async () => {
     if (document.body.dataset.page !== "solicitacoes-local") return;
 
-    await sincronizarSolicitacoes();
-    await hidratarCaronas();
+    const container = document.getElementById("lista-solicitacoes");
+    if (container) container.innerHTML = '<p class="text-muted text-center" role="status">Carregando solicitações…</p>';
+    await Promise.allSettled([sincronizarSolicitacoes()]);
+    await Promise.allSettled([hidratarCaronas()]);
     renderSolicitacoesLocal();
 
     const lista = getSolicitacoes().map((s) => {

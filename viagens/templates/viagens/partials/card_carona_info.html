@@ -12,7 +12,8 @@
 
 <p class="mb-1">
     <i class="bi bi-people-fill me-2 text-warning"></i>
-    {% if carona.vagas_restantes > 0 %}
+    {% if not carona.aceita_passageiros %}<span class="badge bg-info text-dark">Somente encomendas</span>
+{% elif carona.vagas_restantes > 0 %}
         {{ carona.vagas_restantes }} vaga(s)
     {% else %}
         <span class="badge bg-danger">Lotada</span>
@@ -54,7 +55,7 @@
 <p class="mb-1">
     {% if carona.observacoes %}
     <span class="text-muted">
-        <i class="bi bi-chat-left-text text-muted opacity-75" title="Observacoes do motorista"></i>
+        <i class="bi bi-chat-left-text text-muted opacity-75" title="Observações do motorista"></i>
     </span>
     {% endif %}
 </p>

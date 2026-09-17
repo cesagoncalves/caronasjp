@@ -135,6 +135,15 @@
 </div>
 {% endif %}
 <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const quantidade = document.getElementById('id_quantidade');
+    if (!quantidade) return;
+    quantidade.addEventListener('input', () => {
+        if (Number(quantidade.value) > Number(quantidade.max)) quantidade.value = quantidade.max;
+    });
+});
+</script>
+<script>
 (function () {
     const TERMOS_VISITANTE_KEY = "visitante_aceitou_termos_uso";
     let uuid = localStorage.getItem("uuid_local");

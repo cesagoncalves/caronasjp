@@ -32,6 +32,7 @@ async function sincronizarSolicitacoes() {
             const remoto = backend.find(b => String(b.id) === String(local.id));
             if (!remoto) return;
 
+            if (local.quantidade !== remoto.quantidade) { local.quantidade = remoto.quantidade; alterou = true; }
             if (local.carona_status !== remoto.carona_status) {
                 local.carona_status = remoto.carona_status;
                 alterou = true;

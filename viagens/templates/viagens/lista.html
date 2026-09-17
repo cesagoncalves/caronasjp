@@ -231,7 +231,8 @@
 }
 </style>
 
-<div class="banner-eletronica shadow-sm p-3 mb-3">
+<div class="banner-eletronica shadow-sm p-3 mb-3 position-relative" id="banner-publicidade">
+<button type="button" class="btn-close fechar-publicidade" aria-label="Fechar anúncio" onclick="this.closest('#banner-publicidade').remove()"></button>
     <div class="banner-inner">
         <div class="logo-slot">
             <img src="{% static 'img/ads/eletronica-automotiva-logo.jpeg' %}"
@@ -259,7 +260,7 @@
 
 <div class="mb-4" id="ativos-agora-section" {% if not user.is_authenticated or destaques_ativos|length == 0 %}style="display:none;"{% endif %}>
     <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="mb-0 fw-bold">Ativos agora</h5>
+        <h5 class="mb-0 fw-bold"><i class="bi bi-broadcast text-success me-1"></i>Suas viagens ativas agora</h5>
         <span class="text-muted small" id="ativos-count">
             {% if user.is_authenticated %}{{ destaques_ativos|length }} ativo(s){% else %}0 ativo(s){% endif %}
         </span>
@@ -487,7 +488,8 @@
                     </div>
 
                     <div class="motorista-vagas">
-                        {% if carona.vagas_restantes > 0 %}
+                        {% if not carona.aceita_passageiros %}<span class="badge bg-info text-dark">Somente encomendas</span>
+{% elif carona.vagas_restantes > 0 %}
                             <span class="badge bg-warning text-dark">
                                 <i class="bi bi-person-fill"></i>
                                 {{ carona.vagas_restantes }} vaga{% if carona.vagas_restantes > 1 %}s{% endif %}

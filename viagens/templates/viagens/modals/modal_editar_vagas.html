@@ -1,0 +1,21 @@
+<div class="modal fade" id="modalEditarVagas" tabindex="-1" aria-labelledby="tituloEditarVagas" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content rounded-4" id="formEditarVagas">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5 class="modal-title" id="tituloEditarVagas">Editar vagas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label" for="quantidadeEditarVagas">Quantidade de vagas</label>
+                <input id="quantidadeEditarVagas" name="quantidade" type="number" min="1" required class="form-control">
+                <p class="small text-muted mt-3">Se aumentar uma reserva já confirmada, toda a solicitação voltará a aguardar aprovação do motorista. Reduzir mantém a confirmação.</p>
+                <div class="alert alert-danger d-none" role="alert" id="erroEditarVagas"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Voltar</button>
+                <button type="submit" class="btn btn-primary">Salvar vagas</button>
+            </div>
+        </form>
+    </div>
+</div>

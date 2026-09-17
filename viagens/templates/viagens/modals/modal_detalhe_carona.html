@@ -3,7 +3,7 @@
 
 <div class="modal fade" id="modalCarona{{ carona.id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-        <div class="modal-content rounded-4 shadow">
+        <div class="modal-content rounded-4 shadow detalhe-carona">
 
             <!-- HEADER -->
             <div class="modal-header bg-primary text-white rounded-top-4">
@@ -20,7 +20,7 @@
                 {% if carona.minha_solicitacao_ativa or carona.minha_participacao_pendente or carona.minhas_encomendas_ativas_count|default:0 > 0 %}
                 <div class="border rounded-3 p-3 bg-light mb-3 text-center">
                     <h6 class="fw-semibold mb-2">
-                        <i class="bi bi-person-check me-2"></i> Sua participacao nesta viagem
+                        <i class="bi bi-person-check me-2"></i> Sua participação nesta viagem
                     </h6>
 
                     <div class="d-flex flex-wrap gap-2 mb-2 justify-content-center">
@@ -49,7 +49,7 @@
                 <div class="border rounded-3 p-3 bg-light mb-3 d-none js-participacao-local text-center"
                     data-carona-id="{{ carona.id }}">
                     <h6 class="fw-semibold mb-2">
-                        <i class="bi bi-person-check me-2"></i> Sua participacao nesta viagem
+                        <i class="bi bi-person-check me-2"></i> Sua participação nesta viagem
                     </h6>
                     <div class="d-flex flex-wrap gap-2 js-participacao-local-badges justify-content-center"></div>
                     <a href="{% url 'minhas_encomendas_carona_publica' carona.id %}"
@@ -59,6 +59,7 @@
                 </div>
                 {% endif %}
 
+                <div class="text-center mb-3"><span class="badge bg-primary-subtle text-primary-emphasis">{{ carona.get_modalidade_display }}</span></div>
                 <!-- Origem / Destino -->
                 <div class="row mb-4 js-origem-destino">
                     <div class="col-md-6 mb-3 mb-md-0 text-center">
@@ -102,7 +103,8 @@
                     <div class="{% if user == carona.motorista %}col-6 col-md-3{% else %}col-4{% endif %}">
                         <div class="border rounded-3 p-3 h-100">
                             <i class="bi bi-people fs-3 text-primary d-block"></i>
-                            {% if carona.vagas_restantes > 0 %}
+                            {% if not carona.aceita_passageiros %}<span class="badge bg-info text-dark">Somente encomendas</span>
+{% elif carona.vagas_restantes > 0 %}
                                 <p class="fw-bold mb-0">{{ carona.vagas_restantes }} / {{ carona.vagas }}</p>
                             {% else %}
                                 <div>
@@ -225,7 +227,7 @@
                 <div class="px-2">
                     <h6 class="fw-semibold mb-2">
                         <i class="bi bi-chat-left-text text-muted opacity-75 me-2"></i>
-                        Observacoes do motorista
+                        Observações do motorista
                     </h6>
 
                     <div class="border rounded-3 p-3 bg-light small">
@@ -322,10 +324,10 @@
                                                         </div>
 
                                                         <div class="flex-shrink-0 d-flex gap-2">
-                                                            <a href="{% url 'aceitar_solicitacao' solicitacao.id %}" class="btn btn-success btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Aceitar passageiro">
+                                                            <a href="{% url 'aceitar_solicitacao' solicitacao.id %}" class="btn btn-success btn-sm" style="min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;" title="Aceitar passageiro">
                                                                 <i class="bi bi-check-circle"></i>
                                                             </a>
-                                                            <a href="{% url 'recusar_solicitacao' solicitacao.id %}" class="btn btn-outline-danger btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Recusar passageiro">
+                                                            <a href="{% url 'recusar_solicitacao' solicitacao.id %}" class="btn btn-outline-danger btn-sm" style="min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;" title="Recusar passageiro">
                                                                 <i class="bi bi-x-circle"></i>
                                                             </a>
                                                         </div>
@@ -389,7 +391,7 @@
                                                     <div class="flex-shrink-0">
                                                         <form method="post" action="{% url 'remover_passageiro' solicitacao.id %}" onsubmit="return confirm('Remover este passageiro da viagem?');">
                                                             {% csrf_token %}
-                                                            <button type="submit" class="btn btn-outline-danger btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Remover passageiro">
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm" style="min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;" title="Remover passageiro">
                                                                 <i class="bi bi-x-circle"></i>
                                                             </button>
                                                         </form>
@@ -444,15 +446,15 @@
                                                 </div>
                                                 <div class="d-flex gap-2">
                                                     {% if encomenda.status == "pendente" %}
-                                                        <a href="{% url 'detalhe_encomenda' encomenda.id %}" class="btn btn-outline-primary btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Ver detalhes da encomenda"><i class="bi bi-eye"></i></a>
-                                                        <a href="{% url 'aceitar_solicitacao' encomenda.id %}" class="btn btn-success btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Aceitar encomenda"><i class="bi bi-check-circle"></i></a>
-                                                        <a href="{% url 'recusar_solicitacao' encomenda.id %}" class="btn btn-outline-danger btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"><i class="bi bi-x-circle"></i></a>
+                                                        <a href="{% url 'detalhe_encomenda' encomenda.id %}" class="btn btn-outline-primary btn-sm" style="min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;" title="Ver detalhes da encomenda"><i class="bi bi-eye"></i></a>
+                                                        <a href="{% url 'aceitar_solicitacao' encomenda.id %}" class="btn btn-success btn-sm" style="min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;" title="Aceitar encomenda"><i class="bi bi-check-circle"></i></a>
+                                                        <a href="{% url 'recusar_solicitacao' encomenda.id %}" class="btn btn-outline-danger btn-sm" style="min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;"><i class="bi bi-x-circle"></i></a>
                                                     {% endif %}
                                                     {% if encomenda.status == "aceita" %}
-                                                        <a href="{% url 'detalhe_encomenda' encomenda.id %}" class="btn btn-outline-primary btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Ver detalhes da encomenda"><i class="bi bi-eye"></i></a>
+                                                        <a href="{% url 'detalhe_encomenda' encomenda.id %}" class="btn btn-outline-primary btn-sm" style="min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;" title="Ver detalhes da encomenda"><i class="bi bi-eye"></i></a>
                                                         <form method="post" action="{% url 'cancelar_encomenda_motorista' encomenda.id %}" onsubmit="return confirm('Cancelar a entrega desta encomenda?');">
                                                             {% csrf_token %}
-                                                            <button type="submit" class="btn btn-outline-danger btn-sm" style="width: 31px; height: 31px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="Cancelar entrega"><i class="bi bi-x-circle"></i></button>
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm" style="min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;" title="Cancelar entrega"><i class="bi bi-x-circle"></i></button>
                                                         </form>
                                                     {% endif %}
                                                 </div>
@@ -499,26 +501,32 @@
                         </div>
                         <div class="col-12 {% if carona.esta_concluida and carona.status == 'ativa' %}col-md-4{% else %}col-md-6{% endif %} d-grid">
                             <a href="{% url 'excluir_carona' carona.id %}" class="btn btn-outline-danger">
-                                <i class="bi bi-trash me-1"></i> Excluir
+                                <i class="bi bi-x-circle me-1"></i> Cancelar viagem
                             </a>
                         </div>
                     </div>
                 {% else %}
-                    <div class="d-flex flex-wrap gap-2 justify-content-center w-100">
-                        {% if carona.vagas_restantes > 0 %}
-                            <a href="{% url 'solicitar_vaga' carona.id %}" class="btn btn-success btn-footer-eq">
-                                <i class="bi bi-check-circle"></i> Solicitar vaga
-                            </a>
-                        {% else %}
-                            <button type="button" class="btn btn-outline-secondary btn-footer-eq" disabled>
-                                <i class="bi bi-slash-circle me-1"></i> Viagem lotada
-                            </button>
+                    {% if carona.status == 'ativa' and not carona.esta_concluida %}
+                    <div class="d-flex flex-wrap gap-2 justify-content-center w-100 js-acoes-participacao" data-carona-id="{{ carona.id }}" data-vagas="{{ carona.vagas_restantes }}">
+                        {% with ativa=carona.minha_solicitacao_ativa pendente=carona.minha_solicitacao_pendente %}
+                        {% with reserva=ativa|default:pendente %}
+                        {% if reserva %}
+                            <button type="button" class="btn btn-primary js-editar-vagas" data-id="{{ reserva.id }}" data-quantidade="{{ reserva.quantidade }}" data-status="{{ reserva.status }}"><i class="bi bi-pencil-square"></i> Editar vagas</button>
+                            <form method="post" action="{% url 'cancelar_solicitacao' reserva.id %}" onsubmit="return confirm('Cancelar sua participação nesta viagem?');">
+                                {% csrf_token %}<button class="btn btn-outline-danger"><i class="bi bi-x-circle"></i> Cancelar participação</button>
+                            </form>
+                        {% elif carona.aceita_passageiros %}
+                            {% if carona.vagas_restantes > 0 %}
+                            <a href="{% url 'solicitar_vaga' carona.id %}" class="btn btn-success btn-footer-eq js-solicitar-vaga"><i class="bi bi-check-circle"></i> Solicitar vaga</a>
+                            {% else %}<button class="btn btn-outline-secondary js-solicitar-vaga" disabled>Viagem lotada</button>{% endif %}
                         {% endif %}
-
-                        <a href="{% url 'solicitar_encomenda' carona.id %}" class="btn btn-outline-primary btn-footer-eq">
-                            <i class="bi bi-box-seam"></i> Enviar encomenda
-                        </a>
+                        {% endwith %}
+                        {% endwith %}
+                        {% if carona.aceita_encomendas %}
+                        <a href="{% url 'solicitar_encomenda' carona.id %}" class="btn btn-outline-primary btn-footer-eq"><i class="bi bi-box-seam"></i> Enviar encomenda</a>
+                        {% endif %}
                     </div>
+                    {% endif %}
                 {% endif %}
             </div>
 

@@ -30,6 +30,7 @@ class CaronaForm(forms.ModelForm):
             "data",
             "hora",
             "vagas",
+            "modalidade",
             "tipo_valor",
             "valor",
             "veiculo",
@@ -67,12 +68,37 @@ class CaronaForm(forms.ModelForm):
 
         for field in self.fields.values():
             field.widget.attrs.setdefault("class", "form-control")
+            if isinstance(field.widget, forms.Select):
+                field.widget.attrs["class"] = "form-select"
+        self.fields["vagas"].required = False
+        self.fields["tipo_valor"].required = False
+        self.fields["vagas"].widget.attrs["min"] = 0
 
     def clean(self):
         cleaned_data = super().clean()
         tipo = cleaned_data.get("tipo_valor")
         valor = cleaned_data.get("valor")
         veiculo = cleaned_data.get("veiculo")
+        modalidade = cleaned_data.get("modalidade")
+        vagas = cleaned_data.get("vagas")
+        if modalidade == "encomenda":
+            cleaned_data["vagas"] = 0
+            cleaned_data["tipo_valor"] = tipo = "combinar"
+        elif not vagas or vagas < 1:
+            self.add_error("vagas", "Informe pelo menos uma vaga para passageiros.")
+        if modalidade != "encomenda" and not tipo:
+            self.add_error("tipo_valor", "Selecione como será cobrada a passagem.")
+
+        if self.instance.pk:
+            ativas = self.instance.solicitacoes.filter(status__in=["pendente", "aceita"])
+            if modalidade == "encomenda" and ativas.filter(tipo="carona").exists():
+                self.add_error("modalidade", "Há passageiros pendentes ou confirmados nesta viagem.")
+            if modalidade == "carona" and ativas.filter(tipo="encomenda").exists():
+                self.add_error("modalidade", "Há encomendas pendentes ou confirmadas nesta viagem.")
+            from django.db.models import Sum
+            ocupadas = ativas.filter(tipo="carona", status="aceita").aggregate(total=Sum("quantidade"))["total"] or 0
+            if (cleaned_data.get("vagas") or 0) < ocupadas:
+                self.add_error("vagas", f"Já existem {ocupadas} vagas confirmadas.")
 
         if tipo == "dinheiro" and not valor:
             self.add_error("valor", "Informe o valor da passagem.")
@@ -88,6 +114,19 @@ class CaronaForm(forms.ModelForm):
 
 class SolicitacaoForm(forms.ModelForm):
     quantidade = forms.IntegerField(min_value=1)
+
+    def __init__(self, *args, vagas_disponiveis=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.vagas_disponiveis = vagas_disponiveis
+        self.fields["quantidade"].widget.attrs.update({"class": "form-control", "min": 1})
+        if vagas_disponiveis is not None:
+            self.fields["quantidade"].widget.attrs["max"] = vagas_disponiveis
+
+    def clean_quantidade(self):
+        quantidade = self.cleaned_data["quantidade"]
+        if self.vagas_disponiveis is not None and quantidade > self.vagas_disponiveis:
+            raise forms.ValidationError(f"Só restam {self.vagas_disponiveis} vagas disponíveis.")
+        return quantidade
 
     class Meta:
         model = Solicitacao
@@ -158,7 +197,7 @@ class EncomendaForm(forms.ModelForm):
             ),
             "foto_encomenda": forms.FileInput(attrs={"class": "form-control"}),
             "observacoes": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3, "placeholder": "Ex: Fragil, manter em pe, entregar ate 18h..."}
+                attrs={"class": "form-control", "rows": 3, "placeholder": "Ex: Frágil, manter em pé, entregar até 18h..."}
             ),
         }
 

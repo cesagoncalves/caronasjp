@@ -67,3 +67,13 @@ function cancelarSolicitacaoLS(id) {
 
 
 
+
+function formatarDataLocal(valor, incluirHora = false) {
+    if (!valor) return "-";
+    const texto = String(valor);
+    const data = /^(\d{4})-(\d{2})-(\d{2})$/.exec(texto);
+    if (data) return `${data[3]}/${data[2]}/${data[1]}`;
+    const instante = new Date(texto);
+    if (Number.isNaN(instante.getTime())) return texto;
+    return incluirHora ? instante.toLocaleString("pt-BR", {dateStyle:"short", timeStyle:"short"}) : instante.toLocaleDateString("pt-BR");
+}

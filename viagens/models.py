@@ -9,6 +9,20 @@ from PIL import Image, ImageOps
 from django.utils import timezone
 
 class Carona(models.Model):
+    modalidade = models.CharField(
+        max_length=10,
+        choices=(("ambos", "Passageiros e encomendas"), ("carona", "Somente passageiros"), ("encomenda", "Somente encomendas")),
+        default="ambos",
+    )
+
+    @property
+    def aceita_passageiros(self):
+        return self.modalidade in ("ambos", "carona")
+
+    @property
+    def aceita_encomendas(self):
+        return self.modalidade in ("ambos", "encomenda")
+
     STATUS_CHOICES = (
         ('ativa', 'Ativa'),
         ('concluida', 'ConcluÃ­da'),
@@ -44,7 +58,7 @@ class Carona(models.Model):
     tipo_valor = models.CharField(
         max_length=10,
         choices=TIPO_VALOR_CHOICES,
-        default='combinar'
+        default='dinheiro'
     )
 
     valor = models.DecimalField(
@@ -81,6 +95,8 @@ class Carona(models.Model):
     
     @property
     def valor_exibicao(self):
+        if not self.aceita_passageiros:
+            return "Frete a combinar"
         if self.tipo_valor == 'dinheiro' and self.valor is not None:
             return f"R$ {self.valor:.2f}".replace('.', ',')
         elif self.tipo_valor == 'gratuita':

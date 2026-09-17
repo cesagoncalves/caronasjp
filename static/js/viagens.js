@@ -24,7 +24,7 @@ function renderViagensLocal() {
 
     const lista = getSolicitacoes()
         .filter((s) =>
-            String(s.status).toLowerCase() === "aceita" &&
+            s.tipo !== "encomenda" && String(s.status).toLowerCase() === "aceita" &&
             String(s.carona_status).toLowerCase() === "ativa"
         )
         .sort((a, b) => dataHoraCarona(a) - dataHoraCarona(b));
@@ -45,8 +45,9 @@ function renderViagensLocal() {
             <div class="card card-viagem card-viagem-clickable mb-3"
                  data-bs-toggle="modal"
                  data-bs-target="#modalViagemLocal"
+                 data-reserva-id="${escAttr(v.id)}"
                  data-rota="${escAttr(`${v.carona_origem} -> ${v.carona_destino}`)}"
-                 data-data-hora="${escAttr(`${formatarDataBr(v.carona_data)} as ${v.carona_hora}`)}"
+                 data-data-hora="${escAttr(`${formatarDataBr(v.carona_data)} às ${v.carona_hora}`)}"
                  data-motorista="${escAttr(v.motorista_nome)}"
                  data-quantidade="${escAttr(`${v.quantidade} vaga(s)`)}">
                 <div class="card-body p-3">
@@ -55,14 +56,14 @@ function renderViagensLocal() {
                             <div class="viagem-rota">
                                 ${v.carona_origem} <i class="bi bi-arrow-right mx-1"></i> ${v.carona_destino}
                             </div>
-                            <p class="viagem-meta">${v.carona_data} as ${v.carona_hora}</p>
+                            <p class="viagem-meta">${formatarDataBr(v.carona_data)} às ${(v.carona_hora || "").slice(0, 5)}</p>
                         </div>
                         <span class="badge bg-success">Ativa</span>
                     </div>
                     <div class="small mb-2"><strong>Motorista:</strong> ${v.motorista_nome}</div>
                     <div class="small mb-3"><strong>Quantidade:</strong> ${v.quantidade} vaga(s)</div>
                     <button class="btn btn-outline-danger btn-sm w-100"
-                        onclick="cancelarViagemLocal(${v.id}, '${v.token_cancelamento}')">
+                        onclick="event.stopPropagation(); cancelarViagemLocal(${v.id}, '${v.token_cancelamento}')">
                         <i class="bi bi-x-circle"></i> Cancelar viagem
                     </button>
                 </div>
@@ -131,7 +132,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await sincronizarSolicitacoes();
     marcarViagensComoVistas();
-    await hidratarCaronas();
+    await Promise.allSettled([hidratarCaronas()]);
     renderViagensLocal();
 
     const modalEl = document.getElementById("modalViagemLocal");
@@ -143,6 +144,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             modalEl.querySelector('[data-local-viagem="data_hora"]').textContent = card.getAttribute("data-data-hora") || "-";
             modalEl.querySelector('[data-local-viagem="motorista"]').textContent = card.getAttribute("data-motorista") || "-";
             modalEl.querySelector('[data-local-viagem="quantidade"]').textContent = card.getAttribute("data-quantidade") || "-";
+            const reserva = getSolicitacoes().find(s => String(s.id) === card.dataset.reservaId);
+            const editar = modalEl.querySelector(".js-editar-vagas");
+            const cancelar = modalEl.querySelector(".js-cancelar-viagem-local");
+            if (reserva && editar && cancelar) {
+                editar.dataset.id = reserva.id;
+                editar.dataset.quantidade = reserva.quantidade;
+                editar.dataset.status = reserva.status;
+                editar.dataset.token = reserva.token_cancelamento;
+                cancelar.onclick = () => cancelarViagemLocal(reserva.id, reserva.token_cancelamento);
+            }
         });
     }
 });

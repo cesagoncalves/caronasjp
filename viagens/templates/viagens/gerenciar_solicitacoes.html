@@ -9,14 +9,14 @@
 
     {% if solicitacoes %}
         {% for s in solicitacoes %}
-        <div class="card mb-4 p-3 shadow-sm rounded-4">
+        <div class="card solicitacoes-motorista mb-4 p-3 shadow-sm rounded-4">
 
             <div class="d-flex align-items-start gap-3">
 
                 {% if s.solicitante and s.solicitante.foto %}
-                    <img src="{{ s.solicitante.foto.url }}" class="rounded-circle" width="64" height="64">
+                    <img src="{{ s.solicitante.foto.url }}" class="rounded-circle js-foto-zoom" width="64" height="64" alt="Foto do passageiro" style="object-fit:cover;cursor:zoom-in;" onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
                 {% else %}
-                    <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle" width="64" height="64">
+                    <img src="{% static 'img/avatar_padrao.jpg' %}" class="rounded-circle js-foto-zoom" width="64" height="64" alt="Foto do passageiro" style="object-fit:cover;cursor:zoom-in;">
                 {% endif %}
 
                 <div class="flex-grow-1">
@@ -24,7 +24,7 @@
                         {{ s.solicitante.nome_curto|default:s.nome_solicitante }}
                     </div>
 
-                    {% with telefone=s.solicitante.telefone|default:s.telefone_solicitante %}
+                    {% with telefone=s.telefone_solicitante %}
                     <div class="fw-semibold">
                         <a href="https://wa.me/{{ telefone|whatsapp_br }}" target="_blank" rel="noopener" class="text-decoration-none">
                             <i class="bi bi-whatsapp me-1"></i>{{ telefone }}
@@ -60,10 +60,7 @@
                                 <i class="bi bi-person-fill me-1"></i>
                                 {{ s.quantidade }} vaga{{ s.quantidade|pluralize }}
                             </span>
-                            <span class="badge bg-info-subtle text-info-emphasis fs-6 px-3 py-2">
-                                <i class="bi bi-people-fill me-1"></i>
-                                {{ s.vagas_restantes_carona }} vaga(s) restante(s)
-                            </span>
+
 
                             {% if s.malas > 0 %}
                                 <span class="badge bg-warning text-dark fs-6 px-3 py-2">
@@ -71,6 +68,10 @@
                                     {{ s.get_malas_display }}
                                 </span>
                             {% endif %}
+                            <span class="badge bg-info-subtle text-info-emphasis fs-6 px-3 py-2">
+                                <i class="bi bi-people-fill me-1"></i>
+                                {{ s.vagas_restantes_carona }} vaga(s) restante(s)
+                            </span>
                         {% endif %}
                     </div>
                 </div>
