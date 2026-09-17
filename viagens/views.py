@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponseBadRequest ,HttpResponse
-from django.db.models import Sum, Count, Q, Max
+from django.db.models import Sum, Count, Q, Max, Prefetch
 from .models import Carona, Solicitacao, Veiculo, Notificacao
 from usuarios.models import PushSubscription
 from .forms import CaronaForm, SolicitacaoForm, EncomendaForm, VeiculoForm
@@ -1437,14 +1437,43 @@ def excluir_veiculo(request, veiculo_id):
     return redirect("meus_veiculos")
 
 @login_required
+@transaction.atomic
 def concluir_carona(request, carona_id):
-    carona = get_object_or_404(Carona, id=carona_id, motorista=request.user)
+    carona = get_object_or_404(
+        Carona.objects.select_for_update(),
+        id=carona_id,
+        motorista=request.user,
+    )
 
     if carona.status == "concluida":
         return redirect("lista_caronas")
 
     carona.status = "concluida"
     carona.save(update_fields=["status"])
+
+    solicitacoes_pendentes = list(
+        carona.solicitacoes
+        .select_related("solicitante")
+        .filter(status="pendente")
+    )
+    for solicitacao in solicitacoes_pendentes:
+        solicitacao.status = "cancelada"
+        solicitacao.save(update_fields=["status"])
+        if solicitacao.solicitante:
+            Notificacao.objects.create(
+                usuario=solicitacao.solicitante,
+                tipo="viagem_cancelada",
+                titulo="Solicitação encerrada",
+                mensagem=f"A viagem para {carona.destino} foi concluída antes da confirmação da sua solicitação.",
+                carona=carona,
+                solicitacao=solicitacao,
+            )
+
+    Notificacao.objects.filter(
+        usuario=request.user,
+        tipo="solicitacao_recebida",
+        solicitacao__in=solicitacoes_pendentes,
+    ).update(lida=True)
 
     solicitacoes_aceitas = (
         carona.solicitacoes
@@ -1532,23 +1561,42 @@ def historico_viagens(request):
         caronas = (
             Carona.objects
             .filter(filtro)
+            .select_related('motorista')
+            .prefetch_related(
+                Prefetch(
+                    'solicitacoes',
+                    queryset=(
+                        Solicitacao.objects
+                        .filter(status='aceita')
+                        .select_related('solicitante')
+                        .order_by('tipo', 'data_solicitacao')
+                    ),
+                    to_attr='solicitacoes_historico',
+                )
+            )
             .distinct()
             .order_by('-data', '-hora')
         )
 
         for carona in caronas:
+            passageiros = [
+                solicitacao
+                for solicitacao in carona.solicitacoes_historico
+                if solicitacao.tipo == 'carona'
+            ]
             historico_itens.append({
                 'categoria': 'carona',
                 'carona': carona,
                 'descricao_item': '',
                 'foto_encomenda': None,
                 'papel': 'motorista' if carona.motorista_id == request.user.id else 'passageiro',
+                'passageiros': passageiros,
             })
 
         if tipo in ['todas', 'encomenda']:
             encomendas = (
                 Solicitacao.objects
-                .select_related('carona', 'solicitante')
+                .select_related('carona', 'carona__motorista', 'solicitante')
                 .filter(
                     tipo='encomenda',
                     status='aceita',
@@ -1570,6 +1618,7 @@ def historico_viagens(request):
                     'descricao_item': e.descricao_item or '',
                     'foto_encomenda': e.foto_encomenda,
                     'papel': 'motorista' if e.carona.motorista_id == request.user.id else 'passageiro',
+                    'solicitacao': e,
                 })
 
         historico_itens.sort(

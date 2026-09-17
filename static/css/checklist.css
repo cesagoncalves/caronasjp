@@ -3,9 +3,20 @@
 .solicitacoes-motorista .flex-grow-1, .detalhe-carona .flex-grow-1 { min-width:0; overflow-wrap:anywhere; }
 .solicitacoes-motorista .badge, .detalhe-carona .badge,
 [data-page="encomendas-local"] .badge { max-width:100%; white-space:normal; line-height:1.4; overflow-wrap:anywhere; }
-.detalhe-carona .list-group-item > .d-flex { flex-wrap:wrap; }
-.detalhe-carona .list-group-item .flex-shrink-0.d-flex { margin-left:auto; }
+.detalhe-carona .list-group-item > .d-flex { flex-wrap:nowrap; }
+.detalhe-carona .list-group-item .flex-shrink-0 { margin-left:auto; }
 .js-acoes-participacao .btn { min-height:44px; }
+.js-acoes-participacao {
+    display:grid!important;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+}
+.js-acoes-participacao > form,
+.js-acoes-participacao > a,
+.js-acoes-participacao > button { width:100%; }
+.js-acoes-participacao > form .btn { width:100%; height:100%; }
+.acoes-encomenda { align-items:center; flex-wrap:nowrap!important; }
+.acoes-encomenda form { display:flex; margin:0; }
+.acoes-encomenda .btn { width:44px; height:44px; min-width:44px!important; min-height:44px!important; padding:0!important; }
 .card-viagem, .card-solicitacao, [data-page="encomendas-local"] #lista-encomendas .card {
     border:1px solid #dce7f4!important; border-left:4px solid #0d6efd!important;
     border-radius:18px!important; box-shadow:0 4px 18px #1735570d!important; overflow:hidden;
@@ -19,10 +30,7 @@
 [data-page="encomendas-local"] #lista-encomendas .d-flex { flex-wrap:wrap; }
 @media (max-width:575.98px) {
     .detalhe-carona .modal-body { padding:16px!important; }
-    .detalhe-carona .list-group-item .flex-grow-1 { flex-basis:calc(100% - 80px); }
-    .detalhe-carona .list-group-item .flex-shrink-0.d-flex { width:100%; }
-    .detalhe-carona .list-group-item .flex-shrink-0.d-flex .btn { flex:1; }
-    .js-acoes-participacao > .btn, .js-acoes-participacao > form { width:100%; }
-    .js-acoes-participacao > form .btn { width:100%; }
+    .detalhe-carona .list-group-item .flex-grow-1 { min-width:0; }
+    .js-acoes-participacao { grid-template-columns:1fr; }
     .card-viagem .card-body, .card-solicitacao .card-body { padding:16px!important; }
 }

@@ -193,3 +193,59 @@ class ChecklistTests(TestCase):
         self.client.get(reverse("aceitar_solicitacao", args=[pendente.pk]))
         pendente.refresh_from_db()
         self.assertEqual(pendente.status, "pendente")
+
+    def test_concluir_carona_cancela_pendentes_e_preserva_aceitas(self):
+        aceita = self.reserva(status="aceita")
+        pendente = self.reserva(solicitante=self.outro, status="pendente")
+        self.client.force_login(self.motorista)
+
+        response = self.client.get(reverse("concluir_carona", args=[self.carona.pk]))
+
+        self.assertEqual(response.status_code, 302)
+        self.carona.refresh_from_db()
+        aceita.refresh_from_db()
+        pendente.refresh_from_db()
+        self.assertEqual(self.carona.status, "concluida")
+        self.assertEqual(aceita.status, "aceita")
+        self.assertEqual(pendente.status, "cancelada")
+
+    def test_modal_do_motorista_exibe_apenas_abas_da_modalidade(self):
+        self.client.force_login(self.motorista)
+
+        self.carona.modalidade = "carona"
+        self.carona.save(update_fields=["modalidade"])
+        response = self.client.get(reverse("lista_caronas"))
+        self.assertContains(response, f'id="painelPassageiros{self.carona.pk}"')
+        self.assertNotContains(response, f'id="painelEncomendas{self.carona.pk}"')
+
+        self.carona.modalidade = "encomenda"
+        self.carona.save(update_fields=["modalidade"])
+        response = self.client.get(reverse("lista_caronas"))
+        self.assertNotContains(response, f'id="painelPassageiros{self.carona.pk}"')
+        self.assertContains(response, f'id="painelEncomendas{self.carona.pk}"')
+
+    def test_historico_mostra_participantes_e_remetentes(self):
+        self.carona.status = "concluida"
+        self.carona.save(update_fields=["status"])
+        self.reserva(status="aceita")
+        Solicitacao.objects.create(
+            carona=self.carona,
+            solicitante=self.passageiro,
+            nome_solicitante="Passageiro",
+            telefone_solicitante="11922222222",
+            tipo="encomenda",
+            status="aceita",
+            descricao_item="Caixa de livros",
+        )
+        self.client.force_login(self.motorista)
+
+        response = self.client.get(reverse("historico_viagens"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Passageiro")
+        self.assertContains(response, "Caixa de livros")
+        self.assertContains(response, "Remetente")
+
+    def test_rotulo_de_status_concluida_esta_correto(self):
+        self.carona.status = "concluida"
+        self.assertEqual(self.carona.get_status_display(), "Concluída")

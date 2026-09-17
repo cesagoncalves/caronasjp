@@ -37,9 +37,9 @@
     transform: translateY(-3px);
     box-shadow: 0 22px 52px rgba(16, 39, 75, .15) !important;
 }
-.card-carona-disponivel .carona-card-body { padding: 22px 24px 20px; }
+.card-carona-disponivel .carona-card-body { padding: 17px 18px 16px; }
 .card-carona-disponivel .carona-card-topo {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 17px;
 }
 .card-carona-disponivel .carona-status {
     display: inline-flex; align-items: center; gap: 9px; padding: 9px 14px;
@@ -47,19 +47,19 @@
 }
 .card-carona-disponivel .carona-publicada { color: #6c7788; font-size: .88rem; text-align: right; }
 .card-carona-disponivel .carona-conteudo {
-    display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(230px, .85fr); gap: 24px;
+    display: grid; grid-template-columns: 1fr; gap: 17px;
 }
 .card-carona-disponivel .carona-principal { min-width: 0; }
 .card-carona-disponivel .carona-lateral {
-    min-width: 0; border-left: 1px solid #e4e9ef; padding-left: 24px;
-    display: flex; flex-direction: column; justify-content: center; gap: 20px;
+    min-width: 0; border-top: 1px solid #e4e9ef; padding-top: 15px;
+    display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 12px;
 }
 .card-carona-disponivel .rota { position: relative; padding-left: 38px; }
 .card-carona-disponivel .rota::before {
     content: ""; position: absolute; left: 11px; top: 16px; bottom: 17px;
     border-left: 2px dashed #8a9aae;
 }
-.card-carona-disponivel .rota-ponto { position: relative; padding-bottom: 19px; }
+.card-carona-disponivel .rota-ponto { position: relative; padding-bottom: 14px; }
 .card-carona-disponivel .rota-ponto:last-child { padding-bottom: 0; }
 .card-carona-disponivel .rota-ponto::before {
     content: ""; position: absolute; left: -38px; top: 4px; width: 22px; height: 22px;
@@ -69,44 +69,43 @@
     background: #ef3340; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
     box-shadow: 0 0 0 5px #fff1f2;
 }
-.card-carona-disponivel .rota-cidade { color: #101d30; font-size: 1.25rem; font-weight: 750; line-height: 1.2; }
+.card-carona-disponivel .rota-cidade { color: #101d30; font-size: 1.08rem; font-weight: 750; line-height: 1.2; }
 .card-carona-disponivel .rota-tipo { color: #6c7788; font-size: .86rem; margin-top: 3px; }
 .card-carona-disponivel .carona-infos {
-    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 24px;
-    border-top: 1px solid #edf0f3; padding-top: 18px;
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 17px;
+    border-top: 1px solid #edf0f3; padding-top: 14px;
 }
-.card-carona-disponivel .carona-info { display: flex; gap: 10px; padding: 0 16px; min-width: 0; }
+.card-carona-disponivel .carona-info { display: flex; gap: 7px; padding: 0 10px; min-width: 0; }
 .card-carona-disponivel .carona-info:first-child { padding-left: 0; }
 .card-carona-disponivel .carona-info + .carona-info { border-left: 1px solid #dfe5eb; }
-.card-carona-disponivel .carona-info i { color: #17263b; font-size: 1.4rem; flex: 0 0 auto; }
+.card-carona-disponivel .carona-info i { color: #17263b; font-size: 1.12rem; flex: 0 0 auto; }
 .card-carona-disponivel .carona-info-label { color: #6c7788; font-size: .78rem; }
 .card-carona-disponivel .carona-info-valor { color: #101d30; font-weight: 750; line-height: 1.25; overflow-wrap: anywhere; }
 .card-carona-disponivel .carona-info.valor .carona-info-valor,
 .card-carona-disponivel .carona-info.valor i { color: #078b48; }
 .card-carona-disponivel .carona-disponibilidade {
-    display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px;
-    padding: 13px 16px; border-radius: 14px; background: linear-gradient(135deg, #eff7ff, #e7f1ff);
+    display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 15px;
+    padding: 10px 12px; border-radius: 12px; background: linear-gradient(135deg, #eff7ff, #e7f1ff);
     color: #124b94; font-weight: 700; text-align: center;
 }
 .card-carona-disponivel .motorista-bloco { display: flex; align-items: center; gap: 13px; }
 .card-carona-disponivel .motorista-foto {
-    width: 64px; height: 64px; border-radius: 50%; object-fit: cover; flex: 0 0 64px;
+    width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex: 0 0 48px;
     background: #eef1f5; cursor: zoom-in;
 }
 .card-carona-disponivel .motorista-label,
 .card-carona-disponivel .veiculo-label { color: #6c7788; font-size: .8rem; }
 .card-carona-disponivel .motorista-nome { color: #101d30; font-size: 1.12rem; font-weight: 750; overflow-wrap: anywhere; }
 .card-carona-disponivel .veiculo-bloco { display: flex; align-items: center; gap: 13px; }
-.card-carona-disponivel .veiculo-icone { color: #334155; font-size: 2rem; width: 64px; text-align: center; }
+.card-carona-disponivel .veiculo-icone { color: #334155; font-size: 1.6rem; width: 44px; text-align: center; }
 .card-carona-disponivel .veiculo-nome { color: #101d30; font-weight: 750; overflow-wrap: anywhere; }
 .card-carona-disponivel .carona-detalhes-btn {
     display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
-    margin-top: 22px; padding: 13px 18px; border: 0; border-radius: 14px;
+    margin-top: 16px; padding: 11px 15px; border: 0; border-radius: 12px;
     color: #fff; background: linear-gradient(135deg, #1269dc, #087cf0); font-weight: 750;
 }
 .card-carona-disponivel .carona-detalhes-btn i:last-child { margin-left: auto; }
-.card-carona-disponivel .carona-alerta { margin-top: 12px; text-align: center; }
-}
+.card-carona-disponivel .carona-alerta { margin-top: 10px; text-align: center; }
 .filtro-tipo-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(88px, 1fr));
@@ -168,17 +167,29 @@
     .card-carona-disponivel .motorista-foto { width: 50px; height: 50px; flex-basis: 50px; }
     .card-carona-disponivel .veiculo-icone { width: 42px; font-size: 1.6rem; }
     .card-carona-disponivel .rota-cidade { font-size: 1.1rem; }
-    .card-carona-disponivel .carona-infos { gap: 0; }
+    .card-carona-disponivel .rota-ponto { padding-bottom: 19px; }
+    .card-carona-disponivel .carona-infos { gap: 0; margin-top: 24px; padding-top: 18px; }
     .card-carona-disponivel .carona-info { padding: 0 8px; gap: 6px; }
     .card-carona-disponivel .carona-info i { font-size: 1.05rem; }
     .card-carona-disponivel .carona-info-label { font-size: .68rem; }
     .card-carona-disponivel .carona-info-valor { font-size: .82rem; }
-    .card-carona-disponivel .carona-disponibilidade { font-size: .86rem; }
+    .card-carona-disponivel .carona-disponibilidade { margin-top: 20px; padding: 13px 16px; border-radius: 14px; font-size: .86rem; }
+    .card-carona-disponivel .carona-detalhes-btn { margin-top: 22px; padding: 13px 18px; border-radius: 14px; }
+    .card-carona-disponivel .carona-alerta { margin-top: 12px; }
     .filtro-tipo-grid .btn {
         min-width: 0;
     }
     .filtro-tipo-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 5px;
+    }
+    .filtro-tipo-grid .btn {
+        padding-left: 4px;
+        padding-right: 4px;
+        font-size: .78rem;
+    }
+    .filtro-tipo-grid .btn i {
+        font-size: 1.15rem !important;
     }
     .banner-eletronica .logo-slot {
         width: 78px;
@@ -235,7 +246,7 @@
 
 <div class="mb-4" id="ativos-agora-section" {% if not user.is_authenticated or destaques_ativos|length == 0 %}style="display:none;"{% endif %}>
     <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="mb-0 fw-bold"><i class="bi bi-broadcast text-success me-1"></i>Suas viagens ativas agora</h5>
+        <h5 class="mb-0 fw-bold"><i class="bi bi-broadcast text-success me-1"></i>Viagens ativas</h5>
         <span class="text-muted small" id="ativos-count">
             {% if user.is_authenticated %}{{ destaques_ativos|length }} ativo(s){% else %}0 ativo(s){% endif %}
         </span>
@@ -396,7 +407,7 @@
 {% endif %}
 <div class="row g-2">
 {% for carona in caronas %}
-<div class="col-12">
+<div class="col-12 col-lg-6">
 
 <div class="card shadow-sm card-clickable h-100 card-carona-disponivel"
      data-modal-target="#modalCarona{{ carona.id }}"
@@ -459,7 +470,11 @@
                         Esta viagem aceita encomendas
                     {% elif carona.vagas_restantes > 0 %}
                         <i class="bi bi-people-fill"></i>
-                        {{ carona.vagas_restantes }} vaga{% if carona.vagas_restantes != 1 %}s{% endif %} disponível{% if carona.vagas_restantes != 1 %}is{% endif %} de {{ carona.vagas }}
+                        {% if carona.vagas_restantes == 1 %}
+                            1 vaga disponível de {{ carona.vagas }}
+                        {% else %}
+                            {{ carona.vagas_restantes }} vagas disponíveis de {{ carona.vagas }}
+                        {% endif %}
                     {% else %}
                         <i class="bi bi-slash-circle-fill"></i> Viagem lotada
                     {% endif %}

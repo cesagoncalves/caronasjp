@@ -244,6 +244,7 @@
                 {% if user == carona.motorista %}
                 <div class="px-2 mb-3 js-painel-motorista">
                     <ul class="nav nav-pills nav-fill mb-3" id="painelCarona{{ carona.id }}" role="tablist">
+                        {% if carona.aceita_passageiros %}
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#painelPassageiros{{ carona.id }}" type="button" role="tab">
                                 Passageiros
@@ -252,17 +253,21 @@
                                 {% endif %}
                             </button>
                         </li>
+                        {% endif %}
+                        {% if carona.aceita_encomendas %}
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#painelEncomendas{{ carona.id }}" type="button" role="tab">
+                            <button class="nav-link {% if not carona.aceita_passageiros %}active{% endif %}" data-bs-toggle="pill" data-bs-target="#painelEncomendas{{ carona.id }}" type="button" role="tab">
                                 Encomendas
                                 {% if carona.encomendas_pendentes > 0 %}
                                     <span class="badge bg-warning text-dark ms-2">{{ carona.encomendas_pendentes }}</span>
                                 {% endif %}
                             </button>
                         </li>
+                        {% endif %}
                     </ul>
 
                     <div class="tab-content">
+                        {% if carona.aceita_passageiros %}
                         <div class="tab-pane fade show active" id="painelPassageiros{{ carona.id }}" role="tabpanel">
                                                         {% with passageiros=carona.passageiros_aceitos pendentes=carona.passageiros_pendentes %}
                             {% if passageiros.count == 0 and pendentes.count == 0 %}
@@ -414,8 +419,10 @@
                             {% endif %}
                             {% endwith %}
                         </div>
+                        {% endif %}
 
-                        <div class="tab-pane fade" id="painelEncomendas{{ carona.id }}" role="tabpanel">
+                        {% if carona.aceita_encomendas %}
+                        <div class="tab-pane fade {% if not carona.aceita_passageiros %}show active{% endif %}" id="painelEncomendas{{ carona.id }}" role="tabpanel">
                             {% with encomendas=carona.encomendas_ativas_lista %}
                             {% if encomendas|length == 0 %}
                                 <div class="text-muted small ps-1 text-center">Nenhuma encomenda ativa nesta viagem.</div>
@@ -444,7 +451,7 @@
                                                         <span class="badge bg-warning text-dark">Pendente</span>
                                                     {% endif %}
                                                 </div>
-                                                <div class="d-flex gap-2">
+                                                <div class="d-flex gap-2 acoes-encomenda">
                                                     {% if encomenda.status == "pendente" %}
                                                         <a href="{% url 'detalhe_encomenda' encomenda.id %}" class="btn btn-outline-primary btn-sm" style="min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;" title="Ver detalhes da encomenda"><i class="bi bi-eye"></i></a>
                                                         <a href="{% url 'aceitar_solicitacao' encomenda.id %}" class="btn btn-success btn-sm" style="min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;" title="Aceitar encomenda"><i class="bi bi-check-circle"></i></a>
@@ -475,6 +482,7 @@
                             {% endif %}
                             {% endwith %}
                         </div>
+                        {% endif %}
                     </div>
                     <hr>
                 </div>
@@ -511,20 +519,25 @@
                         {% with ativa=carona.minha_solicitacao_ativa pendente=carona.minha_solicitacao_pendente %}
                         {% with reserva=ativa|default:pendente %}
                         {% if reserva %}
-                            <button type="button" class="btn btn-primary js-editar-vagas" data-id="{{ reserva.id }}" data-quantidade="{{ reserva.quantidade }}" data-status="{{ reserva.status }}"><i class="bi bi-pencil-square"></i> Editar vagas</button>
+                            {% if carona.aceita_encomendas %}
+                            <a href="{% url 'solicitar_encomenda' carona.id %}" class="btn btn-outline-primary btn-footer-eq"><i class="bi bi-box-seam"></i> Enviar encomenda</a>
+                            {% endif %}
                             <form method="post" action="{% url 'cancelar_solicitacao' reserva.id %}" onsubmit="return confirm('Cancelar sua participação nesta viagem?');">
                                 {% csrf_token %}<button class="btn btn-outline-danger"><i class="bi bi-x-circle"></i> Cancelar participação</button>
                             </form>
-                        {% elif carona.aceita_passageiros %}
-                            {% if carona.vagas_restantes > 0 %}
-                            <a href="{% url 'solicitar_vaga' carona.id %}" class="btn btn-success btn-footer-eq js-solicitar-vaga"><i class="bi bi-check-circle"></i> Solicitar vaga</a>
-                            {% else %}<button class="btn btn-outline-secondary js-solicitar-vaga" disabled>Viagem lotada</button>{% endif %}
+                            <button type="button" class="btn btn-primary js-editar-vagas" data-id="{{ reserva.id }}" data-quantidade="{{ reserva.quantidade }}" data-status="{{ reserva.status }}"><i class="bi bi-pencil-square"></i> Editar vagas</button>
+                        {% else %}
+                            {% if carona.aceita_passageiros %}
+                                {% if carona.vagas_restantes > 0 %}
+                                <a href="{% url 'solicitar_vaga' carona.id %}" class="btn btn-success btn-footer-eq js-solicitar-vaga"><i class="bi bi-check-circle"></i> Solicitar vaga</a>
+                                {% else %}<button class="btn btn-outline-secondary js-solicitar-vaga" disabled>Viagem lotada</button>{% endif %}
+                            {% endif %}
+                            {% if carona.aceita_encomendas %}
+                            <a href="{% url 'solicitar_encomenda' carona.id %}" class="btn btn-outline-primary btn-footer-eq"><i class="bi bi-box-seam"></i> Enviar encomenda</a>
+                            {% endif %}
                         {% endif %}
                         {% endwith %}
                         {% endwith %}
-                        {% if carona.aceita_encomendas %}
-                        <a href="{% url 'solicitar_encomenda' carona.id %}" class="btn btn-outline-primary btn-footer-eq"><i class="bi bi-box-seam"></i> Enviar encomenda</a>
-                        {% endif %}
                     </div>
                     {% endif %}
                 {% endif %}
