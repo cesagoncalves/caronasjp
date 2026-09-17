@@ -25,7 +25,7 @@ class Carona(models.Model):
 
     STATUS_CHOICES = (
         ('ativa', 'Ativa'),
-        ('concluida', 'ConcluÃ­da'),
+        ('concluida', 'Concluí­da'),
         ('cancelada', 'Cancelada'),
     )
 

@@ -26,101 +26,86 @@
 }
 
 .card-carona-disponivel {
-    font-size: 1.35rem;
+    border: 0;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 16px 42px rgba(16, 39, 75, .10) !important;
+    transition: transform .18s ease, box-shadow .18s ease;
 }
-
-.card-carona-disponivel .small {
-    font-size: 1.15rem;
+.card-carona-disponivel:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 22px 52px rgba(16, 39, 75, .15) !important;
 }
-
-.card-carona-disponivel .badge {
-    font-size: 1rem;
+.card-carona-disponivel .carona-card-body { padding: 22px 24px 20px; }
+.card-carona-disponivel .carona-card-topo {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px;
 }
-.card-carona-disponivel .carona-layout {
-    position: relative;
-    padding-bottom: 34px;
+.card-carona-disponivel .carona-status {
+    display: inline-flex; align-items: center; gap: 9px; padding: 9px 14px;
+    border-radius: 14px; background: #d9f7e6; color: #087b3f; font-weight: 700;
 }
-.card-carona-disponivel .carona-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-    gap: 12px;
-    align-items: start;
+.card-carona-disponivel .carona-publicada { color: #6c7788; font-size: .88rem; text-align: right; }
+.card-carona-disponivel .carona-conteudo {
+    display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(230px, .85fr); gap: 24px;
 }
-.card-carona-disponivel .aguardando-slot {
-    position: absolute;
-    left: 50%;
-    bottom: 0;
-    transform: translateX(-50%);
-    width: 100%;
-    min-height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.card-carona-disponivel .carona-principal { min-width: 0; }
+.card-carona-disponivel .carona-lateral {
+    min-width: 0; border-left: 1px solid #e4e9ef; padding-left: 24px;
+    display: flex; flex-direction: column; justify-content: center; gap: 20px;
 }
-.card-carona-disponivel .carona-right {
-    justify-content: flex-end;
-    min-width: 0;
+.card-carona-disponivel .rota { position: relative; padding-left: 38px; }
+.card-carona-disponivel .rota::before {
+    content: ""; position: absolute; left: 11px; top: 16px; bottom: 17px;
+    border-left: 2px dashed #8a9aae;
 }
-.card-carona-disponivel .motorista-meta {
-    min-width: 0;
+.card-carona-disponivel .rota-ponto { position: relative; padding-bottom: 19px; }
+.card-carona-disponivel .rota-ponto:last-child { padding-bottom: 0; }
+.card-carona-disponivel .rota-ponto::before {
+    content: ""; position: absolute; left: -38px; top: 4px; width: 22px; height: 22px;
+    border-radius: 50%; background: #16a260; box-shadow: 0 0 0 5px #eefaf4;
 }
-.card-carona-disponivel .motorista-veiculo {
-    margin-top: 3px;
-    white-space: nowrap;
+.card-carona-disponivel .rota-ponto.destino::before {
+    background: #ef3340; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+    box-shadow: 0 0 0 5px #fff1f2;
 }
-.card-carona-disponivel .motorista-vagas {
-    margin-top: 6px;
+.card-carona-disponivel .rota-cidade { color: #101d30; font-size: 1.25rem; font-weight: 750; line-height: 1.2; }
+.card-carona-disponivel .rota-tipo { color: #6c7788; font-size: .86rem; margin-top: 3px; }
+.card-carona-disponivel .carona-infos {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 24px;
+    border-top: 1px solid #edf0f3; padding-top: 18px;
 }
-.card-carona-disponivel .motorista-foto-slot {
-    width: 42px;
-    height: 42px;
-    flex: 0 0 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.card-carona-disponivel .carona-info { display: flex; gap: 10px; padding: 0 16px; min-width: 0; }
+.card-carona-disponivel .carona-info:first-child { padding-left: 0; }
+.card-carona-disponivel .carona-info + .carona-info { border-left: 1px solid #dfe5eb; }
+.card-carona-disponivel .carona-info i { color: #17263b; font-size: 1.4rem; flex: 0 0 auto; }
+.card-carona-disponivel .carona-info-label { color: #6c7788; font-size: .78rem; }
+.card-carona-disponivel .carona-info-valor { color: #101d30; font-weight: 750; line-height: 1.25; overflow-wrap: anywhere; }
+.card-carona-disponivel .carona-info.valor .carona-info-valor,
+.card-carona-disponivel .carona-info.valor i { color: #078b48; }
+.card-carona-disponivel .carona-disponibilidade {
+    display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px;
+    padding: 13px 16px; border-radius: 14px; background: linear-gradient(135deg, #eff7ff, #e7f1ff);
+    color: #124b94; font-weight: 700; text-align: center;
 }
-.card-carona-disponivel .motorista-foto-slot img {
-    width: 40px;
-    height: 40px;
-    object-fit: cover;
-    cursor: zoom-in;
+.card-carona-disponivel .motorista-bloco { display: flex; align-items: center; gap: 13px; }
+.card-carona-disponivel .motorista-foto {
+    width: 64px; height: 64px; border-radius: 50%; object-fit: cover; flex: 0 0 64px;
+    background: #eef1f5; cursor: zoom-in;
 }
-.card-carona-disponivel .valor-linha {
-    margin-top: 6px;
+.card-carona-disponivel .motorista-label,
+.card-carona-disponivel .veiculo-label { color: #6c7788; font-size: .8rem; }
+.card-carona-disponivel .motorista-nome { color: #101d30; font-size: 1.12rem; font-weight: 750; overflow-wrap: anywhere; }
+.card-carona-disponivel .veiculo-bloco { display: flex; align-items: center; gap: 13px; }
+.card-carona-disponivel .veiculo-icone { color: #334155; font-size: 2rem; width: 64px; text-align: center; }
+.card-carona-disponivel .veiculo-nome { color: #101d30; font-weight: 750; overflow-wrap: anywhere; }
+.card-carona-disponivel .carona-detalhes-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+    margin-top: 22px; padding: 13px 18px; border: 0; border-radius: 14px;
+    color: #fff; background: linear-gradient(135deg, #1269dc, #087cf0); font-weight: 750;
 }
-.card-carona-disponivel .valor-combinar {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #6c757d;
-}
-.card-carona-disponivel .valor-dinheiro {
-    font-size: 1rem;
-}
-.card-carona-disponivel .rota-cidades {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-    max-width: 100%;
-}
-.card-carona-disponivel .rota-cidades.rota-vertical {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-    white-space: normal;
-}
-.card-carona-disponivel .rota-arrow-right {
-    color: #0d6efd;
-}
-.card-carona-disponivel .rota-arrow-down {
-    display: none;
-    color: #0d6efd;
-}
-.card-carona-disponivel .rota-cidades.rota-vertical .rota-arrow-right {
-    display: none;
-}
-.card-carona-disponivel .rota-cidades.rota-vertical .rota-arrow-down {
-    display: inline-block;
+.card-carona-disponivel .carona-detalhes-btn i:last-child { margin-left: auto; }
+.card-carona-disponivel .carona-alerta { margin-top: 12px; text-align: center; }
 }
 .filtro-tipo-grid {
     display: grid;
@@ -170,35 +155,25 @@
     font-size: 0.92rem;
 }
 @media (max-width: 575.98px) {
-    .card-carona-disponivel .carona-grid {
-        grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
-        gap: 8px;
+    .card-carona-disponivel { border-radius: 19px; }
+    .card-carona-disponivel .carona-card-body { padding: 17px 16px 16px; }
+    .card-carona-disponivel .carona-card-topo { align-items: flex-start; margin-bottom: 19px; }
+    .card-carona-disponivel .carona-status { padding: 8px 11px; font-size: .88rem; }
+    .card-carona-disponivel .carona-publicada { font-size: .76rem; max-width: 120px; }
+    .card-carona-disponivel .carona-conteudo { grid-template-columns: 1fr; gap: 20px; }
+    .card-carona-disponivel .carona-lateral {
+        border-left: 0; border-top: 1px solid #e4e9ef; padding: 18px 0 0;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
     }
-    .card-carona-disponivel .card-body img.rounded-circle {
-        width: 36px;
-        height: 36px;
-    }
-    .card-carona-disponivel .motorista-foto-slot {
-        width: 40px;
-        height: 40px;
-        flex-basis: 40px;
-    }
-    .card-carona-disponivel .motorista-foto-slot img {
-        width: 36px;
-        height: 36px;
-    }
-    .card-carona-disponivel .rota-cidades {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 2px;
-        white-space: normal;
-    }
-    .card-carona-disponivel .rota-arrow-right {
-        display: none;
-    }
-    .card-carona-disponivel .rota-arrow-down {
-        display: inline-block;
-    }
+    .card-carona-disponivel .motorista-foto { width: 50px; height: 50px; flex-basis: 50px; }
+    .card-carona-disponivel .veiculo-icone { width: 42px; font-size: 1.6rem; }
+    .card-carona-disponivel .rota-cidade { font-size: 1.1rem; }
+    .card-carona-disponivel .carona-infos { gap: 0; }
+    .card-carona-disponivel .carona-info { padding: 0 8px; gap: 6px; }
+    .card-carona-disponivel .carona-info i { font-size: 1.05rem; }
+    .card-carona-disponivel .carona-info-label { font-size: .68rem; }
+    .card-carona-disponivel .carona-info-valor { font-size: .82rem; }
+    .card-carona-disponivel .carona-disponibilidade { font-size: .86rem; }
     .filtro-tipo-grid .btn {
         min-width: 0;
     }
@@ -421,113 +396,136 @@
 {% endif %}
 <div class="row g-2">
 {% for carona in caronas %}
-<div class="col-12 col-md-6">
+<div class="col-12">
 
 <div class="card shadow-sm card-clickable h-100 card-carona-disponivel"
      data-modal-target="#modalCarona{{ carona.id }}"
      style="cursor:pointer;">
 
-    <div class="card-body py-2 px-3">
+    <div class="card-body carona-card-body">
+        <div class="carona-card-topo">
+            <div class="carona-status">
+                {% if carona.modalidade == "encomenda" %}
+                    <i class="bi bi-box-seam-fill"></i> Encomenda disponível
+                {% else %}
+                    <i class="bi bi-car-front-fill"></i> Carona disponível
+                {% endif %}
+            </div>
+            <div class="carona-publicada">
+                Publicada em {{ carona.criado_em|date:"d/m" }} às {{ carona.criado_em|time:"H:i" }}
+            </div>
+        </div>
 
-        <div class="carona-layout">
-        <div class="carona-grid">
+        <div class="carona-conteudo">
+            <div class="carona-principal">
+                <div class="rota">
+                    <div class="rota-ponto">
+                        <div class="rota-cidade">{{ carona.origem }}</div>
+                        <div class="rota-tipo">Origem</div>
+                    </div>
+                    <div class="rota-ponto destino">
+                        <div class="rota-cidade">{{ carona.destino }}</div>
+                        <div class="rota-tipo">Destino</div>
+                    </div>
+                </div>
 
-            <!-- ESQUERDA -->
-            <div class="carona-left">
-                <div class="fw-semibold small rota-cidades js-rota-cidades">
-                    <span><i class="bi bi-geo-alt-fill text-success me-1"></i>{{ carona.origem }}</span>
-                    <i class="bi bi-arrow-right-circle-fill rota-arrow-right"></i>
-                    <i class="bi bi-arrow-down-circle-fill rota-arrow-down"></i>
-                    <span><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ carona.destino }}</span>
+                <div class="carona-infos">
+                    <div class="carona-info">
+                        <i class="bi bi-calendar3"></i>
+                        <div>
+                            <div class="carona-info-label">Data</div>
+                            <div class="carona-info-valor">{{ carona.data|friendly_date }}</div>
+                        </div>
+                    </div>
+                    <div class="carona-info">
+                        <i class="bi bi-clock"></i>
+                        <div>
+                            <div class="carona-info-label">Horário</div>
+                            <div class="carona-info-valor">{{ carona.hora|time:"H:i" }}</div>
+                        </div>
+                    </div>
+                    <div class="carona-info valor">
+                        <i class="bi bi-cash-stack"></i>
+                        <div>
+                            <div class="carona-info-label">{% if carona.modalidade == "encomenda" %}Frete{% else %}Valor{% endif %}</div>
+                            <div class="carona-info-valor">{{ carona.valor_exibicao }}</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="text-muted small">
-                    <div><span class="me-1">📅</span>{{ carona.data|friendly_date }}</div>
-                    <div><span class="me-1">🕒</span>{{ carona.hora|time:"H:i" }}</div>
-                </div>
-                <div class="valor-linha">
-                    {% if carona.tipo_valor == "gratuita" %}
-                        <span class="badge bg-success">Gratuita</span>
-                    {% elif carona.tipo_valor == "dinheiro" %}
-                        <span class="fw-semibold text-success valor-dinheiro">
-                            <i class="bi bi-cash-coin me-1"></i>{{ carona.valor_exibicao }}
-                        </span>
+
+                <div class="carona-disponibilidade">
+                    {% if not carona.aceita_passageiros %}
+                        <i class="bi bi-box-seam-fill"></i>
+                        Esta viagem aceita encomendas
+                    {% elif carona.vagas_restantes > 0 %}
+                        <i class="bi bi-people-fill"></i>
+                        {{ carona.vagas_restantes }} vaga{% if carona.vagas_restantes != 1 %}s{% endif %} disponível{% if carona.vagas_restantes != 1 %}is{% endif %} de {{ carona.vagas }}
                     {% else %}
-                        <span class="valor-combinar">
-                            {{ carona.valor_exibicao }}
-                        </span>
+                        <i class="bi bi-slash-circle-fill"></i> Viagem lotada
                     {% endif %}
                 </div>
             </div>
 
-            <!-- DIREITA -->
-            <div class="d-flex align-items-start gap-2 carona-right">
-                <div class="text-end small motorista-meta">
-                    <div class="fw-semibold text-truncate">
-                        {% if carona.motorista == request.user %}
-                            <span class="badge bg-primary">Você</span>
-                        {% else %}
-                            {{ carona.motorista.nome_curto }}
-                        {% endif %}
-                    </div>
-                    <div class="text-muted d-flex align-items-center gap-1 justify-content-end motorista-veiculo">
-                        {% if carona.veiculo %}
-                            {% if carona.veiculo.tipo == "carro" %}
-                                <i class="bi bi-car-front-fill"></i>
-                            {% elif carona.veiculo.tipo == "moto" %}
-                                <i class="bi bi-bicycle"></i>
-                            {% elif carona.veiculo.tipo == "van" %}
-                                <i class="bi bi-truck-front-fill"></i>
-                            {% elif carona.veiculo.tipo == "onibus" %}
-                                <i class="bi bi-bus-front-fill"></i>
-                            {% else %}
-                                <i class="bi bi-car-front"></i>
-                            {% endif %}
-
-                            {{ carona.veiculo_card }}
-                        {% endif %}
-                    </div>
-
-                    <div class="motorista-vagas">
-                        {% if not carona.aceita_passageiros %}<span class="badge bg-info text-dark">Somente encomendas</span>
-{% elif carona.vagas_restantes > 0 %}
-                            <span class="badge bg-warning text-dark">
-                                <i class="bi bi-person-fill"></i>
-                                {{ carona.vagas_restantes }} vaga{% if carona.vagas_restantes > 1 %}s{% endif %}
-                            </span>
-                        {% else %}
-                            <span class="badge bg-danger">
-                                Lotada
-                            </span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="motorista-foto-slot">
+            <aside class="carona-lateral">
+                <div class="motorista-bloco">
                     {% if carona.motorista.foto %}
                         <img src="{{ carona.motorista.foto.url }}"
-                             class="rounded-circle shadow-sm js-foto-motorista js-foto-zoom"
+                             class="motorista-foto js-foto-motorista js-foto-zoom"
                              data-src="{{ carona.motorista.foto.url }}"
                              data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
+                             alt="Foto de {{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
                              onerror="this.onerror=null;this.src='{% static 'img/avatar_padrao.jpg' %}';">
                     {% else %}
                         <img src="{% static 'img/avatar_padrao.jpg' %}"
-                             class="rounded-circle shadow-sm js-foto-motorista js-foto-zoom"
+                             class="motorista-foto js-foto-motorista js-foto-zoom"
                              data-src="{% static 'img/avatar_padrao.jpg' %}"
-                             data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}">
+                             data-nome="{{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}"
+                             alt="Foto padrão do motorista">
                     {% endif %}
+                    <div>
+                        <div class="motorista-label">Motorista</div>
+                        <div class="motorista-nome">
+                        {% if carona.motorista == request.user %}
+                            Você
+                        {% else %}
+                            {{ carona.motorista.nome_curto|default:carona.motorista.nome_completo }}
+                        {% endif %}
+                        </div>
+                    </div>
                 </div>
-            </div>
 
+                {% if carona.veiculo %}
+                <div class="veiculo-bloco">
+                    <div class="veiculo-icone">
+                        {% if carona.veiculo.tipo == "carro" %}<i class="bi bi-car-front-fill"></i>
+                        {% elif carona.veiculo.tipo == "moto" %}<i class="bi bi-bicycle"></i>
+                        {% elif carona.veiculo.tipo == "van" %}<i class="bi bi-truck-front-fill"></i>
+                        {% elif carona.veiculo.tipo == "onibus" %}<i class="bi bi-bus-front-fill"></i>
+                        {% else %}<i class="bi bi-car-front"></i>{% endif %}
+                    </div>
+                    <div>
+                        <div class="veiculo-label">Veículo</div>
+                        <div class="veiculo-nome">{{ carona.veiculo_card }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </aside>
         </div>
-        <div class="aguardando-slot">
+
+        <div class="carona-alerta">
             {% if carona.aguardando_confirmacao > 0 %}
             <span class="badge bg-warning text-dark">
                 <i class="bi bi-hourglass-split me-1"></i>{{ carona.aguardando_confirmacao }} aguardando resposta
             </span>
             {% endif %}
         </div>
-        </div>
 
+        <button type="button" class="carona-detalhes-btn"
+                data-bs-toggle="modal" data-bs-target="#modalCarona{{ carona.id }}">
+            <i class="bi bi-eye-fill"></i>
+            Ver detalhes da carona
+            <i class="bi bi-chevron-right"></i>
+        </button>
     </div>
 
 </div>
@@ -696,25 +694,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         toggleFiltrosTexto.textContent = aberto ? "Ocultar filtros" : "Mostrar filtros";
     }
 
-    function atualizarLayoutRotas() {
-        const mobile = window.matchMedia("(max-width: 575.98px)").matches;
-        document.querySelectorAll(".js-rota-cidades").forEach((el) => {
-            el.classList.remove("rota-vertical");
-            if (mobile) return;
-            if (el.scrollWidth > el.clientWidth + 2) {
-                el.classList.add("rota-vertical");
-            }
-        });
-    }
-
     if (filtrosCollapse) {
         filtrosCollapse.addEventListener("shown.bs.collapse", atualizarTextoFiltro);
         filtrosCollapse.addEventListener("hidden.bs.collapse", atualizarTextoFiltro);
         atualizarTextoFiltro();
     }
 
-    window.addEventListener("resize", atualizarLayoutRotas);
-    atualizarLayoutRotas();
     updateArrows();
 });
 </script>
